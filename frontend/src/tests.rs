@@ -9,8 +9,14 @@ mod tests {
                 .expect("Failed to get tokentype from literal"),
             TokenType::from_literal("f32".to_owned())
                 .expect("Failed to get tokentype from literal"),
+            TokenType::from_literal("abst".to_owned())
+                .expect("Failed to get tokentype from literal"),
+            TokenType::from_literal("l{\"test\"}".to_owned())
+                .expect("Failed to get tokentype from literal"),
         );
         assert_eq!(ttype.0, TokenType::Int(32));
         assert_eq!(ttype.1, TokenType::Float(32));
+        assert_eq!(ttype.2, TokenType::Abst);
+        assert_eq!(ttype.3, TokenType::Lit(String::from("\"test\"")))
     }
 }
