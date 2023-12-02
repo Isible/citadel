@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "api",       # Developer api
+    "frontend",  # ir-compiler
+    "middleend", # optimizer
+    "backend",   # machine code compiler
+    "fungus",    # example compiler for testing purposes
+]
+resolver = "2"

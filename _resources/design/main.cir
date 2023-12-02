@@ -1,0 +1,9 @@
+# _entry marks the entry point for any citadel IR
+_entry {
+    call §main
+}
+
+@main() i32 {
+    ?bar lcl i8 = l{69}
+    call: %print(l{"Hello World"})
+}

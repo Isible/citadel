@@ -1,0 +1,5 @@
+# selft is the type of this variable, compiler will then just replace it with the var's type
+$unitialized lcl i8 = allocs selft
+
+# abstract function defined elsewhere
+abst @test() i32
