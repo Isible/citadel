@@ -4,10 +4,10 @@ use std::collections::VecDeque;
 
 use clutils::literal::LiteralString;
 
-use crate::errors::results::InvalidLiteral;
+use crate::{errors::results::InvalidLiteral, util};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub enum TokenType {
+pub enum Token {
     // --special-characters--
     /// $ - define a constant
     DollarSign,
@@ -37,10 +37,12 @@ pub enum TokenType {
     // --others--
     /// A literal value. Can represent a string, integer or float
     Lit(String),
+    /// An identifier like a function or variable name
+    Ident(String),
 }
 
-impl TokenType {
-    pub fn from_literal(literal: String) -> Result<TokenType, InvalidLiteral> {
+impl Token {
+    pub fn from_literal(literal: String) -> Result<Token, InvalidLiteral> {
         match literal {
             l if l == Self::DollarSign.literal() => Ok(Self::DollarSign),
             l if l == Self::Section.literal() => Ok(Self::Section),
@@ -65,8 +67,8 @@ impl TokenType {
                             Err(_) => return Err(InvalidLiteral(literal)),
                         };
                         return match prefix {
-                            'i' => Ok(TokenType::Int(bidwith)),
-                            'f' => Ok(TokenType::Float(bidwith)),
+                            'i' => Ok(Token::Int(bidwith)),
+                            'f' => Ok(Token::Float(bidwith)),
                             _ => Err(InvalidLiteral(literal)),
                         };
                     }
@@ -74,29 +76,35 @@ impl TokenType {
                         literal_chars.pop_front();
                         literal_chars.pop_back();
                         let val: String = literal_chars.into_iter().collect();
-                        return Ok(TokenType::Lit(val));
+                        return Ok(Token::Lit(val));
                     }
-                    _ => return Err(InvalidLiteral(literal))
+                    _ => {
+                        if prefix.is_alphabetic() && util::is_valid_ident(&literal) {
+                            return Ok(Token::Ident(literal))
+                        }
+                        Err(InvalidLiteral(literal))
+                    }
                 }
             }
         }
     }
 }
 
-impl LiteralString for TokenType {
+impl LiteralString for Token {
     fn literal(self: &Self) -> String {
         return match self {
-            TokenType::DollarSign => String::from("$"),
-            TokenType::Section => String::from("§"),
-            TokenType::At => String::from("@"),
-            TokenType::PercentSign => String::from("%"),
-            TokenType::QuestionMark => String::from("?"),
-            TokenType::Int(val) => format!("i{val}"),
-            TokenType::Float(val) => format!("f{val}"),
-            TokenType::Lcl => String::from("lcl"),
-            TokenType::Pub => String::from("pub"),
-            TokenType::Abst => String::from("abst"),
-            TokenType::Lit(val) => format!("l{{{val}}}"),
+            Token::DollarSign => String::from("$"),
+            Token::Section => String::from("§"),
+            Token::At => String::from("@"),
+            Token::PercentSign => String::from("%"),
+            Token::QuestionMark => String::from("?"),
+            Token::Int(val) => format!("i{val}"),
+            Token::Float(val) => format!("f{val}"),
+            Token::Lcl => String::from("lcl"),
+            Token::Pub => String::from("pub"),
+            Token::Abst => String::from("abst"),
+            Token::Lit(val) => format!("l{{{val}}}"),
+            Token::Ident(val) => val.to_owned(),
         };
     }
 }
