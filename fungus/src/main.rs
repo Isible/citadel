@@ -1,13 +1,14 @@
 use api::add;
 
 fn main() {
-    println!("{}", add(1, 2));
+    'start: {
+        println!("{}", add(1, 2));
+        break 'start;
+    }
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
-    fn test() {
-        
-    }
+    fn test() {}
 }

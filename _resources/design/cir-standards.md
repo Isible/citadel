@@ -8,7 +8,7 @@ Define a variable with `$` or `?` (`$` indicates a constant, `?` indicates a var
 
 the name of the variable (myVar)
 
-the visibility of the variable (lcl, see: [visibility mods](#visibility))
+the visibility of the variable (lcl, see: [visibility mods](#access-mods))
 
 the type of the var (see: [types](#types)) (i32)
 
@@ -30,7 +30,7 @@ Reference a variable with `%`
 
 ...
 
-### Visibility
+### Access mods
 
 - `lcl` make a value local
 - `gbl` make a value global

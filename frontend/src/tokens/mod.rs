@@ -19,6 +19,8 @@ pub enum Token {
     PercentSign,
     /// ? - define a variable
     QuestionMark,
+    /// = - assign a value to a varable/constant
+    Assign,
 
     // --types--
     /// an integer (the u8 defines the bitwidth)
@@ -27,9 +29,9 @@ pub enum Token {
     Float(u8),
 
     // --keywords--
-    /// sets the visibility of a variable to local
+    /// sets the access of a variable to local
     Lcl,
-    /// sets the visibility of a variable to public
+    /// sets the access of a variable to public
     Pub,
     /// marks a function as abstract meaning it gets initialized in a different module
     Abst,
@@ -49,6 +51,7 @@ impl Token {
             l if l == Self::At.literal() => Ok(Self::At),
             l if l == Self::PercentSign.literal() => Ok(Self::PercentSign),
             l if l == Self::QuestionMark.literal() => Ok(Self::QuestionMark),
+            l if l == Self::Assign.literal() => Ok(Self::Assign),
             l if l == Self::Lcl.literal() => Ok(Self::Lcl),
             l if l == Self::Pub.literal() => Ok(Self::Pub),
             l if l == Self::Abst.literal() => Ok(Self::Abst),
@@ -71,13 +74,13 @@ impl Token {
                             'f' => Ok(Token::Float(bidwith)),
                             _ => Err(InvalidLiteral(literal)),
                         };
-                    }
+                    },
                     'l' => {
                         literal_chars.pop_front();
                         literal_chars.pop_back();
                         let val: String = literal_chars.into_iter().collect();
                         return Ok(Token::Lit(val));
-                    }
+                    },
                     _ => {
                         if prefix.is_alphabetic() && util::is_valid_ident(&literal) {
                             return Ok(Token::Ident(literal))
@@ -98,6 +101,7 @@ impl LiteralString for Token {
             Token::At => String::from("@"),
             Token::PercentSign => String::from("%"),
             Token::QuestionMark => String::from("?"),
+            Token::Assign => String::from("="),
             Token::Int(val) => format!("i{val}"),
             Token::Float(val) => format!("f{val}"),
             Token::Lcl => String::from("lcl"),
