@@ -4,6 +4,7 @@ members = [
     "frontend",  # ir-compiler
     "middleend", # optimizer
     "backend",   # machine code compiler
-    "fungus",    # example compiler for testing purposes
+    "test-lang", # language for testing
+    "fungus",    # rust compiler
 ]
 resolver = "2"

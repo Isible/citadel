@@ -27,6 +27,11 @@ pub enum Token {
     Int(u8),
     /// a floating-point (the u8 defines the bidwith)
     Float(u8),
+    /// array type Box<Token> defines the type. Only Float, Int, ArrayType, VectorType are vaild for this.
+    /// u8 defines the array size
+    ArrayType(Box<Token>, u8),
+    ///
+    VectorType(Box<Token>),
 
     // --keywords--
     /// sets the access of a variable to local
@@ -41,6 +46,10 @@ pub enum Token {
     Lit(String),
     /// An identifier like a function or variable name
     Ident(String),
+    /// An Array literal
+    Array(Vec<Token>),
+    /// A Vector literal
+    Vector(Vec<Token>),
 }
 
 impl Token {
@@ -109,6 +118,10 @@ impl LiteralString for Token {
             Token::Abst => String::from("abst"),
             Token::Lit(val) => format!("l{{{val}}}"),
             Token::Ident(val) => val.to_owned(),
+            Token::ArrayType(tok, len) => format!("[{}; {}]", (**tok).literal(), len),
+            Token::VectorType(tok) => format!("<{}>", (**tok).literal()),
+            Token::Array(arr) => util::vec_to_arr_string(arr),
+            Token::Vector(vec) => util::vec_to_vec_string(vec),
         };
     }
 }

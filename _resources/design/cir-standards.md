@@ -54,7 +54,3 @@ Reference a variable with `%`
 - f64
 - f128
 - f\<n> - a "customizable" float
-
-### Other
-
-- selft - the variable's type
