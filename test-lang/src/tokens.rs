@@ -1,9 +1,9 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Let,
-    Func,
+    Fn,
     If,
-    While,
+    Loop,
 
     Ident(String),
     Integer(i64),
@@ -17,6 +17,12 @@ pub enum Token {
     Multiply,
     Assign,
     Semicolon,
+    Equals,
+
+    LParent,
+    RParent,
+    LCurly,
+    RCurly,
 
     Eof,
 }
