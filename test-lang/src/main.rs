@@ -1,26 +1,21 @@
-use std::{fs::File, io::Read};
+use std::env;
 
-use lexer::Lexer;
-use tokens::Token;
-
-pub mod lexer;
-mod tests;
 pub mod tokens;
+pub mod lexer;
+pub mod ast;
+pub mod parser;
+mod tests;
+mod util;
 
 fn main() {
     run();
 }
 
 fn run() {
-    let mut file = File::open("tests/test.tl").expect("Failed to open file");
-    let mut buf = String::new();
-    file.read_to_string(&mut buf).expect("Failed to read to string");
-    let mut lexer = Lexer::new(buf);
-    loop {
-        let tok = lexer.tokenize();
-        println!("Token: {:?}", tok);
-        if tok == Token::Eof {
-            break;
-        }
-    }
+    let args: Vec<String> = env::args().collect();
+
+    let mut _lexer = match args.get(1) {
+        Some(arg) => util::get_lexer_for_file(arg),
+        None => todo!(),
+    };
 }

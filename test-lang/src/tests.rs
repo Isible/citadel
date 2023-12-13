@@ -1,12 +1,10 @@
 #[cfg(test)]
 mod test {
-    use std::{fs::File, io::Read};
-
-    use crate::{lexer::Lexer, tokens::Token};
+    use crate::{tokens::Token, util};
 
     #[test]
     fn test_lexer() {
-        let mut lexer = get_lexer_for_file("tests/test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/test.tl");
 
         let expected = vec![
             Token::Fn,
@@ -45,10 +43,7 @@ mod test {
         }
     }
 
-    fn get_lexer_for_file(file_path: &str) -> Lexer {
-        let mut file = File::open(file_path).expect("Failed to open file");
-        let mut buf = String::new();
-        file.read_to_string(&mut buf).expect("Failed to read to string");
-        Lexer::new(buf)
+    #[test]
+    fn test_parser() {
     }
 }
