@@ -13,3 +13,5 @@
 - vec: vector
 
 - val: value
+
+- IR: Intermediary Representation

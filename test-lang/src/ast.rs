@@ -11,7 +11,7 @@ pub enum Statement {
 #[derive(Debug)]
 pub enum Expression {
     ArithmeticOperation(ArithmeticOperationExpr),
-    Literal(LiteralExpr),
+    Literal(Literal),
 }
 
 #[derive(Debug)]
@@ -76,9 +76,4 @@ pub struct CallStatement {
 pub struct ArithmeticOperationExpr {
     pub operator: Operator,
     pub sides: (Box<Expression>, Box<Expression>)
-}
-
-#[derive(Debug)]
-pub struct LiteralExpr {
-    pub val: Literal,
 }

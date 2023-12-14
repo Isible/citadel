@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod test {
-    use crate::{tokens::Token, util};
+    use crate::{tokens::Token, util, parser::Parser, lexer::Lexer};
 
     #[test]
     fn test_lexer() {
-        let mut lexer = util::get_lexer_for_file("tests/test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/lexer-test.tl");
 
         let expected = vec![
             Token::Fn,
@@ -45,5 +45,10 @@ mod test {
 
     #[test]
     fn test_parser() {
+        assert_eq!(Token::Ident("x".to_owned()), Token::Ident("x".to_owned()));
+        let mut lexer = util::get_lexer_for_file("tests/parser-test.tl");
+        let mut parser = Parser::new(&mut lexer);
+
+        println!("{:?}", parser.parse_stmt());
     }
 }
