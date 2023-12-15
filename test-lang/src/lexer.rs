@@ -71,6 +71,12 @@ impl Lexer {
                 },
                 ':' => Token::Colon,
                 ',' => Token::Comma,
+                '#' => {
+                    while self.cur_char != Some('\n') {
+                        self.next_char();
+                    }
+                    self.tokenize()
+                }
                 _ => panic!("Invalid symbol"),
             },
             None => todo!(),

@@ -82,7 +82,7 @@ impl<'a> Parser<'a> {
     fn parse_let_stmt(&mut self) -> LetStatement {
         self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
         self.next_token();
-        let name = self.cur_tok.literal();
+        let name = self.parse_typed_ident();
         self.expect_peek_tok(Token::Assign);
         // skip name and assign
         self.next_token();
@@ -95,7 +95,7 @@ impl<'a> Parser<'a> {
         self.next_token();
         self.next_token();
         LetStatement {
-            name: Ident(name),
+            name,
             val,
         }
     }

@@ -52,7 +52,7 @@ pub struct FnStatement {
 
 #[derive(Debug)]
 pub struct LetStatement {
-    pub name: Ident,
+    pub name: TypedIdent,
     pub val: Expression,
 }
 
