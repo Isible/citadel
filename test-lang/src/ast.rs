@@ -6,6 +6,7 @@ pub enum Statement {
     Loop(LoopStatement),
 
     Call(CallStatement),
+    Block(BlockStatement)
 }
 
 #[derive(Debug)]

@@ -1,8 +1,15 @@
-use std::mem::swap;
+use std::{fmt::Formatter, mem::swap};
 
-use clutils::{error::{throw, Error}, literal::LiteralString};
+use clutils::{
+    error::{throw, Error},
+    literal::LiteralString,
+};
 
-use crate::{lexer::Lexer, tokens::Token, ast::{Statement, LetStatement, Expression, Literal, Ident}};
+use crate::{
+    ast::{BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement},
+    lexer::Lexer,
+    tokens::Token,
+};
 
 pub struct Parser<'a> {
     lexer: &'a mut Lexer,
@@ -31,10 +38,11 @@ impl<'a> Parser<'a> {
         self.peek_tok = self.lexer.tokenize();
     }
 
+    // Every parse function needs to set cur_token to the semicolon
     pub fn parse_stmt(&mut self) -> Statement {
         return match &self.cur_tok {
-            Token::Let => self.parse_let_stmt(),
-            Token::Fn => todo!(),
+            Token::Let => Statement::Let(self.parse_let_stmt()),
+            Token::Fn => Statement::Fn(self.parse_fn_stmt()),
             Token::If => todo!(),
             Token::Loop => todo!(),
             Token::Ident(_) => todo!(),
@@ -64,11 +72,11 @@ impl<'a> Parser<'a> {
             Token::Float(float) => Expression::Literal(Literal::Float(*float)),
             Token::String(string) => Expression::Literal(Literal::String(string.into())),
             Token::Boolean(boolean) => Expression::Literal(Literal::Boolean(*boolean)),
-            _ => todo!("{:?}", self.cur_tok)
+            _ => todo!("{:?}", self.cur_tok),
         }
     }
 
-    fn parse_let_stmt(&mut self) -> Statement {
+    fn parse_let_stmt(&mut self) -> LetStatement {
         self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
         self.next_token();
         let name = self.cur_tok.literal();
@@ -78,7 +86,46 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         let val = self.parse_expr();
-        Statement::Let(LetStatement { name: Ident(name), val })
+        self.expect_peek_tok(Token::Semicolon);
+
+        // expression value and semicolon
+        self.next_token();
+        self.next_token();
+        LetStatement {
+            name: Ident(name),
+            val,
+        }
+    }
+
+    fn parse_fn_stmt(&mut self) -> FnStatement {
+        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.next_token();
+        let name = Ident(self.cur_tok.literal());
+        self.expect_peek_tok(Token::LParent);
+        self.next_token();
+        self.expect_peek_tok(Token::RParent);
+        self.next_token();
+        self.expect_peek_tok(Token::LCurly);
+        let block = self.parse_block_stmt(Token::RCurly);
+        FnStatement {
+            name,
+            args: Vec::new(),
+            block,
+        }
+    }
+
+    /// cur token should be the beginning of thw block, for example: `{`
+    fn parse_block_stmt(&mut self, end: Token) -> BlockStatement {
+        let mut block = Vec::new();
+        self.next_token();
+        self.next_token();
+        while self.cur_tok != end {
+            block.push(self.parse_stmt());
+        }
+
+        self.next_token();
+
+        BlockStatement { stmts: block }
     }
 
     fn expect_peek_tok(&self, expect: Token) {
@@ -99,7 +146,11 @@ impl Error for InvalidTok<'_> {
     }
 
     fn desc(&self) -> String {
-        format!("expected: {:?}, received: {:?}", self.expected.literal(), self.received.literal())
+        format!(
+            "expected: {:?}, received: {:?}",
+            self.expected.literal(),
+            self.received.literal()
+        )
     }
 
     fn additional_ctx(&self) -> Option<Vec<String>> {

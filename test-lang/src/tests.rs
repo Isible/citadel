@@ -50,5 +50,6 @@ mod test {
         let mut parser = Parser::new(&mut lexer);
 
         println!("{:?}", parser.parse_stmt());
+        println!("{:?}", parser.parse_stmt());
     }
 }
