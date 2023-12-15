@@ -69,6 +69,8 @@ impl Lexer {
                     let string: String = self.input[first_pos..self.cur_pos].into();
                     Token::String(string)
                 },
+                ':' => Token::Colon,
+                ',' => Token::Comma,
                 _ => panic!("Invalid symbol"),
             },
             None => todo!(),

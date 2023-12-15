@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use crate::{tokens::Token, util, parser::Parser, lexer::Lexer};
+    use crate::{tokens::Token, util, parser::Parser};
 
     #[test]
     fn test_lexer() {
@@ -45,7 +45,6 @@ mod test {
 
     #[test]
     fn test_parser() {
-        assert_eq!(Token::Ident("x".to_owned()), Token::Ident("x".to_owned()));
         let mut lexer = util::get_lexer_for_file("tests/parser-test.tl");
         let mut parser = Parser::new(&mut lexer);
 

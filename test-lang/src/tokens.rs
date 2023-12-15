@@ -21,6 +21,8 @@ pub enum Token {
     Assign,
     Semicolon,
     Equals,
+    Colon,
+    Comma,
 
     LParent,
     RParent,
@@ -49,6 +51,8 @@ impl LiteralString for Token {
             Token::Assign => "=".into(),
             Token::Semicolon => ";".into(),
             Token::Equals => "==".into(),
+            Token::Colon => ":".into(),
+            Token::Comma => ",".into(),
             Token::LParent => "(".into(),
             Token::RParent => ")".into(),
             Token::LCurly => "{".into(),

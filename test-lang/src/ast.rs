@@ -46,7 +46,7 @@ pub struct Ident(pub String);
 #[derive(Debug)]
 pub struct FnStatement {
     pub name: Ident,
-    pub args: Vec<Ident>,
+    pub args: Vec<TypedIdent>,
     pub block: BlockStatement,
 }
 
@@ -70,11 +70,17 @@ pub struct LoopStatement {
 #[derive(Debug)]
 pub struct CallStatement {
     pub name: Ident,
-    pub args: Vec<Ident>,
+    pub args: Vec<TypedIdent>,
 }
 
 #[derive(Debug)]
 pub struct ArithmeticOperationExpr {
     pub operator: Operator,
     pub sides: (Box<Expression>, Box<Expression>)
+}
+
+#[derive(Debug)]
+pub struct TypedIdent {
+    pub _type: Ident,
+    pub ident: Ident,
 }

@@ -1,4 +1,5 @@
-use std::{fmt::Formatter, mem::swap};
+use core::arch;
+use std::{fmt::Formatter, mem::swap, borrow::BorrowMut, io::SeekFrom};
 
 use clutils::{
     error::{throw, Error},
@@ -6,7 +7,7 @@ use clutils::{
 };
 
 use crate::{
-    ast::{BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement},
+    ast::{BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement, TypedIdent},
     lexer::Lexer,
     tokens::Token,
 };
@@ -45,7 +46,7 @@ impl<'a> Parser<'a> {
             Token::Fn => Statement::Fn(self.parse_fn_stmt()),
             Token::If => todo!(),
             Token::Loop => todo!(),
-            Token::Ident(_) => todo!(),
+            Token::Ident(ident) => todo!("{}", ident),
             Token::Integer(_) => todo!(),
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
@@ -59,9 +60,11 @@ impl<'a> Parser<'a> {
             Token::Equals => todo!(),
             Token::LParent => todo!(),
             Token::RParent => todo!(),
-            Token::LCurly => todo!(),
+            Token::LCurly => Statement::Block(self.parse_block_stmt(Token::RCurly)),
             Token::RCurly => todo!(),
-            Token::Eof => todo!(),
+            Token::Colon => todo!(),
+            Token::Comma => todo!(),
+            Token::Eof => panic!("Encountered End of file"),
         };
     }
 
@@ -103,21 +106,21 @@ impl<'a> Parser<'a> {
         let name = Ident(self.cur_tok.literal());
         self.expect_peek_tok(Token::LParent);
         self.next_token();
-        self.expect_peek_tok(Token::RParent);
-        self.next_token();
+        let args = self.parse_def_args();
+        dbg!("{}", &args);
         self.expect_peek_tok(Token::LCurly);
+        self.next_token();
         let block = self.parse_block_stmt(Token::RCurly);
         FnStatement {
             name,
-            args: Vec::new(),
+            args,
             block,
         }
     }
 
-    /// cur token should be the beginning of thw block, for example: `{`
+    /// cur token should be the beginning of the block, for example: `{`
     fn parse_block_stmt(&mut self, end: Token) -> BlockStatement {
         let mut block = Vec::new();
-        self.next_token();
         self.next_token();
         while self.cur_tok != end {
             block.push(self.parse_stmt());
@@ -128,10 +131,60 @@ impl<'a> Parser<'a> {
         BlockStatement { stmts: block }
     }
 
+    /// Parses the arguments of a function definition
+    ///
+    /// cur_token should be beginning of the list, for example `(`
+    fn parse_def_args(&mut self) -> Vec<TypedIdent> {
+        let mut args = Vec::new();
+        self.next_token();
+        self.print_cur_tok();
+        while self.peek_tok != Token::RParent {
+            args.push(self.parse_typed_ident());
+            if self.peek_tok == Token::Comma {
+                self.next_token();
+                self.next_token();
+            } else if self.peek_tok == Token::RParent {
+                break;
+            } else {
+                self.expect_peek_tok(Token::RParent);
+            }
+        }
+        self.next_token();
+
+        args
+    }
+
+    /// cur_token should be the token before the first TypedIdent
+    /// 
+    /// cur_token gets set to the type of the ident
+    fn parse_typed_ident(&mut self) -> TypedIdent {
+        self.print_cur_tok();
+        // go to ident
+        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        let ident = Ident(self.cur_tok.literal());
+        dbg!("ident: {}", &ident);
+        // go to colon
+        self.expect_peek_tok(Token::Colon);
+        self.next_token();
+        // go to next ident
+        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.next_token();
+        let _type = Ident(self.cur_tok.literal());
+
+        TypedIdent {
+            ident,
+            _type,
+        }
+    }
+
     fn expect_peek_tok(&self, expect: Token) {
         if *self.peek_tok.literal() != expect.literal() {
             panic!("expected: {:?}, received: {:?}", expect, self.peek_tok)
         }
+    }
+
+    fn print_cur_tok(&self) {
+        dbg!("{}", &self.cur_tok);
     }
 }
 
