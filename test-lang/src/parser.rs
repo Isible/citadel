@@ -1,5 +1,5 @@
 use core::arch;
-use std::{fmt::Formatter, mem::swap, borrow::BorrowMut, io::SeekFrom};
+use std::{borrow::BorrowMut, fmt::Formatter, io::SeekFrom, mem::swap};
 
 use clutils::{
     error::{throw, Error},
@@ -7,7 +7,10 @@ use clutils::{
 };
 
 use crate::{
-    ast::{BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement, TypedIdent},
+    ast::{
+        BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement,
+        TypedIdent,
+    },
     lexer::Lexer,
     tokens::Token,
 };
@@ -99,10 +102,7 @@ impl<'a> Parser<'a> {
         // expression value and semicolon
         self.next_token();
         self.next_token();
-        LetStatement {
-            name,
-            val,
-        }
+        LetStatement { name, val }
     }
 
     fn parse_fn_stmt(&mut self) -> FnStatement {
@@ -114,13 +114,19 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(Token::LParent);
         self.next_token();
 
-        let args = self.parse_def_args();
+        let args = match self.peek_tok {
+            Token::RParent => {
+                self.next_token();
+                Vec::new()
+            }
+            _ => self.parse_def_args(),
+        };
 
         self.expect_peek_tok(Token::Colon);
         self.next_token();
         self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
         self.next_token();
-    
+
         let ret_type = Ident(self.cur_tok.literal());
 
         self.expect_peek_tok(Token::LCurly);
@@ -154,12 +160,12 @@ impl<'a> Parser<'a> {
         let mut args = Vec::new();
         self.next_token();
         self.print_cur_tok();
-        while self.peek_tok != Token::RParent {
+        loop {
             args.push(self.parse_typed_ident());
             if self.peek_tok == Token::Comma {
                 self.next_token();
                 self.next_token();
-            } else if self.peek_tok == Token::RParent {
+            } else if self.cur_tok == Token::RParent || self.peek_tok == Token::RParent {
                 break;
             } else {
                 self.expect_peek_tok(Token::RParent);
@@ -171,7 +177,7 @@ impl<'a> Parser<'a> {
     }
 
     /// cur_token should be the token before the first TypedIdent
-    /// 
+    ///
     /// cur_token gets set to the type of the ident
     fn parse_typed_ident(&mut self) -> TypedIdent {
         self.print_cur_tok();
@@ -187,10 +193,7 @@ impl<'a> Parser<'a> {
         self.next_token();
         let _type = Ident(self.cur_tok.literal());
 
-        TypedIdent {
-            ident,
-            _type,
-        }
+        TypedIdent { ident, _type }
     }
 
     fn expect_peek_tok(&self, expect: Token) {

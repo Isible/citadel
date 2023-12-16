@@ -1,7 +1,8 @@
 # Example for testing if the lexer
 # tokenizes correctly :D
-fn main() {
+
+fn main(): void {
     let x = "James";
-    print("Hello, Mr.");
-    print(x);
+    puts("Hello, Mr.");
+    puts(x);
 }
