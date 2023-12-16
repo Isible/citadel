@@ -1,14 +1,11 @@
 #[cfg(test)]
 mod test {
-    use clutils::literal::LiteralString;
-
-    use crate::{tokens::Token, util, parser::Parser};
+    use crate::{parser::Parser, tokens::Token, util};
 
     #[test]
     fn test_lexer() {
         let mut lexer = util::get_lexer_for_file("tests/lexer-test.tl");
 
-        /*
         let expected = vec![
             Token::Fn,
             Token::Ident(String::from("main")),
@@ -33,19 +30,23 @@ mod test {
             Token::RCurly,
             Token::Eof,
         ];
-        */
 
         let mut index: usize = 0;
 
         loop {
             let tok = lexer.tokenize();
-            // assert_eq!(expected.get(index), Some(&tok));
+            match tok {
+                Token::Comment(_) => (),
+                _ => {
+                    assert_eq!(expected.get(index), Some(&tok));
+                    index += 1;
+                }
+            }
             if tok == Token::Eof {
                 break;
             }
 
             println!("{:?}", tok);
-            index += 1;
         }
     }
 
