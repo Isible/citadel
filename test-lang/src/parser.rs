@@ -51,6 +51,7 @@ impl<'a> Parser<'a> {
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
             Token::Boolean(_) => todo!(),
+            Token::Vector(_) => todo!(),
             Token::Plus => todo!(),
             Token::Minus => todo!(),
             Token::Divide => todo!(),
@@ -64,6 +65,10 @@ impl<'a> Parser<'a> {
             Token::RCurly => todo!(),
             Token::Colon => todo!(),
             Token::Comma => todo!(),
+            Token::Comment(_) => {
+                self.next_token();
+                self.parse_stmt()
+            }
             Token::Eof => panic!("Encountered End of file"),
         };
     }
@@ -103,17 +108,28 @@ impl<'a> Parser<'a> {
     fn parse_fn_stmt(&mut self) -> FnStatement {
         self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
         self.next_token();
+
         let name = Ident(self.cur_tok.literal());
+
         self.expect_peek_tok(Token::LParent);
         self.next_token();
+
         let args = self.parse_def_args();
-        dbg!("{}", &args);
+
+        self.expect_peek_tok(Token::Colon);
+        self.next_token();
+        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.next_token();
+    
+        let ret_type = Ident(self.cur_tok.literal());
+
         self.expect_peek_tok(Token::LCurly);
         self.next_token();
         let block = self.parse_block_stmt(Token::RCurly);
         FnStatement {
             name,
             args,
+            ret_type,
             block,
         }
     }

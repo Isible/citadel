@@ -1,5 +1,6 @@
-
 use clutils::literal::LiteralString;
+
+use crate::util;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
@@ -13,6 +14,7 @@ pub enum Token {
     Float(f64),
     String(String),
     Boolean(bool),
+    Vector(Vec<Token>),
 
     Plus,
     Minus,
@@ -23,6 +25,8 @@ pub enum Token {
     Equals,
     Colon,
     Comma,
+
+    Comment(String),
 
     LParent,
     RParent,
@@ -44,6 +48,7 @@ impl LiteralString for Token {
             Token::Float(float) => float.to_string(),
             Token::String(string) => format!("\"{}\"", string),
             Token::Boolean(boolean) => boolean.to_string(),
+            Token::Vector(vec) => util::vec_to_vec_string(vec),
             Token::Plus => "+".into(),
             Token::Minus => "-".into(),
             Token::Divide => "/".into(),
@@ -53,6 +58,7 @@ impl LiteralString for Token {
             Token::Equals => "==".into(),
             Token::Colon => ":".into(),
             Token::Comma => ",".into(),
+            Token::Comment(comment) => format!("#{}", comment),
             Token::LParent => "(".into(),
             Token::RParent => ")".into(),
             Token::LCurly => "{".into(),

@@ -48,8 +48,8 @@ impl Lexer {
                     Some('=') => {
                         self.next_char();
                         Token::Equals
-                    },
-                    _ => Token::Assign
+                    }
+                    _ => Token::Assign,
                 },
                 '+' => Token::Plus,
                 '-' => Token::Minus,
@@ -68,16 +68,33 @@ impl Lexer {
                     }
                     let string: String = self.input[first_pos..self.cur_pos].into();
                     Token::String(string)
-                },
+                }
                 ':' => Token::Colon,
                 ',' => Token::Comma,
-                '#' => {
-                    while self.cur_char != Some('\n') {
-                        self.next_char();
+                '<' => {
+                    let mut content = Vec::new();
+                    self.next_char();
+                    while self.cur_char != Some('>') {
+                        let tok = self.tokenize();
+                        if tok != Token::Comma && self.cur_char != Some('<') {
+                            content.push(tok);
+                        }
                     }
-                    self.tokenize()
+                    Token::Vector(content)
                 }
-                _ => panic!("Invalid symbol"),
+                '#' => {
+                    let first_pos = self.next_pos;
+                    while self.input.chars().nth(self.next_pos) != Some('\n') {
+                        if self.cur_pos + 1 != self.input.len() {
+                            self.next_char();
+                        } else {
+                            return Token::Eof;
+                        }
+                    }
+                    let string = self.input[first_pos..self.cur_pos].into();
+                    Token::Comment(string)
+                }
+                _ => panic!("Invalid symbol: {:?}", &self.cur_char),
             },
             None => todo!(),
         };
@@ -96,7 +113,7 @@ impl Lexer {
             "loop" => Token::Loop,
             "fn" => Token::Fn,
             "if" => Token::If,
-            _ => Token::Ident(string),
+            _ => Token::Ident(self.input[first_pos..self.cur_pos].into()),
         };
     }
 

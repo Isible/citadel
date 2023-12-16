@@ -47,6 +47,7 @@ pub struct Ident(pub String);
 pub struct FnStatement {
     pub name: Ident,
     pub args: Vec<TypedIdent>,
+    pub ret_type: Ident,
     pub block: BlockStatement,
 }
 
