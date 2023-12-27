@@ -8,6 +8,12 @@ pub enum Token {
     Fn,
     If,
     Loop,
+    Return,
+
+    // u8 is the bitwidth of the integer/float
+    IntegerType(u8),
+    FloatType(u8),
+
 
     Ident(String),
     Integer(i64),
@@ -43,6 +49,7 @@ impl LiteralString for Token {
             Token::Fn => "fn".into(),
             Token::If => "if".into(),
             Token::Loop => "loop".into(),
+            Token::Return => "return".into(),
             Token::Ident(ident) => ident.into(),
             Token::Integer(int) => int.to_string(),
             Token::Float(float) => float.to_string(),
@@ -63,6 +70,8 @@ impl LiteralString for Token {
             Token::RParent => ")".into(),
             Token::LCurly => "{".into(),
             Token::RCurly => "}".into(),
+            Token::IntegerType(bitwidth) => format!("i{}", bitwidth),
+            Token::FloatType(bitwidth) => format!("f{}", bitwidth),
             Token::Eof => "Eof".into(),
         }
     }

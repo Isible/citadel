@@ -49,6 +49,7 @@ impl<'a> Parser<'a> {
             Token::Fn => Statement::Fn(self.parse_fn_stmt()),
             Token::If => todo!(),
             Token::Loop => todo!(),
+            Token::Return => todo!(),
             Token::Ident(ident) => todo!("{}", ident),
             Token::Integer(_) => todo!(),
             Token::Float(_) => todo!(),
@@ -69,6 +70,7 @@ impl<'a> Parser<'a> {
             Token::Colon => todo!(),
             Token::Comma => todo!(),
             Token::Comment(_) => {
+                // skip comments and just parse the next token
                 self.next_token();
                 self.parse_stmt()
             }

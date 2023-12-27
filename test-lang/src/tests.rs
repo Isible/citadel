@@ -11,6 +11,8 @@ mod test {
             Token::Ident(String::from("main")),
             Token::LParent,
             Token::RParent,
+            Token::Colon,
+            Token::Ident(String::from("void")),
             Token::LCurly,
             Token::Let,
             Token::Ident(String::from("x")),

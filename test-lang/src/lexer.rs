@@ -113,7 +113,14 @@ impl Lexer {
             "loop" => Token::Loop,
             "fn" => Token::Fn,
             "if" => Token::If,
-            _ => Token::Ident(self.input[first_pos..self.cur_pos].into()),
+            "return" => Token::Return,
+
+            "true" => Token::Boolean(true),
+            "false" => Token::Boolean(false),
+
+            _ => {
+                    Token::Ident(self.input[first_pos..self.cur_pos].into())
+            }
         };
     }
 
