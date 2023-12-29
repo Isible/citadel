@@ -1,10 +1,10 @@
 use core::arch;
-use std::{borrow::BorrowMut, fmt::Formatter, io::SeekFrom, mem::swap};
+use std::{borrow::BorrowMut, fmt::Formatter, io::SeekFrom, mem::swap, ops::SubAssign};
 
 use crate::{
     ast::{
-        BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement,
-        TypedIdent, IfStatement,
+        BlockStatement, CallExpression, Expression, FnStatement, Ident, IfStatement, LetStatement,
+        Literal, Statement, TypedIdent,
     },
     lexer::Lexer,
     tokens::Token,
@@ -45,7 +45,7 @@ impl<'a> Parser<'a> {
             Token::If => Statement::If(self.parse_if_stmt()),
             Token::Loop => todo!(),
             Token::Return => todo!(),
-            Token::Ident(ident) => /* Do we need anything but function call statements here? */ todo!("{}", ident),
+            Token::Ident(ident) => Statement::Call(self.parse_call_expr()),
             Token::Integer(_) => todo!(),
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
@@ -88,7 +88,6 @@ impl<'a> Parser<'a> {
 
     fn parse_let_stmt(&mut self) -> LetStatement {
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
-        self.next_token();
         let name = self.parse_typed_ident();
         self.expect_peek_tok(Token::Assign);
         // skip name and assign
@@ -101,6 +100,7 @@ impl<'a> Parser<'a> {
         // expression value and semicolon
         self.next_token();
         self.next_token();
+        dbg!("{}", &self.cur_tok);
         LetStatement { name, val }
     }
 
@@ -122,7 +122,9 @@ impl<'a> Parser<'a> {
         };
 
         self.expect_peek_tok(Token::Colon);
+
         self.next_token();
+
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
 
@@ -154,6 +156,7 @@ impl<'a> Parser<'a> {
         }
 
         self.next_token();
+        self.next_token();
 
         BlockStatement { stmts: block }
     }
@@ -163,12 +166,9 @@ impl<'a> Parser<'a> {
     /// cur_token should be beginning of the list, for example `(`
     fn parse_def_args(&mut self) -> Vec<TypedIdent> {
         let mut args = Vec::new();
-        self.next_token();
-        self.print_cur_tok();
         loop {
             args.push(self.parse_typed_ident());
             if self.peek_tok == Token::Comma {
-                self.next_token();
                 self.next_token();
             } else if self.cur_tok == Token::RParent || self.peek_tok == Token::RParent {
                 break;
@@ -185,20 +185,64 @@ impl<'a> Parser<'a> {
     ///
     /// cur_token gets set to the type of the ident
     fn parse_typed_ident(&mut self) -> TypedIdent {
-        self.print_cur_tok();
+        dbg!("Cur tok: {}", &self.cur_tok);
         // go to ident
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
+        self.next_token();
         let ident = Ident(self.cur_tok.to_string());
-        dbg!("ident: {}", &ident);
         // go to colon
         self.expect_peek_tok(Token::Colon);
         self.next_token();
+
+        self.expect_peek_tok_as_type();
         // go to next ident
-        self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
         let _type = Ident(self.cur_tok.to_string());
 
         TypedIdent { ident, _type }
+    }
+
+    fn parse_args(&mut self) -> Vec<Expression> {
+        let mut args = Vec::new();
+        loop {
+            args.push(self.parse_expr());
+            if self.peek_tok == Token::Comma {
+                self.next_token();
+            } else if self.cur_tok == Token::RParent || self.peek_tok == Token::RParent {
+                break;
+            } else {
+                self.expect_peek_tok(Token::RParent);
+            }
+        }
+        self.next_token();
+
+        args
+    }
+
+    fn parse_call_expr(&mut self) -> CallExpression {
+        let name = Ident(self.cur_tok.to_string());
+        self.expect_peek_tok(Token::LParent);
+        self.next_token();
+        let args = if self.peek_tok != Token::RParent {
+            self.parse_args()
+        } else {
+            Vec::new()
+        };
+        self.next_token();
+        self.expect_peek_tok(Token::Semicolon);
+        self.next_token();
+        self.next_token();
+        CallExpression { name, args }
+    }
+
+    fn expect_peek_tok_as_type(&self) {
+        match self.peek_tok {
+            Token::IntegerType(_) => (),
+            Token::FloatType(_) => (),
+            Token::Ident(_) => (),
+            Token::Vector(_) => (),
+            _ => panic!("expected a type, got: {}", self.peek_tok),
+        }
     }
 
     fn expect_peek_tok(&self, expect: Token) {
@@ -208,6 +252,6 @@ impl<'a> Parser<'a> {
     }
 
     fn print_cur_tok(&self) {
-        dbg!("{}", &self.cur_tok);
+        dbg!("Cur token: {}", &self.cur_tok);
     }
 }

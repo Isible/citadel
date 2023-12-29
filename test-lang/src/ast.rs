@@ -5,12 +5,13 @@ pub enum Statement {
     If(IfStatement),
     Loop(LoopStatement),
 
-    Call(CallStatement),
+    Call(CallExpression),
     Block(BlockStatement)
 }
 
 #[derive(Debug)]
 pub enum Expression {
+    Call(CallExpression),
     ArithmeticOperation(ArithmeticOperationExpr),
     Literal(Literal),
 }
@@ -69,9 +70,9 @@ pub struct LoopStatement {
 }
 
 #[derive(Debug)]
-pub struct CallStatement {
+pub struct CallExpression {
     pub name: Ident,
-    pub args: Vec<TypedIdent>,
+    pub args: Vec<Expression>,
 }
 
 #[derive(Debug)]
