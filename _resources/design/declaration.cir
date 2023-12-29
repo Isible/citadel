@@ -1,5 +1,6 @@
-# selft is the type of this variable, compiler will then just replace it with the var's type
-$unitialized lcl i8 = allocs i8
+# salloc will allocate space on the stack for an i8
+# halloc will allocate space on the heap for the given type
+$unitialized lcl i8 = salloc i8
 
 # abstract function defined elsewhere
 abst @test() i32

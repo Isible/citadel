@@ -1,30 +1,25 @@
-use clutils::literal::LiteralString;
+use crate::ast::{Expression, TypedIdent};
 
-use crate::tokens::Token;
+use self::vec_display::VecDisplay;
 
-pub fn is_valid_ident(string: &String) -> bool {
-    string.chars().all(|c| c.is_alphanumeric() || c == '_')
+pub mod vec_display;
+
+impl VecDisplay for Vec<Expression> {
+    fn to_string(&self) -> String {
+        let mut exprs = Vec::new();
+        for expr in self {
+            exprs.push(expr.to_string());
+        }
+        exprs.join("")
+    }
 }
 
-pub fn vec_to_string_list(starting_brace: char, vec: &Vec<Token>) -> String {
-    let mut list_string = String::new();
-    list_string.push(starting_brace);
-    vec.iter().for_each(|tok| {
-        list_string.push_str(tok.literal().as_str());
-        list_string.push_str(", ");
-    });
-    list_string.pop();
-    list_string
-}
-
-pub fn vec_to_arr_string(vec: &Vec<Token>) -> String {
-    let mut arr_string = vec_to_string_list('[', vec);
-    arr_string.push(']');
-    arr_string
-}
-
-pub fn vec_to_vec_string(vec: &Vec<Token>) -> String {
-    let mut arr_string = vec_to_string_list('{', vec);
-    arr_string.push('}');
-    arr_string
+impl VecDisplay for Vec<TypedIdent> {
+    fn to_string(&self) -> String {
+        let mut idents = Vec::new();
+        for ident in self {
+            idents.push(ident.to_string());
+        }
+        idents.join("")
+    }
 }

@@ -1,7 +1,5 @@
 use std::{fs::File, io::Read};
 
-use clutils::literal::LiteralString;
-
 use crate::{lexer::Lexer, tokens::Token};
 
 pub fn get_lexer_for_file(file_path: &str) -> Lexer {
@@ -15,7 +13,7 @@ pub fn vec_to_string_list(starting_brace: char, vec: &Vec<Token>) -> String {
     let mut list_string = String::new();
     list_string.push(starting_brace);
     vec.iter().for_each(|tok| {
-        list_string.push_str(tok.literal().as_str());
+        list_string.push_str(tok.to_string().as_str());
         list_string.push_str(", ");
     });
     list_string.pop();

@@ -1,15 +1,10 @@
 use core::arch;
 use std::{borrow::BorrowMut, fmt::Formatter, io::SeekFrom, mem::swap};
 
-use clutils::{
-    error::{throw, Error},
-    literal::LiteralString,
-};
-
 use crate::{
     ast::{
         BlockStatement, Expression, FnStatement, Ident, LetStatement, Literal, Statement,
-        TypedIdent,
+        TypedIdent, IfStatement,
     },
     lexer::Lexer,
     tokens::Token,
@@ -42,15 +37,15 @@ impl<'a> Parser<'a> {
         self.peek_tok = self.lexer.tokenize();
     }
 
-    // Every parse function needs to set cur_token to the semicolon
+    // Every parse function needs to set cur_token to the last character in the line
     pub fn parse_stmt(&mut self) -> Statement {
         return match &self.cur_tok {
             Token::Let => Statement::Let(self.parse_let_stmt()),
             Token::Fn => Statement::Fn(self.parse_fn_stmt()),
-            Token::If => todo!(),
+            Token::If => Statement::If(self.parse_if_stmt()),
             Token::Loop => todo!(),
             Token::Return => todo!(),
-            Token::Ident(ident) => todo!("{}", ident),
+            Token::Ident(ident) => /* Do we need anything but function call statements here? */ todo!("{}", ident),
             Token::Integer(_) => todo!(),
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
@@ -75,6 +70,8 @@ impl<'a> Parser<'a> {
                 self.parse_stmt()
             }
             Token::Eof => panic!("Encountered End of file"),
+            Token::IntegerType(_) => todo!(),
+            Token::FloatType(_) => todo!(),
         };
     }
 
@@ -90,7 +87,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_let_stmt(&mut self) -> LetStatement {
-        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
         let name = self.parse_typed_ident();
         self.expect_peek_tok(Token::Assign);
@@ -108,10 +105,10 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_fn_stmt(&mut self) -> FnStatement {
-        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
 
-        let name = Ident(self.cur_tok.literal());
+        let name = Ident(self.cur_tok.to_string());
 
         self.expect_peek_tok(Token::LParent);
         self.next_token();
@@ -126,10 +123,10 @@ impl<'a> Parser<'a> {
 
         self.expect_peek_tok(Token::Colon);
         self.next_token();
-        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
 
-        let ret_type = Ident(self.cur_tok.literal());
+        let ret_type = Ident(self.cur_tok.to_string());
 
         self.expect_peek_tok(Token::LCurly);
         self.next_token();
@@ -140,6 +137,12 @@ impl<'a> Parser<'a> {
             ret_type,
             block,
         }
+    }
+
+    fn parse_if_stmt(&mut self) -> IfStatement {
+        self.next_token();
+        let cond = self.parse_expr();
+        todo!("{}", self.cur_tok.to_string())
     }
 
     /// cur token should be the beginning of the block, for example: `{`
@@ -184,54 +187,27 @@ impl<'a> Parser<'a> {
     fn parse_typed_ident(&mut self) -> TypedIdent {
         self.print_cur_tok();
         // go to ident
-        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
-        let ident = Ident(self.cur_tok.literal());
+        self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
+        let ident = Ident(self.cur_tok.to_string());
         dbg!("ident: {}", &ident);
         // go to colon
         self.expect_peek_tok(Token::Colon);
         self.next_token();
         // go to next ident
-        self.expect_peek_tok(Token::Ident(self.peek_tok.literal()));
+        self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
-        let _type = Ident(self.cur_tok.literal());
+        let _type = Ident(self.cur_tok.to_string());
 
         TypedIdent { ident, _type }
     }
 
     fn expect_peek_tok(&self, expect: Token) {
-        if *self.peek_tok.literal() != expect.literal() {
+        if self.peek_tok != expect {
             panic!("expected: {:?}, received: {:?}", expect, self.peek_tok)
         }
     }
 
     fn print_cur_tok(&self) {
         dbg!("{}", &self.cur_tok);
-    }
-}
-
-struct InvalidTok<'a> {
-    expected: Token,
-    received: &'a Token,
-}
-
-impl Error for InvalidTok<'_> {
-    fn name(&self) -> &str {
-        "Invalid Token"
-    }
-
-    fn desc(&self) -> String {
-        format!(
-            "expected: {:?}, received: {:?}",
-            self.expected.literal(),
-            self.received.literal()
-        )
-    }
-
-    fn additional_ctx(&self) -> Option<Vec<String>> {
-        None
-    }
-
-    fn tip(&self) -> Option<String> {
-        None
     }
 }

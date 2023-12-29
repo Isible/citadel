@@ -15,3 +15,5 @@
 - val: value
 
 - IR: Intermediary Representation
+
+- AST: Abstract Syntax Tree

@@ -1,4 +1,4 @@
-use clutils::literal::LiteralString;
+use std::fmt::{Display, Formatter, Result};
 
 use crate::util;
 
@@ -42,9 +42,9 @@ pub enum Token {
     Eof,
 }
 
-impl LiteralString for Token {
-    fn literal(self: &Self) -> String {
-        match self {
+impl Display for Token {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.write_str(&match self {
             Token::Let => "let".into(),
             Token::Fn => "fn".into(),
             Token::If => "if".into(),
@@ -73,6 +73,6 @@ impl LiteralString for Token {
             Token::IntegerType(bitwidth) => format!("i{}", bitwidth),
             Token::FloatType(bitwidth) => format!("f{}", bitwidth),
             Token::Eof => "Eof".into(),
-        }
+        })
     }
 }
