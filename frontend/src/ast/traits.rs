@@ -87,7 +87,7 @@ impl Display for BlockStmt {
 
 impl Display for CallExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "call {}({})", self.name, self.args.to_string())
+        write!(f, "call §{}({})", self.name, self.args.to_string())
     }
 }
 
@@ -140,6 +140,7 @@ impl Display for Expression {
             Expression::Sub(sub) => sub.to_string(),
             Expression::Multiply(mul) => mul.to_string(),
             Expression::Div(div) => div.to_string(),
+            Expression::Ident(string) => string.into(),
         })
     }
 }

@@ -1,6 +1,6 @@
-use std::{fs::File, io::Read};
+use std::{fs::File, io::*, panic::Location};
 
-use crate::{lexer::Lexer, tokens::Token};
+use crate::{lexer::Lexer, tokens::Token, compiler::Compiler};
 
 pub fn get_lexer_for_file(file_path: &str) -> Lexer {
     let mut file = File::open(file_path).expect("Failed to open file");
@@ -20,14 +20,15 @@ pub fn vec_to_string_list(starting_brace: char, vec: &Vec<Token>) -> String {
     list_string
 }
 
-pub fn vec_to_arr_string(vec: &Vec<Token>) -> String {
-    let mut arr_string = vec_to_string_list('[', vec);
-    arr_string.push(']');
-    arr_string
-}
-
 pub fn vec_to_vec_string(vec: &Vec<Token>) -> String {
     let mut arr_string = vec_to_string_list('<', vec);
     arr_string.push('>');
     arr_string
+}
+
+pub fn compiler_output(compiler: &Compiler, location: &str) {
+    let location: String = location.into();
+    let buf = compiler.generator.as_string();
+    let mut file = File::create(location.to_string()).expect(&format!("Failed to create file at {}", location));
+    file.write_all(buf.as_bytes()).expect("Failed to write to file");
 }

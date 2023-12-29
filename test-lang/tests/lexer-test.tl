@@ -2,7 +2,7 @@
 # tokenizes correctly :D
 
 fn main(): void {
-    let x = "James";
+    let x: string = "James";
     puts("Hello, Mr.");
     puts(x);
 }

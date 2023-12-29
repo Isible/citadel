@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use crate::{parser::Parser, tokens::Token, util};
+    use crate::{parser::Parser, tokens::Token, util, compiler::Compiler};
 
     #[test]
     fn test_lexer() {
@@ -58,5 +58,13 @@ mod test {
         let mut parser = Parser::new(&mut lexer);
 
         println!("{:?}", parser.parse_stmt());
+    }
+
+    #[test]
+    fn test_compiler() {
+        let mut lexer = util::get_lexer_for_file("tests/parser-test.tl");
+        let mut parser = Parser::new(&mut lexer);
+        let mut compiler = Compiler::new(&mut parser);
+        util::compiler_output(&compiler, "tests/output/test.cir");
     }
 }

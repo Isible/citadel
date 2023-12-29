@@ -1,5 +1,4 @@
-use core::arch;
-use std::{borrow::BorrowMut, fmt::Formatter, io::SeekFrom, mem::swap, ops::SubAssign};
+use std::{mem::swap, error::Error, fmt::Display};
 
 use crate::{
     ast::{
@@ -15,8 +14,6 @@ pub struct Parser<'a> {
 
     cur_tok: Token,
     peek_tok: Token,
-
-    pub errors: Vec<String>,
 }
 
 impl<'a> Parser<'a> {
@@ -28,7 +25,6 @@ impl<'a> Parser<'a> {
             lexer,
             cur_tok,
             peek_tok,
-            errors: Vec::new(),
         }
     }
 
@@ -38,14 +34,14 @@ impl<'a> Parser<'a> {
     }
 
     // Every parse function needs to set cur_token to the last character in the line
-    pub fn parse_stmt(&mut self) -> Statement {
+    pub fn parse_stmt(&mut self) -> Result<Statement, EofError> {
         return match &self.cur_tok {
-            Token::Let => Statement::Let(self.parse_let_stmt()),
-            Token::Fn => Statement::Fn(self.parse_fn_stmt()),
-            Token::If => Statement::If(self.parse_if_stmt()),
+            Token::Let => Ok(Statement::Let(self.parse_let_stmt())),
+            Token::Fn => Ok(Statement::Fn(self.parse_fn_stmt())),
+            Token::If => Ok(Statement::If(self.parse_if_stmt())),
             Token::Loop => todo!(),
             Token::Return => todo!(),
-            Token::Ident(ident) => Statement::Call(self.parse_call_expr()),
+            Token::Ident(ident) => Ok(Statement::Call(self.parse_call_expr())),
             Token::Integer(_) => todo!(),
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
@@ -60,7 +56,7 @@ impl<'a> Parser<'a> {
             Token::Equals => todo!(),
             Token::LParent => todo!(),
             Token::RParent => todo!(),
-            Token::LCurly => Statement::Block(self.parse_block_stmt(Token::RCurly)),
+            Token::LCurly => Ok(Statement::Block(self.parse_block_stmt(Token::RCurly))),
             Token::RCurly => todo!(),
             Token::Colon => todo!(),
             Token::Comma => todo!(),
@@ -69,7 +65,7 @@ impl<'a> Parser<'a> {
                 self.next_token();
                 self.parse_stmt()
             }
-            Token::Eof => panic!("Encountered End of file"),
+            Token::Eof => Err(EofError),
             Token::IntegerType(_) => todo!(),
             Token::FloatType(_) => todo!(),
         };
@@ -152,7 +148,10 @@ impl<'a> Parser<'a> {
         let mut block = Vec::new();
         self.next_token();
         while self.cur_tok != end {
-            block.push(self.parse_stmt());
+            block.push(match self.parse_stmt() {
+                Ok(stmt) => stmt,
+                Err(err) => break,
+            });
         }
 
         self.next_token();
@@ -253,5 +252,16 @@ impl<'a> Parser<'a> {
 
     fn print_cur_tok(&self) {
         dbg!("Cur token: {}", &self.cur_tok);
+    }
+}
+
+#[derive(Debug)]
+pub struct EofError;
+
+impl Error for EofError {}
+
+impl Display for EofError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("Encountered end of file")
     }
 }

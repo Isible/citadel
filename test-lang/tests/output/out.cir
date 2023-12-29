@@ -1,0 +1,3 @@
+'entry: {
+    call §main(call §citadel.std.env.args())
+}

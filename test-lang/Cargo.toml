@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 clutils = "0.0.5"
+frontend ={ path = "../frontend"}

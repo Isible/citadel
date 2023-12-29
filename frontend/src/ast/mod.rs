@@ -23,6 +23,7 @@ pub enum Statement {
 pub enum Expression {
     Call(CallExpr),
     Literal(Literal),
+    Ident(String),
 
     Add(AddExpr),
     Sub(SubExpr),
