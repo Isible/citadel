@@ -146,7 +146,7 @@ impl Display for Expression {
 
 impl Display for Literal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&match self {
+        write!(f, "l{{{}}}", &match self {
             Literal::String(string) => format!("\"{}\"", string),
             Literal::Char(char) => char.to_string(),
             Literal::ShortFloat(_, val) => val.to_string(),

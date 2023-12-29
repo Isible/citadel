@@ -40,6 +40,6 @@ mod tests {
 
         println!("{}", code_gen.as_string());
 
-        assert_eq!(code_gen.as_string(), "'ballz: {\nret \"deez\"\n}")
+        assert_eq!(code_gen.as_string(), "'ballz: {\nret l{\"deez\"}\n}")
     }
 }
