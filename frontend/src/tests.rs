@@ -2,8 +2,8 @@
 mod tests {
     use crate::{
         ast::{
-            AbstFuncStmt, BlockStmt, Expression, LabelStmt, Literal, ReturnStmt, Statement,
-            TypedIdent,
+            AbstFuncStmt, BlockStmt, IRExpr, LabelStmt, Literal, ReturnStmt, IRStmt,
+            IRTypedIdent,
         },
         ir_gen::IRGenerator,
     };
@@ -13,8 +13,8 @@ mod tests {
         let mut code_gen = IRGenerator::new();
 
         // abstract function
-        code_gen.gen_ir(Statement::AbstractFunction(AbstFuncStmt {
-            name: TypedIdent {
+        code_gen.gen_ir(IRStmt::AbstractFunction(AbstFuncStmt {
+            name: IRTypedIdent {
                 ident: "myFuncName".into(),
                 _type: "void".into(),
             },
@@ -29,11 +29,11 @@ mod tests {
     fn test_ir_to_string() {
         let mut code_gen = IRGenerator::new();
 
-        code_gen.gen_ir(Statement::Label(LabelStmt {
+        code_gen.gen_ir(IRStmt::Label(LabelStmt {
             name: "ballz".into(),
             block: BlockStmt {
-                stmts: vec![Statement::Return(ReturnStmt {
-                    ret_val: Expression::Literal(Literal::String("deez".into())),
+                stmts: vec![IRStmt::Return(ReturnStmt {
+                    ret_val: IRExpr::Literal(Literal::String("deez".into())),
                 })],
             },
         }));

@@ -2,7 +2,7 @@ use std::{mem::swap, error::Error, fmt::Display};
 
 use crate::{
     ast::{
-        BlockStatement, CallExpression, Expression, FnStatement, Ident, IfStatement, LetStatement,
+        BlockStatement, CallExpression, Expression, FnStatement, IfStatement, LetStatement,
         Literal, Statement, TypedIdent,
     },
     lexer::Lexer,
@@ -41,7 +41,7 @@ impl<'a> Parser<'a> {
             Token::If => Ok(Statement::If(self.parse_if_stmt())),
             Token::Loop => todo!(),
             Token::Return => todo!(),
-            Token::Ident(ident) => Ok(Statement::Call(self.parse_call_expr())),
+            Token::Ident(_) => Ok(Statement::Call(self.parse_call_expr())),
             Token::Integer(_) => todo!(),
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
@@ -73,7 +73,7 @@ impl<'a> Parser<'a> {
 
     fn parse_expr(&self) -> Expression {
         match &self.cur_tok {
-            Token::Ident(ident) => Expression::Literal(Literal::Ident(ident.into())),
+            Token::Ident(ident) => Expression::Literal(Literal::Variable(ident.into())),
             Token::Integer(int) => Expression::Literal(Literal::Integer(*int)),
             Token::Float(float) => Expression::Literal(Literal::Float(*float)),
             Token::String(string) => Expression::Literal(Literal::String(string.into())),
@@ -104,7 +104,7 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
 
-        let name = Ident(self.cur_tok.to_string());
+        let name = self.cur_tok.to_string();
 
         self.expect_peek_tok(Token::LParent);
         self.next_token();
@@ -124,7 +124,7 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
 
-        let ret_type = Ident(self.cur_tok.to_string());
+        let ret_type = self.cur_tok.to_string();
 
         self.expect_peek_tok(Token::LCurly);
         self.next_token();
@@ -139,7 +139,7 @@ impl<'a> Parser<'a> {
 
     fn parse_if_stmt(&mut self) -> IfStatement {
         self.next_token();
-        let cond = self.parse_expr();
+        let _cond = self.parse_expr();
         todo!("{}", self.cur_tok.to_string())
     }
 
@@ -150,7 +150,7 @@ impl<'a> Parser<'a> {
         while self.cur_tok != end {
             block.push(match self.parse_stmt() {
                 Ok(stmt) => stmt,
-                Err(err) => break,
+                Err(_) => break,
             });
         }
 
@@ -188,7 +188,7 @@ impl<'a> Parser<'a> {
         // go to ident
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
-        let ident = Ident(self.cur_tok.to_string());
+        let ident = self.cur_tok.to_string();
         // go to colon
         self.expect_peek_tok(Token::Colon);
         self.next_token();
@@ -196,7 +196,7 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok_as_type();
         // go to next ident
         self.next_token();
-        let _type = Ident(self.cur_tok.to_string());
+        let _type = self.cur_tok.to_string();
 
         TypedIdent { ident, _type }
     }
@@ -219,7 +219,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_call_expr(&mut self) -> CallExpression {
-        let name = Ident(self.cur_tok.to_string());
+        let name = self.cur_tok.to_string();
         self.expect_peek_tok(Token::LParent);
         self.next_token();
         let args = if self.peek_tok != Token::RParent {
@@ -248,10 +248,6 @@ impl<'a> Parser<'a> {
         if self.peek_tok != expect {
             panic!("expected: {:?}, received: {:?}", expect, self.peek_tok)
         }
-    }
-
-    fn print_cur_tok(&self) {
-        dbg!("Cur token: {}", &self.cur_tok);
     }
 }
 

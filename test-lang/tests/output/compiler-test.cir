@@ -1,0 +1,4 @@
+'entry: {
+call §main(call §citadel.std.env.args())
+}
+$x pub i32 = l{0}

@@ -37,7 +37,7 @@ fn run() {
     let name = new_name.last().unwrap();
 
     let mut parser = Parser::new(&mut lexer);
-    let mut compiler = Compiler::new(&mut parser);
+    let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program since it was empty");
     compiler.compile_program();
     util::compiler_output(&compiler, &format!("tests/output/{}.cir", name))
 }

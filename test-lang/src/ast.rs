@@ -28,7 +28,7 @@ pub enum Operator {
 
 #[derive(Debug, PartialEq)]
 pub enum Literal {
-    Ident(String),
+    Variable(String),
     String(String),
     Integer(i64),
     Float(f64),
@@ -42,13 +42,10 @@ pub struct IfStatement {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Ident(pub String);
-
-#[derive(Debug, PartialEq)]
 pub struct FnStatement {
-    pub name: Ident,
+    pub name: String,
     pub args: Vec<TypedIdent>,
-    pub ret_type: Ident,
+    pub ret_type: String,
     pub block: BlockStatement,
 }
 
@@ -71,7 +68,7 @@ pub struct LoopStatement {
 
 #[derive(Debug, PartialEq)]
 pub struct CallExpression {
-    pub name: Ident,
+    pub name: String,
     pub args: Vec<Expression>,
 }
 
@@ -83,6 +80,6 @@ pub struct ArithmeticOperationExpr {
 
 #[derive(Debug, PartialEq)]
 pub struct TypedIdent {
-    pub _type: Ident,
-    pub ident: Ident,
+    pub _type: String,
+    pub ident: String,
 }

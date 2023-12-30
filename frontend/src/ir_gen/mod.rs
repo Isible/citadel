@@ -3,31 +3,31 @@
  * the represents the AST.
  */
 
-use crate::ast::Statement;
+use crate::ast::IRStmt;
 
- pub struct IRGenerator {
-    ast: Vec<Statement>,
+pub struct IRGenerator {
+    ast: Vec<IRStmt>,
 }
 
 impl IRGenerator {
     pub fn new() -> Self {
-        Self {
-            ast: Vec::new(),
-        }
+        Self { ast: Vec::new() }
     }
 
-    pub fn gen_ir(&mut self, node: Statement) {
+    pub fn gen_ir(&mut self, node: IRStmt) {
         self.ast.push(node);
     }
 
-    pub fn get_stream(&self) -> &Vec<Statement> {
+    pub fn get_stream(&self) -> &Vec<IRStmt> {
         &self.ast
     }
 
     pub fn as_string(&self) -> String {
         let mut lit_stream = Vec::new();
-        self.ast.iter().for_each(|stmt| lit_stream.push(stmt.to_string()));
+        self.ast.iter().for_each(|stmt| {
+            lit_stream.push(stmt.to_string());
+            lit_stream.push("\n".into());
+        });
         lit_stream.join("")
     }
 }
-

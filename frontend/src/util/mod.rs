@@ -1,10 +1,10 @@
-use crate::ast::{Expression, TypedIdent};
+use crate::ast::{IRExpr, IRTypedIdent};
 
 use self::vec_display::VecDisplay;
 
 pub mod vec_display;
 
-impl VecDisplay for Vec<Expression> {
+impl VecDisplay for Vec<IRExpr> {
     fn to_string(&self) -> String {
         let mut exprs = Vec::new();
         for expr in self {
@@ -14,7 +14,7 @@ impl VecDisplay for Vec<Expression> {
     }
 }
 
-impl VecDisplay for Vec<TypedIdent> {
+impl VecDisplay for Vec<IRTypedIdent> {
     fn to_string(&self) -> String {
         let mut idents = Vec::new();
         for ident in self {

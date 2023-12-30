@@ -1,4 +1,4 @@
-use std::{fs::File, io::*, panic::Location};
+use std::{fs::File, io::{Read, Write}};
 
 use crate::{lexer::Lexer, tokens::Token, compiler::Compiler};
 

@@ -5,7 +5,7 @@
 pub mod traits;
 
 #[derive(Debug)]
-pub enum Statement {
+pub enum IRStmt {
     AbstractFunction(AbstFuncStmt),
     Function(FuncStmt),
     Variable(VarStmt),
@@ -16,18 +16,18 @@ pub enum Statement {
     Break(BreakStmt),
     Goto(GotoStmt),
 
-    Expression(Expression),
+    Expression(IRExpr),
 }
 
 #[derive(Debug)]
-pub enum Expression {
+pub enum IRExpr {
     Call(CallExpr),
     Literal(Literal),
     Ident(String),
 
     Add(AddExpr),
     Sub(SubExpr),
-    Multiply(MulExpr),
+    Mul(MulExpr),
     Div(DivExpr),
 }
 
@@ -40,40 +40,40 @@ pub enum Literal {
     LongFloat(u8, f64),
     
     /// Bool is an i1. 
-    Bool(u8, bool),
+    Bool(bool),
 
     Integer(u8, isize),
 
-    Array(usize, Vec<Expression>),
-    Vector(usize, Vec<Expression>),
+    Array(usize, Vec<IRExpr>),
+    Vector(usize, Vec<IRExpr>),
 }
 
 #[derive(Debug)]
 pub struct AbstFuncStmt {
-    pub name: TypedIdent,
-    pub args: Vec<TypedIdent>,
+    pub name: IRTypedIdent,
+    pub args: Vec<IRTypedIdent>,
     pub is_local: bool,
 }
 
 #[derive(Debug)]
 pub struct FuncStmt {
-    pub name: TypedIdent,
-    pub args: Vec<TypedIdent>,
+    pub name: IRTypedIdent,
+    pub args: Vec<IRTypedIdent>,
     pub block: BlockStmt,
     pub is_local: bool,
 }
 
 #[derive(Debug)]
 pub struct VarStmt {
-    pub name: TypedIdent,
-    pub val: Expression,
+    pub name: IRTypedIdent,
+    pub val: IRExpr,
     pub is_local: bool,
 }
 
 #[derive(Debug)]
 pub struct ConstStmt {
-    pub name: TypedIdent,
-    pub val: Expression,
+    pub name: IRTypedIdent,
+    pub val: IRExpr,
     pub is_local: bool,
 }
 
@@ -85,7 +85,7 @@ pub struct LabelStmt {
 
 #[derive(Debug)]
 pub struct ReturnStmt {
-    pub ret_val: Expression,
+    pub ret_val: IRExpr,
 }
 
 #[derive(Debug)]
@@ -99,38 +99,38 @@ pub struct GotoStmt {
 }
 
 #[derive(Debug)]
-pub struct TypedIdent {
+pub struct IRTypedIdent {
     pub ident: String,
     pub _type: String,
 }
 
 #[derive(Debug)]
 pub struct BlockStmt {
-    pub stmts: Vec<Statement>,
+    pub stmts: Vec<IRStmt>,
 }
 
 #[derive(Debug)]
 pub struct CallExpr {
     pub name: String,
-    pub args: Vec<Expression>,
+    pub args: Vec<IRExpr>,
 }
 
 #[derive(Debug)]
 pub struct AddExpr {
-    values: (Box<Expression>, Box<Expression>)
+    pub values: (Box<IRExpr>, Box<IRExpr>)
 }
 
 #[derive(Debug)]
 pub struct SubExpr {
-    values: (Box<Expression>, Box<Expression>)
+    pub values: (Box<IRExpr>, Box<IRExpr>)
 }
 
 #[derive(Debug)]
 pub struct MulExpr {
-    values: (Box<Expression>, Box<Expression>)
+    pub values: (Box<IRExpr>, Box<IRExpr>)
 }
 
 #[derive(Debug)]
 pub struct DivExpr {
-    values: (Box<Expression>, Box<Expression>)
+    pub values: (Box<IRExpr>, Box<IRExpr>)
 }

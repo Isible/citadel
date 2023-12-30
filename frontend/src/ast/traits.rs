@@ -15,7 +15,7 @@ impl Display for AbstFuncStmt {
 
 impl Display for FuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "abst @{}({}) {} {} {{\n{}\n}}", self.name.ident, self.args.to_string(), if self.is_local {
+        write!(f, "@{}({}) {} {} {{\n    {}\n}}", self.name.ident, self.args.to_string(), if self.is_local {
             "lcl"
         } else {
             "pub"
@@ -35,7 +35,7 @@ impl Display for VarStmt {
 
 impl Display for ConstStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "${} {} {} = {}", self.name, if self.is_local {
+        write!(f, "${} {} {} = {}", self.name.ident, if self.is_local {
             "lcl"
         } else {
             "pub"
@@ -45,7 +45,7 @@ impl Display for ConstStmt {
 
 impl Display for LabelStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "'{}: {{\n{}\n}}", self.name, self.block)
+        write!(f, "'{}: {{\n    {}\n}}", self.name, self.block)
     }
 }
 
@@ -67,7 +67,7 @@ impl Display for GotoStmt {
     }
 }
 
-impl Display for TypedIdent {
+impl Display for IRTypedIdent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} {}", self.ident, self._type)
     }
@@ -115,32 +115,32 @@ impl Display for DivExpr {
     }
 }
 
-impl Display for Statement {
+impl Display for IRStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&match self {
-            Statement::AbstractFunction(func) => func.to_string(),
-            Statement::Function(func) => func.to_string(),
-            Statement::Variable(var) => var.to_string(),
-            Statement::Constant(_const) => _const.to_string(),
-            Statement::Label(label) => label.to_string(),
-            Statement::Return(ret) => ret.to_string(),
-            Statement::Break(br) => br.to_string(),
-            Statement::Goto(goto) => goto.to_string(),
-            Statement::Expression(expr) => expr.to_string(),
+            IRStmt::AbstractFunction(func) => func.to_string(),
+            IRStmt::Function(func) => func.to_string(),
+            IRStmt::Variable(var) => var.to_string(),
+            IRStmt::Constant(_const) => _const.to_string(),
+            IRStmt::Label(label) => label.to_string(),
+            IRStmt::Return(ret) => ret.to_string(),
+            IRStmt::Break(br) => br.to_string(),
+            IRStmt::Goto(goto) => goto.to_string(),
+            IRStmt::Expression(expr) => expr.to_string(),
         })
     }
 }
 
-impl Display for Expression {
+impl Display for IRExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&match self {
-            Expression::Call(call) => call.to_string(),
-            Expression::Literal(lit) => lit.to_string(),
-            Expression::Add(add) => add.to_string(),
-            Expression::Sub(sub) => sub.to_string(),
-            Expression::Multiply(mul) => mul.to_string(),
-            Expression::Div(div) => div.to_string(),
-            Expression::Ident(string) => string.into(),
+            IRExpr::Call(call) => call.to_string(),
+            IRExpr::Literal(lit) => lit.to_string(),
+            IRExpr::Add(add) => add.to_string(),
+            IRExpr::Sub(sub) => sub.to_string(),
+            IRExpr::Mul(mul) => mul.to_string(),
+            IRExpr::Div(div) => div.to_string(),
+            IRExpr::Ident(string) => string.into(),
         })
     }
 }
@@ -152,7 +152,7 @@ impl Display for Literal {
             Literal::Char(char) => char.to_string(),
             Literal::ShortFloat(_, val) => val.to_string(),
             Literal::LongFloat(_, val) => val.to_string(),
-            Literal::Bool(_, val) => val.to_string(),
+            Literal::Bool(val) => val.to_string(),
             Literal::Integer(_, val) => val.to_string(),
             Literal::Array(_, val) => format!("[{}]", val.to_string()),
             Literal::Vector(_, val) => format!("<{}>", val.to_string()),
