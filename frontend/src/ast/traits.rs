@@ -15,7 +15,7 @@ impl Display for AbstFuncStmt {
 
 impl Display for FuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "@{}({}) {} {} {{\n    {}\n}}", self.name.ident, self.args.to_string(), if self.is_local {
+        write!(f, "@{}({}) {} {} {{\n{}\n}}", self.name.ident, self.args.to_string(), if self.is_local {
             "lcl"
         } else {
             "pub"
@@ -45,7 +45,7 @@ impl Display for ConstStmt {
 
 impl Display for LabelStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "'{}: {{\n    {}\n}}", self.name, self.block)
+        write!(f, "'{}: {{\n{}\n}}", self.name, self.block)
     }
 }
 
@@ -77,6 +77,7 @@ impl Display for BlockStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut stmts = Vec::new();
         for stmt in &self.stmts {
+            stmts.push("    ".into());
             stmts.push(stmt.to_string());
             stmts.push("\n".into());
         }
@@ -87,7 +88,7 @@ impl Display for BlockStmt {
 
 impl Display for CallExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "call §{}({})", self.name, self.args.to_string())
+        write!(f, "call %{}({})", self.name, self.args.to_string())
     }
 }
 

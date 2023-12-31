@@ -56,11 +56,11 @@ impl<'a> Compiler<'a> {
 
     fn compile_stmt(&self, stmt: Statement) -> IRStmt {
         match stmt {
-            Statement::Let(_let) => self.compile_let(_let),
+            Statement::Let(_let) => self.compile_let_stmt(_let),
             Statement::Fn(_fn) => self.compile_fn_stmt(_fn),
             Statement::If(_if) => todo!(),
             Statement::Loop(_loop) => todo!(),
-            Statement::Call(_call) => todo!(),
+            Statement::Call(_call) => IRStmt::Expression(self.compile_call_expr(_call)),
             Statement::Block(_block) => todo!(),
         }
     }
@@ -73,7 +73,7 @@ impl<'a> Compiler<'a> {
         }
     }
 
-    fn compile_let(&self, node: LetStatement) -> IRStmt {
+    fn compile_let_stmt(&self, node: LetStatement) -> IRStmt {
         IRStmt::Constant(ConstStmt {
             name: IRTypedIdent {
                 ident: node.name.ident,

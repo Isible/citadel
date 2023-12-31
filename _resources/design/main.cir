@@ -1,11 +1,11 @@
 # entry label marks the entry point for any citadel IR
 'entry: {
-    call §main
+    call %main()
 }
 
 @main() lcl i32 {
     ?bar lcl i8 = l{69}
-    call §print(l{"Hello World"})
+    call %print(l{"Hello World"})
 }
 
 # `*` means that the value is a pointer

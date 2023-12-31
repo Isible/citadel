@@ -20,7 +20,7 @@ $myVar lcl i32 = l{0}
 
 ### Referencing
 
-Reference a variable with `%`
+Reference a variable or function with `%`
 
 ```text
 %myVar

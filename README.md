@@ -27,3 +27,5 @@ An experimental compiler backend
 - [Test-lang](test-lang) - Language for testing citadel
 
 - [Fungus](fungus) - Experimental rust compiler that uses Citadel. Will be moved to its own repository once citadel is done
+
+- [Ciri](ciri) - an interpreter for citdel intermediary representation

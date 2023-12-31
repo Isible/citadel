@@ -66,6 +66,6 @@ mod test {
         let mut parser = Parser::new(&mut lexer);
         let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
         compiler.compile_program();
-        util::compiler_output(&compiler, "tests/output/test.cir");
+        util::compiler_output(&compiler, "tests/build/test.cir");
     }
 }
