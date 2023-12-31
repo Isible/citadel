@@ -1,5 +1,3 @@
-use std::future::IntoFuture;
-
 use frontend::ast::{IRStmt, IRExpr, Literal};
 
 use crate::{env::Environment, obj::{Object, StrObj, CharObj, FloatObj, BoolObj, IntObj}};

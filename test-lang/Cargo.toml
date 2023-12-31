@@ -6,5 +6,5 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clutils = "0.0.5"
+clutils = "0.0.6"
 frontend ={ path = "../frontend"}
