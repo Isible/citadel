@@ -1,28 +1,28 @@
-use std::{fmt::Display, collections::VecDeque};
+use std::fmt::Display;
 
-use crate::{util, errors::InvalidLiteral};
+use crate::util;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     // --special-characters--
     /// $ - define a constant
     DollarSign,
-    /// § reference a function
-    Section,
     /// @ - define a function
     At,
-    /// % - reference a variable
+    /// % - reference a variable or function
     PercentSign,
     /// ? - define a variable
     QuestionMark,
     /// = - assign a value to a varable/constant
     Assign,
+    /// ' - the marker of a label
+    Apostrophe,
 
     // --types--
     /// an integer (the u8 defines the bitwidth)
-    Int(u8),
+    IntType(u8),
     /// a floating-point (the u8 defines the bidwith)
-    Float(u8),
+    FloatType(u8),
     /// array type Box<Token> defines the type. Only Float, Int, ArrayType, VectorType are vaild for this.
     /// u8 defines the array size
     ArrayType(Box<Token>, u8),
@@ -36,88 +36,77 @@ pub enum Token {
     Pub,
     /// marks a function as abstract meaning it gets initialized in a different module
     Abst,
+    /// Call a function
+    Call,
+    /// Return a value
+    Ret,
 
     // --others--
+    /// A raw literal that is not enclosed in a literal `l{...}` holder
+    RawLit(Literal),
     /// A literal value. Can represent a string, integer or float
-    Lit(String),
+    Lit(Literal),
     /// An identifier like a function or variable name
     Ident(String),
-    /// An Array literal
+    /// Eof - marks the end of a file
+    Eof,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Literal {
+    String(String),
+    Integer(i64),
+    Float(f64),
+    Boolean(bool),
+    Char(char),
     Array(Vec<Token>),
-    /// A Vector literal
     Vector(Vec<Token>),
 }
 
-impl Token {
-    pub fn from_literal(literal: String) -> Result<Token, InvalidLiteral> {
-        match literal {
-            l if l == Self::DollarSign.to_string() => Ok(Self::DollarSign),
-            l if l == Self::Section.to_string() => Ok(Self::Section),
-            l if l == Self::At.to_string() => Ok(Self::At),
-            l if l == Self::PercentSign.to_string() => Ok(Self::PercentSign),
-            l if l == Self::QuestionMark.to_string() => Ok(Self::QuestionMark),
-            l if l == Self::Assign.to_string() => Ok(Self::Assign),
-            l if l == Self::Lcl.to_string() => Ok(Self::Lcl),
-            l if l == Self::Pub.to_string() => Ok(Self::Pub),
-            l if l == Self::Abst.to_string() => Ok(Self::Abst),
-            _ => {
-                // Try parsing an int, float or literal and return an error if that fails
-                let mut literal_chars: VecDeque<char> = literal.chars().collect();
-                let prefix = match literal_chars.pop_front() {
-                    Some(prefix) => prefix,
-                    None => return Err(InvalidLiteral(literal)),
-                };
-                match prefix {
-                    'i' | 'f' => {
-                        let literal_without_prefix: String = literal_chars.into_iter().collect();
-                        let bidwith = match literal_without_prefix.parse() {
-                            Ok(bwidth) => bwidth,
-                            Err(_) => return Err(InvalidLiteral(literal)),
-                        };
-                        return match prefix {
-                            'i' => Ok(Token::Int(bidwith)),
-                            'f' => Ok(Token::Float(bidwith)),
-                            _ => Err(InvalidLiteral(literal)),
-                        };
-                    },
-                    'l' => {
-                        literal_chars.pop_front();
-                        literal_chars.pop_back();
-                        let val: String = literal_chars.into_iter().collect();
-                        return Ok(Token::Lit(val));
-                    },
-                    _ => {
-                        if prefix.is_alphabetic() && util::is_valid_ident(&literal) {
-                            return Ok(Token::Ident(literal))
-                        }
-                        Err(InvalidLiteral(literal))
-                    }
-                }
+impl Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Literal::String(str) => format!("\"{}\"", str),
+                Literal::Char(ch) => format!("'{}'", ch),
+                Literal::Integer(int) => int.to_string(),
+                Literal::Float(float) => float.to_string(),
+                Literal::Boolean(bool) => bool.to_string(),
+                Literal::Array(arr) => util::vec_to_arr_string(arr),
+                Literal::Vector(vec) => util::vec_to_vec_string(vec),
             }
-        }
+        )
     }
 }
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return write!(f, "{}", match self {
-            Token::DollarSign => String::from("$"),
-            Token::Section => String::from("§"),
-            Token::At => String::from("@"),
-            Token::PercentSign => String::from("%"),
-            Token::QuestionMark => String::from("?"),
-            Token::Assign => String::from("="),
-            Token::Int(val) => format!("i{val}"),
-            Token::Float(val) => format!("f{val}"),
-            Token::Lcl => String::from("lcl"),
-            Token::Pub => String::from("pub"),
-            Token::Abst => String::from("abst"),
-            Token::Lit(val) => format!("l{{{val}}}"),
-            Token::Ident(val) => val.to_owned(),
-            Token::ArrayType(tok, len) => format!("[{}; {}]", (**tok), len),
-            Token::VectorType(tok) => format!("<{}>", (**tok)),
-            Token::Array(arr) => util::vec_to_arr_string(arr),
-            Token::Vector(vec) => util::vec_to_vec_string(vec),
-        });
+        return write!(
+            f,
+            "{}",
+            match self {
+                Token::DollarSign => String::from("$"),
+                Token::At => String::from("@"),
+                Token::PercentSign => String::from("%"),
+                Token::QuestionMark => String::from("?"),
+                Token::Assign => String::from("="),
+                Token::Apostrophe => String::from("'"),
+                Token::IntType(val) => format!("i{val}"),
+                Token::FloatType(val) => format!("f{val}"),
+                Token::Lcl => String::from("lcl"),
+                Token::Pub => String::from("pub"),
+                Token::Abst => String::from("abst"),
+                Token::Lit(val) => format!("l{{{val}}}"),
+                Token::RawLit(lit) => lit.to_string(),
+                Token::Ident(val) => val.to_owned(),
+                Token::Eof => String::from("EOF"),
+                Token::ArrayType(tok, len) => format!("[{}; {}]", (**tok), len),
+                Token::VectorType(tok) => format!("<{}>", (**tok)),
+                Token::Call => String::from("call"),
+                Token::Ret => String::from("ret"),
+            }
+        );
     }
 }

@@ -31,7 +31,8 @@ fn run() -> Result<(), InterpreterError> {
         Ok(lexer) => lexer,
         Err(err) => return Err(InterpreterError(Box::from(err))),
     };
-    lexer.tokenize();
+
+    dbg!("{}", lexer.tokenize());
 
     Ok(())
 }
