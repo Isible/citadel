@@ -17,17 +17,24 @@ pub enum Token {
     Assign,
     /// ' - the marker of a label
     Apostrophe,
+    /// : - colon is used to mark a variety of things and labels in particular
+    Colon,
+    /// . - dot is used for namespaces and methods
+    Dot,
 
-    // --types--
-    /// an integer (the u8 defines the bitwidth)
-    IntType(u8),
-    /// a floating-point (the u8 defines the bidwith)
-    FloatType(u8),
-    /// array type Box<Token> defines the type. Only Float, Int, ArrayType, VectorType are vaild for this.
-    /// u8 defines the array size
-    ArrayType(Box<Token>, u8),
-    ///
-    VectorType(Box<Token>),
+    /// Brackets
+    /// ( - left parenthesis
+    LParent,
+    /// ) - right parenthesis
+    RParent,
+    /// [ - left square brackets
+    LSquare,
+    /// ] - right square brackets
+    RSquare,
+    /// { - left curly brackets
+    LCurly,
+    /// } - right curly brackets
+    RCurly,
 
     // --keywords--
     /// sets the access of a variable to local
@@ -40,6 +47,15 @@ pub enum Token {
     Call,
     /// Return a value
     Ret,
+    /// Arithmetic Operations
+    /// Addition
+    Add,
+    /// Subtraction
+    Sub,
+    /// Multiplication
+    Mul,
+    /// Division
+    Div,
 
     // --others--
     /// A raw literal that is not enclosed in a literal `l{...}` holder
@@ -92,9 +108,9 @@ impl Display for Token {
                 Token::PercentSign => String::from("%"),
                 Token::QuestionMark => String::from("?"),
                 Token::Assign => String::from("="),
+                Token::Colon => String::from(":"),
+                Token::Dot => String::from("."),
                 Token::Apostrophe => String::from("'"),
-                Token::IntType(val) => format!("i{val}"),
-                Token::FloatType(val) => format!("f{val}"),
                 Token::Lcl => String::from("lcl"),
                 Token::Pub => String::from("pub"),
                 Token::Abst => String::from("abst"),
@@ -102,10 +118,18 @@ impl Display for Token {
                 Token::RawLit(lit) => lit.to_string(),
                 Token::Ident(val) => val.to_owned(),
                 Token::Eof => String::from("EOF"),
-                Token::ArrayType(tok, len) => format!("[{}; {}]", (**tok), len),
-                Token::VectorType(tok) => format!("<{}>", (**tok)),
                 Token::Call => String::from("call"),
                 Token::Ret => String::from("ret"),
+                Token::Add => String::from("add"),
+                Token::Sub => String::from("sub"),
+                Token::Mul => String::from("mul"),
+                Token::Div => String::from("div"),
+                Token::LParent => String::from("("),
+                Token::RParent => String::from(")"),
+                Token::LSquare => String::from("["),
+                Token::RSquare => String::from("]"),
+                Token::LCurly => String::from("{"),
+                Token::RCurly => String::from("}"),
             }
         );
     }

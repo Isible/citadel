@@ -1,16 +1,18 @@
 use std::error::Error;
 
-use errors::{InvalidArgError, InterpreterError};
+use errors::{InterpreterError, InvalidArgError};
 use lexer::Lexer;
 
-mod evaluator;
+use crate::tokens::Token;
+
 mod env;
+mod evaluator;
 mod obj;
 
 mod parser;
 
-mod tokens;
 mod lexer;
+mod tokens;
 
 mod errors;
 mod util;
@@ -32,7 +34,14 @@ fn run() -> Result<(), InterpreterError> {
         Err(err) => return Err(InterpreterError(Box::from(err))),
     };
 
-    dbg!("{}", lexer.tokenize());
+    loop {
+        let tok = lexer.tokenize();
+        println!("{}", &tok);
+        if tok == Token::Eof {
+            break;
+        }
+        lexer.next_char();
+    }
 
     Ok(())
 }

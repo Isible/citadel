@@ -1,1 +1,8 @@
-'test
+'entry: {
+    call %main()
+}
+
+@main() lcl i32 {
+    ?bar lcl i8 = l{69}
+    call %print(l{"Hello World"})
+}
