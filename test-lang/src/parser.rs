@@ -1,4 +1,4 @@
-use std::{mem::swap, error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, mem::swap};
 
 use crate::{
     ast::{
@@ -42,7 +42,7 @@ impl<'a> Parser<'a> {
             Token::Loop => todo!(),
             Token::Return => todo!(),
             Token::Ident(_) => Ok(Statement::Call(self.parse_call_expr())),
-            Token::Integer(_) => todo!(),
+            Token::Integer(_) => todo!("{}", self.cur_tok),
             Token::Float(_) => todo!(),
             Token::String(_) => todo!(),
             Token::Boolean(_) => todo!(),
@@ -55,7 +55,7 @@ impl<'a> Parser<'a> {
             Token::Semicolon => todo!(),
             Token::Equals => todo!(),
             Token::LParent => todo!(),
-            Token::RParent => todo!(),
+            Token::RParent => todo!("next tok: {}", &self.peek_tok),
             Token::LCurly => Ok(Statement::Block(self.parse_block_stmt(Token::RCurly))),
             Token::RCurly => todo!(),
             Token::Colon => todo!(),
@@ -71,14 +71,17 @@ impl<'a> Parser<'a> {
         };
     }
 
-    fn parse_expr(&self) -> Expression {
+    fn parse_expr(&mut self) -> Expression {
         match &self.cur_tok {
-            Token::Ident(ident) => Expression::Literal(Literal::Variable(ident.into())),
+            Token::Ident(ident) => match self.peek_tok {
+                Token::LParent => Expression::Call(self.parse_call_expr()),
+                _ => Expression::Literal(Literal::Variable(ident.into())),
+            },
             Token::Integer(int) => Expression::Literal(Literal::Integer(*int)),
             Token::Float(float) => Expression::Literal(Literal::Float(*float)),
             Token::String(string) => Expression::Literal(Literal::String(string.into())),
             Token::Boolean(boolean) => Expression::Literal(Literal::Boolean(*boolean)),
-            _ => todo!("{:?}", self.cur_tok),
+            _ => todo!("cur: {:?}, next: {:?}", self.cur_tok, self.peek_tok),
         }
     }
 
@@ -96,7 +99,6 @@ impl<'a> Parser<'a> {
         // expression value and semicolon
         self.next_token();
         self.next_token();
-        dbg!("{}", &self.cur_tok);
         LetStatement { name, val }
     }
 
@@ -184,7 +186,6 @@ impl<'a> Parser<'a> {
     ///
     /// cur_token gets set to the type of the ident
     fn parse_typed_ident(&mut self) -> TypedIdent {
-        dbg!("Cur tok: {}", &self.cur_tok);
         // go to ident
         self.expect_peek_tok(Token::Ident(self.peek_tok.to_string()));
         self.next_token();
@@ -201,37 +202,39 @@ impl<'a> Parser<'a> {
         TypedIdent { ident, _type }
     }
 
-    fn parse_args(&mut self) -> Vec<Expression> {
+    fn parse_call_expr(&mut self) -> CallExpression {
+        let name = self.cur_tok.to_string();
+
+        self.expect_peek_tok(Token::LParent);
+
+        self.next_token();
+
+        let args = self.parse_call_args();
+        
+        self.next_token();
+        self.next_token();
+
+        CallExpression { name, args }
+    }
+
+    fn parse_call_args(&mut self) -> Vec<Expression> {
+        // first token is a Left parenthesis
+        
         let mut args = Vec::new();
-        loop {
+
+        self.next_token();
+
+        args.push(self.parse_expr());
+
+        while self.peek_tok == Token::Comma {
+            self.next_token();
+            self.next_token();
             args.push(self.parse_expr());
-            if self.peek_tok == Token::Comma {
-                self.next_token();
-            } else if self.cur_tok == Token::RParent || self.peek_tok == Token::RParent {
-                break;
-            } else {
-                self.expect_peek_tok(Token::RParent);
-            }
         }
+
         self.next_token();
 
         args
-    }
-
-    fn parse_call_expr(&mut self) -> CallExpression {
-        let name = self.cur_tok.to_string();
-        self.expect_peek_tok(Token::LParent);
-        self.next_token();
-        let args = if self.peek_tok != Token::RParent {
-            self.parse_args()
-        } else {
-            Vec::new()
-        };
-        self.next_token();
-        self.expect_peek_tok(Token::Semicolon);
-        self.next_token();
-        self.next_token();
-        CallExpression { name, args }
     }
 
     fn expect_peek_tok_as_type(&self) {

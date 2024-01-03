@@ -2,9 +2,5 @@
     call %main(call %citadel.std.env.args())
 }
 @main() lcl void {
-    $x lcl i32 = l{0}
-    call %x()
-    @deez() lcl void {
-    $y lcl i64 = l{10}
-}
+    call %puts(l{"Hello, World!"})
 }

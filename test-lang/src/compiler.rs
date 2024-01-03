@@ -3,7 +3,7 @@ use frontend::{ast::*, ir_gen::IRGenerator};
 use crate::{
     ast::{
         ArithmeticOperationExpr, CallExpression, Expression, FnStatement, LetStatement, Literal,
-        Operator, Statement, TypedIdent, self, BlockStatement,
+        Operator, Statement, TypedIdent, BlockStatement,
     },
     parser::{EofError, Parser},
 };

@@ -9,7 +9,9 @@ impl VecDisplay for Vec<IRExpr> {
         let mut exprs = Vec::new();
         for expr in self {
             exprs.push(expr.to_string());
+            exprs.push(",".into());
         }
+        exprs.pop();
         exprs.join("")
     }
 }
