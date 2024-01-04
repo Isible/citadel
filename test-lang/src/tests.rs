@@ -66,6 +66,7 @@ mod test {
                 Err(_) => break,
             };
             ast.push(stmt);
+            parser.next_token();
         }
 
         dbg!("{}", ast);

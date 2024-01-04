@@ -3,7 +3,7 @@ use std::{error::Error, fmt::Display, mem::swap};
 use crate::{
     ast::{
         BlockStatement, CallExpression, Expression, FnStatement, IfStatement, LetStatement,
-        Literal, Statement, TypedIdent,
+        Literal, ReturnStatement, Statement, TypedIdent,
     },
     lexer::Lexer,
     tokens::Token,
@@ -28,49 +28,50 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn next_token(&mut self) {
+    pub fn next_token(&mut self) {
         swap(&mut self.cur_tok, &mut self.peek_tok);
         self.peek_tok = self.lexer.tokenize();
     }
 
     // Every parse function needs to set cur_token to the last character in the line
     pub fn parse_stmt(&mut self) -> Result<Statement, EofError> {
-        return match &self.cur_tok {
-            Token::Let => Ok(Statement::Let(self.parse_let_stmt())),
-            Token::Fn => Ok(Statement::Fn(self.parse_fn_stmt())),
-            Token::If => Ok(Statement::If(self.parse_if_stmt())),
+        return Ok(match &self.cur_tok {
+            Token::Let => Statement::Let(self.parse_let_stmt()),
+            Token::Fn => Statement::Fn(self.parse_fn_stmt()),
+            Token::If => Statement::If(self.parse_if_stmt()),
             Token::Type => todo!(),
             Token::Use => todo!(),
             Token::Loop => todo!(),
-            Token::Return => todo!(),
-            Token::Ident(_) => Ok(Statement::Call(self.parse_call_expr())),
+            Token::Return => Statement::Return(self.parse_return_stmt()),
+            Token::Ident(_) => Statement::Call(self.parse_call_expr()),
             Token::Integer(_) => todo!("{}", self.cur_tok),
-            Token::Float(_) => todo!(),
-            Token::String(_) => todo!(),
-            Token::Boolean(_) => todo!(),
-            Token::Vector(_) => todo!(),
-            Token::Plus => todo!(),
-            Token::Minus => todo!(),
-            Token::Divide => todo!(),
-            Token::Multiply => todo!(),
-            Token::Assign => todo!(),
-            Token::Semicolon => todo!(),
-            Token::Equals => todo!(),
-            Token::LParent => todo!(),
+            Token::Float(_) => unimplemented!(),
+            Token::String(_) => unimplemented!(),
+            Token::Boolean(_) => unimplemented!(),
+            Token::Vector(_) => unimplemented!(),
+            Token::Plus => unimplemented!(),
+            Token::Minus => unimplemented!(),
+            Token::Divide => unimplemented!(),
+            Token::Multiply => unimplemented!(),
+            Token::Assign => unimplemented!(),
+            Token::Semicolon => unimplemented!(),
+            Token::Equals => unimplemented!(),
+            Token::LParent => unimplemented!(),
             Token::RParent => todo!("next tok: {}", &self.peek_tok),
-            Token::LCurly => Ok(Statement::Block(self.parse_block_stmt(Token::RCurly))),
+            Token::LCurly => Statement::Block(self.parse_block_stmt(Token::RCurly)),
             Token::RCurly => todo!("next tok: {}", self.peek_tok),
-            Token::Colon => todo!(),
-            Token::Comma => todo!(),
+            Token::Colon => unimplemented!(),
+            Token::Comma => unimplemented!(),
             Token::Comment(_) => {
                 // skip comments and just parse the next token
+                // TODO: copy ciri method for this
                 self.next_token();
-                self.parse_stmt()
+                self.parse_stmt()?
             }
-            Token::Eof => Err(EofError),
+            Token::Eof => return Err(EofError),
             Token::IntegerType(_) => todo!(),
             Token::FloatType(_) => todo!(),
-        };
+        });
     }
 
     fn parse_expr(&mut self) -> Expression {
@@ -99,7 +100,6 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(Token::Semicolon);
 
         // expression value and semicolon
-        self.next_token();
         self.next_token();
         LetStatement { name, val }
     }
@@ -132,7 +132,12 @@ impl<'a> Parser<'a> {
 
         self.expect_peek_tok(Token::LCurly);
         self.next_token();
+
         let block = self.parse_block_stmt(Token::RCurly);
+
+        // parse_block_stmt(...) sets the current token to the end token
+        // so we don't have to do anything here
+
         FnStatement {
             name,
             args,
@@ -150,11 +155,16 @@ impl<'a> Parser<'a> {
         let block = self.parse_block_stmt(Token::RCurly);
 
         self.next_token();
-        
-        IfStatement {
-            condition,
-            block,
-        }
+
+        IfStatement { condition, block }
+    }
+
+    fn parse_return_stmt(&mut self) -> ReturnStatement {
+        self.next_token();
+        let val = self.parse_expr();
+        self.expect_peek_tok(Token::Semicolon);
+        self.next_token();
+        ReturnStatement { val }
     }
 
     /// cur token should be the beginning of the block, for example: `{`
@@ -167,6 +177,7 @@ impl<'a> Parser<'a> {
                 Ok(stmt) => stmt,
                 Err(_) => break,
             });
+            self.next_token();
         }
 
         BlockStatement { stmts: block }
@@ -220,17 +231,22 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         let args = self.parse_call_args();
-        
-        self.next_token();
-        self.next_token();
+
+        if self.peek_tok == Token::Semicolon {
+            self.next_token();
+        }
 
         CallExpression { name, args }
     }
 
+    // cur token is a Left parenthesis
     fn parse_call_args(&mut self) -> Vec<Expression> {
-        // first token is a Left parenthesis
-        
         let mut args = Vec::new();
+
+        if self.peek_tok == Token::RParent {
+            self.next_token();
+            return args;
+        }
 
         self.next_token();
 

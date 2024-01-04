@@ -1,3 +1,7 @@
-if true {
-    puts("deez nuts");
+fn main(): void {
+    puts(getName());
+}
+
+fn getName(): string {
+    return "Tom";
 }

@@ -2,8 +2,8 @@ use frontend::{ast::*, ir_gen::IRGenerator};
 
 use crate::{
     ast::{
-        ArithmeticOperationExpr, CallExpression, Expression, FnStatement, LetStatement, Literal,
-        Operator, Statement, TypedIdent, BlockStatement,
+        ArithmeticOperationExpr, BlockStatement, CallExpression, Expression, FnStatement,
+        LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent,
     },
     parser::{EofError, Parser},
 };
@@ -33,6 +33,7 @@ impl<'a> Compiler<'a> {
             };
             let node = self.compile_stmt(stmt);
             self.generator.gen_ir(node);
+            self.parser.next_token();
         }
     }
 
@@ -62,6 +63,7 @@ impl<'a> Compiler<'a> {
             Statement::Loop(_loop) => todo!(),
             Statement::Call(_call) => IRStmt::Expression(self.compile_call_expr(_call)),
             Statement::Block(_block) => todo!(),
+            Statement::Return(_ret) => self.compile_ret_stmt(_ret),
         }
     }
 
@@ -81,6 +83,12 @@ impl<'a> Compiler<'a> {
             },
             is_local: true,
             val: self.compile_expr(node.val),
+        })
+    }
+
+    fn compile_ret_stmt(&self, ret: ReturnStatement) -> IRStmt {
+        IRStmt::Return(ReturnStmt {
+            ret_val: self.compile_expr(ret.val),
         })
     }
 
@@ -156,7 +164,10 @@ impl<'a> Compiler<'a> {
     }
 
     fn compile_typed_ident(&self, node: TypedIdent) -> IRTypedIdent {
-        IRTypedIdent { _type: node._type, ident: node.ident }
+        IRTypedIdent {
+            _type: node._type,
+            ident: node.ident,
+        }
     }
 
     fn compile_def_args(&self, node: Vec<TypedIdent>) -> Vec<IRTypedIdent> {

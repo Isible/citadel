@@ -24,7 +24,7 @@ impl Lexer {
         let tok = match self.cur_char {
             Some(ch) => match ch {
                 c if c.is_numeric() => self.tokenize_int(),
-                c if c.is_alphabetic() => self.tokenize_ident(),
+                c if c.is_alphabetic() || c ==  '_' => self.tokenize_ident(),
                 _ => self.tokenize_symbol(),
             },
             None => Token::Eof,
@@ -104,7 +104,7 @@ impl Lexer {
 
     fn tokenize_ident(&mut self) -> Token {
         let first_pos = self.cur_pos;
-        while self.cur_char.is_some() && self.cur_char.unwrap().is_alphanumeric() {
+        while self.cur_char.is_some() && (self.cur_char.unwrap().is_alphanumeric() || self.cur_char.unwrap() == '_') {
             self.next_char();
         }
         let string: String = self.input[first_pos..self.cur_pos].into();

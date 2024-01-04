@@ -4,6 +4,7 @@ pub enum Statement {
     Fn(FnStatement),
     If(IfStatement),
     Loop(LoopStatement),
+    Return(ReturnStatement),
 
     Call(CallExpression),
     Block(BlockStatement)
@@ -64,6 +65,11 @@ pub struct BlockStatement {
 pub struct LoopStatement {
     pub condition: Expression,
     pub block: BlockStatement,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ReturnStatement {
+    pub val: Expression,
 }
 
 #[derive(Debug, PartialEq)]
