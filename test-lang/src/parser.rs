@@ -39,6 +39,8 @@ impl<'a> Parser<'a> {
             Token::Let => Ok(Statement::Let(self.parse_let_stmt())),
             Token::Fn => Ok(Statement::Fn(self.parse_fn_stmt())),
             Token::If => Ok(Statement::If(self.parse_if_stmt())),
+            Token::Type => todo!(),
+            Token::Use => todo!(),
             Token::Loop => todo!(),
             Token::Return => todo!(),
             Token::Ident(_) => Ok(Statement::Call(self.parse_call_expr())),
@@ -57,7 +59,7 @@ impl<'a> Parser<'a> {
             Token::LParent => todo!(),
             Token::RParent => todo!("next tok: {}", &self.peek_tok),
             Token::LCurly => Ok(Statement::Block(self.parse_block_stmt(Token::RCurly))),
-            Token::RCurly => todo!(),
+            Token::RCurly => todo!("next tok: {}", self.peek_tok),
             Token::Colon => todo!(),
             Token::Comma => todo!(),
             Token::Comment(_) => {
@@ -141,11 +143,22 @@ impl<'a> Parser<'a> {
 
     fn parse_if_stmt(&mut self) -> IfStatement {
         self.next_token();
-        let _cond = self.parse_expr();
-        todo!("{}", self.cur_tok.to_string())
+        let condition = self.parse_expr();
+        self.expect_peek_tok(Token::LCurly);
+        // go to left curly bracket
+        self.next_token();
+        let block = self.parse_block_stmt(Token::RCurly);
+
+        self.next_token();
+        
+        IfStatement {
+            condition,
+            block,
+        }
     }
 
     /// cur token should be the beginning of the block, for example: `{`
+    /// sets cur token to the end token (function argument)
     fn parse_block_stmt(&mut self, end: Token) -> BlockStatement {
         let mut block = Vec::new();
         self.next_token();
@@ -155,9 +168,6 @@ impl<'a> Parser<'a> {
                 Err(_) => break,
             });
         }
-
-        self.next_token();
-        self.next_token();
 
         BlockStatement { stmts: block }
     }

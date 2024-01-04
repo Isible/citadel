@@ -1,3 +1,7 @@
 fn main(): void {
-    puts("Hello, World!");
+
+}
+
+fn getName(): string {
+    return "Tom";
 }

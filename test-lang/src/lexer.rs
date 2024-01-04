@@ -114,6 +114,8 @@ impl Lexer {
             "fn" => Token::Fn,
             "if" => Token::If,
             "return" => Token::Return,
+            "type" => Token::Type,
+            "use" => Token::Use,
 
             "true" => Token::Boolean(true),
             "false" => Token::Boolean(false),

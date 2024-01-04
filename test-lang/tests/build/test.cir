@@ -1,6 +1,7 @@
 'entry: {
     call %main(call %citadel.std.env.args())
 }
+
 @main() lcl void {
     call %puts(l{"Hello, World!"})
 }
