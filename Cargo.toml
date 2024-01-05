@@ -1,10 +1,11 @@
 [workspace]
 members = [
-    "api",       # Developer api
-    "frontend",  # ir-compiler
-    "middleend", # optimizer
-    "backend",   # machine code compiler
-    "test-lang", # language for testing
-    "fungus", "ciri",    # rust compiler
+    "crates/api",       # Developer api
+    "crates/frontend",  # ir-compiler
+    "crates/middleend", # optimizer
+    "crates/backend",   # machine code compiler
+    "crates/test-lang", # language for testing
+    "crates/fungus",    # rust compiler
+    "crates/ciri",      # IR Interpreter
 ]
 resolver = "2"

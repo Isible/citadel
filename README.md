@@ -29,3 +29,13 @@ An experimental compiler backend
 - [Fungus](fungus) - Experimental rust compiler that uses Citadel. Will be moved to its own repository once citadel is done
 
 - [Ciri](ciri) - an interpreter for citdel intermediary representation
+
+## Tooling
+
+- [Test-lang](test-lang) For testing, experimenting and providing an example on how to build a compiler with citadel
+
+- [Ciri](ciri) - an interpreter for citadel IR to debug IR code
+
+- [Citadel-fmt] - a formatter for citadel IR and a toolkit for building formatters
+
+- [Citadel-lsp] - a lsp for citadel IR and a toolkit for building lsps
