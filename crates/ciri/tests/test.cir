@@ -1,0 +1,9 @@
+'entry: {
+    call %main(call %citadel.std.env.args())
+}
+@main() lcl void {
+    call %puts(call %getName())
+}
+@getName() lcl string {
+    ret l{"test"}
+}

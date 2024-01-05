@@ -147,8 +147,9 @@ impl Lexer {
         while self.file_handler.content.chars().nth(self.next_pos) != Some('"') {
             self.next_char();
         }
-        let string = &self.file_handler.content[first_pos..self.next_pos];
-        dbg!("string: {}", string);
+        self.next_char();
+        let string = &self.file_handler.content[first_pos..self.next_pos-1];
+        dbg!("{}", &self.ch);
         Token::RawLit(crate::tokens::Literal::String(string.into()))
     }
 
