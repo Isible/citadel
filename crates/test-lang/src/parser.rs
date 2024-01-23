@@ -16,6 +16,19 @@ pub struct Parser<'a> {
     peek_tok: Token,
 }
 
+#[repr(u8)]
+pub enum Precedence {
+    Lowest,
+    Assign,
+    Equals,
+    LG,
+    LGEq,
+    Sum,
+    Prod,
+    Prefix,
+    Call,
+}
+
 impl<'a> Parser<'a> {
     pub fn new(lexer: &'a mut Lexer) -> Self {
         let cur_tok = lexer.tokenize();
