@@ -2,6 +2,7 @@ use std::{error::Error, fs::File, io::Write};
 
 use errors::{InterpreterError, InvalidArgError};
 use lexer::Lexer;
+use parser::Parser;
 
 use crate::tokens::Token;
 
@@ -34,9 +35,11 @@ fn run() -> Result<(), InterpreterError> {
         Err(err) => return Err(InterpreterError(Box::from(err))),
     };
 
-    let tokens = generate_tokens(&mut lexer);
+    let mut parser = Parser::new(&mut lexer);
 
-    write_to_file(tokens);
+    let stmt = parser.parse_stmt();
+
+    println!("{:#?}", stmt);
 
     Ok(())
 }

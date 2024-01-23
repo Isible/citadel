@@ -75,7 +75,7 @@ mod test {
     #[test]
     fn test_compiler() {
         // TODO: Write proper tests
-        let mut lexer = util::get_lexer_for_file("tests/compiler-test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/parser-test.tl");
         let mut parser = Parser::new(&mut lexer);
         let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
         compiler.compile_program();

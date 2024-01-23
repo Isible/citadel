@@ -5,7 +5,6 @@ members = [
     "crates/middleend", # optimizer
     "crates/backend",   # machine code compiler
     "crates/test-lang", # language for testing
-    "crates/fungus",    # rust compiler
     "crates/ciri",      # IR Interpreter
 ]
 resolver = "2"
