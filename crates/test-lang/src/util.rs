@@ -32,3 +32,12 @@ pub fn compiler_output(compiler: &Compiler, location: &str) {
     let mut file = File::create(location.to_string()).expect(&format!("Failed to create file at {}", location));
     file.write_all(buf.as_bytes()).expect("Failed to write to file");
 }
+
+pub fn get_next_tok(lexer: &mut Lexer) -> Token {
+    loop {
+        let tok = lexer.tokenize();
+        if let Some(tok) = tok {
+            return tok;
+        }
+    }
+}

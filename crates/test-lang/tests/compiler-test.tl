@@ -1,7 +1,4 @@
 fn main(): void {
+    1023;
     puts(getName());
-}
-
-fn getName(): string {
-    return "Tom";
 }

@@ -2,8 +2,5 @@
     call %main(call %citadel.std.env.args())
 }
 @main() lcl void {
-    call %puts(call %getName())
-}
-@getName() lcl string {
-    ret l{"Tom"}
+    $x lcl i32 = l{100}
 }

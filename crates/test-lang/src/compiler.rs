@@ -2,8 +2,7 @@ use frontend::{ast::*, ir_gen::IRGenerator};
 
 use crate::{
     ast::{
-        ArithmeticOperationExpr, BlockStatement, CallExpression, Expression, FnStatement,
-        LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent,
+        BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent
     },
     parser::{EofError, Parser},
 };
@@ -61,16 +60,16 @@ impl<'a> Compiler<'a> {
             Statement::Fn(_fn) => self.compile_fn_stmt(_fn),
             Statement::If(_if) => todo!(),
             Statement::Loop(_loop) => todo!(),
-            Statement::Call(_call) => IRStmt::Expression(self.compile_call_expr(_call)),
             Statement::Block(_block) => todo!(),
             Statement::Return(_ret) => self.compile_ret_stmt(_ret),
+            Statement::Expression(_expr) => IRStmt::Expression(self.compile_expr(_expr)),
         }
     }
 
     fn compile_expr(&self, expr: Expression) -> IRExpr {
         match expr {
             Expression::Call(call) => self.compile_call_expr(call),
-            Expression::ArithmeticOperation(op) => self.compile_arith_op_expr(op),
+            Expression::Infix(op) => self.compile_arith_op_expr(op),
             Expression::Literal(lit) => self.compile_lit(lit),
         }
     }
@@ -111,35 +110,30 @@ impl<'a> Compiler<'a> {
         })
     }
 
-    fn compile_arith_op_expr(&self, node: ArithmeticOperationExpr) -> IRExpr {
+    fn compile_arith_op_expr(&self, node: InfixOpExpr) -> IRExpr {
         match node.operator {
             Operator::Add => IRExpr::Add(AddExpr {
-                values: (
-                    Box::new(self.compile_expr(*node.sides.0)),
-                    Box::new(self.compile_expr(*node.sides.1)),
-                ),
+                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
             Operator::Sub => IRExpr::Sub(SubExpr {
-                values: (
-                    Box::new(self.compile_expr(*node.sides.0)),
-                    Box::new(self.compile_expr(*node.sides.1)),
-                ),
+                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
             Operator::Div => IRExpr::Div(DivExpr {
-                values: (
-                    Box::new(self.compile_expr(*node.sides.0)),
-                    Box::new(self.compile_expr(*node.sides.1)),
-                ),
+                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
             Operator::Multiply => IRExpr::Mul(MulExpr {
-                values: (
-                    Box::new(self.compile_expr(*node.sides.0)),
-                    Box::new(self.compile_expr(*node.sides.1)),
-                ),
+                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
             Operator::Reassign => todo!(),
             Operator::Equals => todo!(),
         }
+    }
+
+    fn compile_expr_tuple(&self, tuple: (Expression, Expression)) -> (Box<IRExpr>, Box<IRExpr>) {
+        (
+            Box::new(self.compile_expr(tuple.0)),
+            Box::new(self.compile_expr(tuple.1)),
+        )
     }
 
     fn compile_args(&self, args: Vec<Expression>) -> Vec<IRExpr> {

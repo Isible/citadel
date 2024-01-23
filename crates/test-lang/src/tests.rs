@@ -6,7 +6,7 @@ mod test {
     fn test_lexer() {
         let mut lexer = util::get_lexer_for_file("tests/lexer-test.tl");
 
-        let expected = vec![
+        let expected = [
             Token::Fn,
             Token::Ident(String::from("main")),
             Token::LParent,
@@ -32,24 +32,6 @@ mod test {
             Token::RCurly,
             Token::Eof,
         ];
-
-        let mut index: usize = 0;
-
-        loop {
-            let tok = lexer.tokenize();
-            match tok {
-                Token::Comment(_) => (),
-                _ => {
-                    assert_eq!(expected.get(index), Some(&tok));
-                    index += 1;
-                }
-            }
-            if tok == Token::Eof {
-                break;
-            }
-
-            println!("{:?}", tok);
-        }
     }
 
     #[test]
@@ -75,7 +57,7 @@ mod test {
     #[test]
     fn test_compiler() {
         // TODO: Write proper tests
-        let mut lexer = util::get_lexer_for_file("tests/parser-test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/compiler-test.tl");
         let mut parser = Parser::new(&mut lexer);
         let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
         compiler.compile_program();

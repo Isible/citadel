@@ -5,15 +5,15 @@ pub enum Statement {
     If(IfStatement),
     Loop(LoopStatement),
     Return(ReturnStatement),
-
-    Call(CallExpression),
-    Block(BlockStatement)
+    
+    Block(BlockStatement),
+    Expression(Expression),
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Expression {
     Call(CallExpression),
-    ArithmeticOperation(ArithmeticOperationExpr),
+    Infix(InfixOpExpr),
     Literal(Literal),
 }
 
@@ -79,7 +79,7 @@ pub struct CallExpression {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct ArithmeticOperationExpr {
+pub struct InfixOpExpr {
     pub operator: Operator,
     pub sides: (Box<Expression>, Box<Expression>)
 }

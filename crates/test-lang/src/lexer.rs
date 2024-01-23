@@ -19,17 +19,17 @@ impl Lexer {
         lexer
     }
 
-    pub fn tokenize(&mut self) -> Token {
+    pub fn tokenize(&mut self) -> Option<Token> {
         self.skip_whitespace();
         let tok = match self.cur_char {
             Some(ch) => match ch {
                 c if c.is_numeric() => self.tokenize_int(),
-                c if c.is_alphabetic() || c ==  '_' => self.tokenize_ident(),
-                _ => self.tokenize_symbol(),
+                c if c.is_alphabetic() || c == '_' => self.tokenize_ident(),
+                _ => return self.tokenize_symbol(),
             },
             None => Token::Eof,
         };
-        tok
+        Some(tok)
     }
 
     fn tokenize_int(&mut self) -> Token {
@@ -41,8 +41,8 @@ impl Lexer {
         Token::Integer(string.parse().unwrap())
     }
 
-    fn tokenize_symbol(&mut self) -> Token {
-        let ret = match self.cur_char {
+    fn tokenize_symbol(&mut self) -> Option<Token> {
+        let ret = Some(match self.cur_char {
             Some(ch) => match ch {
                 '=' => match self.input.chars().nth(self.next_pos) {
                     Some('=') => {
@@ -71,40 +71,31 @@ impl Lexer {
                 }
                 ':' => Token::Colon,
                 ',' => Token::Comma,
-                '<' => {
-                    let mut content = Vec::new();
-                    self.next_char();
-                    while self.cur_char != Some('>') {
-                        let tok = self.tokenize();
-                        if tok != Token::Comma && self.cur_char != Some('<') {
-                            content.push(tok);
-                        }
-                    }
-                    Token::Vector(content)
-                }
                 '#' => {
-                    let first_pos = self.next_pos;
-                    while self.input.chars().nth(self.next_pos) != Some('\n') {
-                        if self.cur_pos + 1 != self.input.len() {
+                    self.next_char();
+                    while let Some(cur_ch) = self.cur_char {
+                        if cur_ch != '\n' && cur_ch != '#' {
                             self.next_char();
                         } else {
-                            return Token::Eof;
+                            break;
                         }
                     }
-                    let string = self.input[first_pos..self.cur_pos].into();
-                    Token::Comment(string)
+                    self.next_char();
+                    return None;
                 }
                 _ => panic!("Invalid symbol: {:?}", &self.cur_char),
             },
             None => todo!(),
-        };
+        });
         self.next_char();
         ret
     }
 
     fn tokenize_ident(&mut self) -> Token {
         let first_pos = self.cur_pos;
-        while self.cur_char.is_some() && (self.cur_char.unwrap().is_alphanumeric() || self.cur_char.unwrap() == '_') {
+        while self.cur_char.is_some()
+            && (self.cur_char.unwrap().is_alphanumeric() || self.cur_char.unwrap() == '_')
+        {
             self.next_char();
         }
         let string: String = self.input[first_pos..self.cur_pos].into();
@@ -120,9 +111,7 @@ impl Lexer {
             "true" => Token::Boolean(true),
             "false" => Token::Boolean(false),
 
-            _ => {
-                    Token::Ident(self.input[first_pos..self.cur_pos].into())
-            }
+            _ => Token::Ident(self.input[first_pos..self.cur_pos].into()),
         };
     }
 

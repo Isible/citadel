@@ -7,6 +7,7 @@ use crate::{
     },
     lexer::Lexer,
     tokens::Token,
+    util,
 };
 
 pub struct Parser<'a> {
@@ -17,6 +18,7 @@ pub struct Parser<'a> {
 }
 
 #[repr(u8)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum Precedence {
     Lowest,
     Assign,
@@ -31,9 +33,8 @@ pub enum Precedence {
 
 impl<'a> Parser<'a> {
     pub fn new(lexer: &'a mut Lexer) -> Self {
-        let cur_tok = lexer.tokenize();
-        let peek_tok = lexer.tokenize();
-
+        let cur_tok = util::get_next_tok(lexer);
+        let peek_tok = util::get_next_tok(lexer);
         Self {
             lexer,
             cur_tok,
@@ -43,7 +44,7 @@ impl<'a> Parser<'a> {
 
     pub fn next_token(&mut self) {
         swap(&mut self.cur_tok, &mut self.peek_tok);
-        self.peek_tok = self.lexer.tokenize();
+        self.peek_tok = util::get_next_tok(self.lexer);
     }
 
     // Every parse function needs to set cur_token to the last character in the line
@@ -52,42 +53,34 @@ impl<'a> Parser<'a> {
             Token::Let => Statement::Let(self.parse_let_stmt()),
             Token::Fn => Statement::Fn(self.parse_fn_stmt()),
             Token::If => Statement::If(self.parse_if_stmt()),
-            Token::Type => todo!(),
             Token::Use => todo!(),
             Token::Loop => todo!(),
             Token::Return => Statement::Return(self.parse_return_stmt()),
-            Token::Ident(_) => Statement::Call(self.parse_call_expr()),
-            Token::Integer(_) => todo!("{}", self.cur_tok),
-            Token::Float(_) => unimplemented!(),
-            Token::String(_) => unimplemented!(),
-            Token::Boolean(_) => unimplemented!(),
-            Token::Vector(_) => unimplemented!(),
-            Token::Plus => unimplemented!(),
-            Token::Minus => unimplemented!(),
-            Token::Divide => unimplemented!(),
-            Token::Multiply => unimplemented!(),
-            Token::Assign => unimplemented!(),
-            Token::Semicolon => unimplemented!(),
-            Token::Equals => unimplemented!(),
-            Token::LParent => unimplemented!(),
-            Token::RParent => todo!("next tok: {}", &self.peek_tok),
             Token::LCurly => Statement::Block(self.parse_block_stmt(Token::RCurly)),
             Token::RCurly => todo!("next tok: {}", self.peek_tok),
-            Token::Colon => unimplemented!(),
-            Token::Comma => unimplemented!(),
-            Token::Comment(_) => {
-                // skip comments and just parse the next token
-                // TODO: copy ciri method for this
-                self.next_token();
-                self.parse_stmt()?
-            }
             Token::Eof => return Err(EofError),
-            Token::IntegerType(_) => todo!(),
-            Token::FloatType(_) => todo!(),
+            _ => Statement::Expression(self.parse_expr(Precedence::Lowest)),
         });
     }
 
-    fn parse_expr(&mut self) -> Expression {
+    fn parse_expr(&mut self, prec: Precedence) -> Expression {
+        let prefix = self.parse_prefix();
+
+        let mut left_expression = prefix;
+
+        while !self.peek_is_end() && prec < self.get_precedence(&self.peek_tok) {
+            self.next_token();
+            // Unwrap here might not be safe. Observe this
+            left_expression = match self.parse_infix(left_expression) {
+                Some(expr) => expr,
+                None => panic!("Invalid infix expression"),
+            };
+        }
+
+        left_expression
+    }
+
+    fn parse_prefix(&mut self) -> Expression {
         match &self.cur_tok {
             Token::Ident(ident) => match self.peek_tok {
                 Token::LParent => Expression::Call(self.parse_call_expr()),
@@ -97,7 +90,26 @@ impl<'a> Parser<'a> {
             Token::Float(float) => Expression::Literal(Literal::Float(*float)),
             Token::String(string) => Expression::Literal(Literal::String(string.into())),
             Token::Boolean(boolean) => Expression::Literal(Literal::Boolean(*boolean)),
-            _ => todo!("cur: {:?}, next: {:?}", self.cur_tok, self.peek_tok),
+            _ => panic!("No prefix parse found for: {}", self.cur_tok),
+        }
+    }
+
+    fn peek_is_end(&self) -> bool {
+        matches!(self.peek_tok, Token::Semicolon | Token::Eof)
+    }
+
+    fn get_precedence(&self, token: &Token) -> Precedence {
+        match token {
+            Token::Assign => Precedence::Assign,
+            Token::Operator(op) => match op {
+                Operator::Equals | Operator::NotEquals => Precedence::Equals,
+                Operator::Greater | Operator::Lesser => Precedence::LessGreater,
+                Operator::GreaterEquals | Operator::LesserEquals => Precedence::LessGreaterOrEqual,
+                Operator::Plus | Operator::Minus => Precedence::Sum,
+                Operator::Asterisk | Operator::Slash => Precedence::Product,
+            },
+            Token::LParent => Precedence::Call,
+            _ => Precedence::Lowest,
         }
     }
 
@@ -109,7 +121,7 @@ impl<'a> Parser<'a> {
         self.next_token();
         self.next_token();
 
-        let val = self.parse_expr();
+        let val = self.parse_expr(Precedence::Lowest);
         self.expect_peek_tok(Token::Semicolon);
 
         // expression value and semicolon
@@ -161,7 +173,7 @@ impl<'a> Parser<'a> {
 
     fn parse_if_stmt(&mut self) -> IfStatement {
         self.next_token();
-        let condition = self.parse_expr();
+        let condition = self.parse_expr(Precedence::Lowest);
         self.expect_peek_tok(Token::LCurly);
         // go to left curly bracket
         self.next_token();
@@ -174,7 +186,7 @@ impl<'a> Parser<'a> {
 
     fn parse_return_stmt(&mut self) -> ReturnStatement {
         self.next_token();
-        let val = self.parse_expr();
+        let val = self.parse_expr(Precedence::Lowest);
         self.expect_peek_tok(Token::Semicolon);
         self.next_token();
         ReturnStatement { val }
@@ -263,12 +275,12 @@ impl<'a> Parser<'a> {
 
         self.next_token();
 
-        args.push(self.parse_expr());
+        args.push(self.parse_expr(Precedence::Lowest));
 
         while self.peek_tok == Token::Comma {
             self.next_token();
             self.next_token();
-            args.push(self.parse_expr());
+            args.push(self.parse_expr(Precedence::Lowest));
         }
 
         self.next_token();
@@ -281,7 +293,6 @@ impl<'a> Parser<'a> {
             Token::IntegerType(_) => (),
             Token::FloatType(_) => (),
             Token::Ident(_) => (),
-            Token::Vector(_) => (),
             _ => panic!("expected a type, got: {}", self.peek_tok),
         }
     }
