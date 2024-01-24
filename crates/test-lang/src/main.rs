@@ -32,7 +32,7 @@ fn run() {
     name.pop();
     name.pop();
 
-    let new_name: Vec<&str> = name.split("/").collect();
+    let new_name: Vec<&str> = name.split('/').collect();
 
     let name = new_name.last().unwrap();
 

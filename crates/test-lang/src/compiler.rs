@@ -121,7 +121,7 @@ impl<'a> Compiler<'a> {
             Operator::Div => IRExpr::Div(DivExpr {
                 values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
-            Operator::Multiply => IRExpr::Mul(MulExpr {
+            Operator::Mul => IRExpr::Mul(MulExpr {
                 values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
             Operator::Reassign => todo!(),
@@ -146,7 +146,7 @@ impl<'a> Compiler<'a> {
 
     fn compile_lit(&self, node: Literal) -> IRExpr {
         match node {
-            Literal::Variable(_) => todo!(),
+            Literal::Ident(_) => todo!(),
             Literal::String(string) => IRExpr::Literal(frontend::ast::Literal::String(string)),
             Literal::Integer(int) => IRExpr::Literal(frontend::ast::Literal::Integer(
                 /* TODO: change this accordingly */ 32,

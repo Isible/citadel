@@ -22,14 +22,14 @@ pub enum Operator {
     Add,
     Sub,
     Div,
-    Multiply,
+    Mul,
     Reassign,
     Equals
 }
 
 #[derive(Debug, PartialEq)]
 pub enum Literal {
-    Variable(String),
+    Ident(String),
     String(String),
     Integer(i64),
     Float(f64),

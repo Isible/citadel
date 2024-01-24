@@ -1,4 +1,8 @@
 fn main(): void {
-    1023;
-    puts(getName());
+    let x: i32 = 1023 + 100 * 10;
+    puts(test());
+}
+
+fn test(): string {
+    return "Testing";
 }

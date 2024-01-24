@@ -2,8 +2,8 @@ use std::{error::Error, fmt::Display, mem::swap};
 
 use crate::{
     ast::{
-        BlockStatement, CallExpression, Expression, FnStatement, IfStatement, LetStatement,
-        Literal, ReturnStatement, Statement, TypedIdent,
+        BlockStatement, CallExpression, Expression, FnStatement, IfStatement, InfixOpExpr,
+        LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent,
     },
     lexer::Lexer,
     tokens::Token,
@@ -42,14 +42,9 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn next_token(&mut self) {
-        swap(&mut self.cur_tok, &mut self.peek_tok);
-        self.peek_tok = util::get_next_tok(self.lexer);
-    }
-
     // Every parse function needs to set cur_token to the last character in the line
     pub fn parse_stmt(&mut self) -> Result<Statement, EofError> {
-        return Ok(match &self.cur_tok {
+        Ok(match &self.cur_tok {
             Token::Let => Statement::Let(self.parse_let_stmt()),
             Token::Fn => Statement::Fn(self.parse_fn_stmt()),
             Token::If => Statement::If(self.parse_if_stmt()),
@@ -60,7 +55,7 @@ impl<'a> Parser<'a> {
             Token::RCurly => todo!("next tok: {}", self.peek_tok),
             Token::Eof => return Err(EofError),
             _ => Statement::Expression(self.parse_expr(Precedence::Lowest)),
-        });
+        })
     }
 
     fn parse_expr(&mut self, prec: Precedence) -> Expression {
@@ -71,46 +66,43 @@ impl<'a> Parser<'a> {
         while !self.peek_is_end() && prec < self.get_precedence(&self.peek_tok) {
             self.next_token();
             // Unwrap here might not be safe. Observe this
-            left_expression = match self.parse_infix(left_expression) {
-                Some(expr) => expr,
-                None => panic!("Invalid infix expression"),
-            };
+            left_expression = self.parse_infix(left_expression);
         }
 
         left_expression
     }
 
+    fn parse_infix(&mut self, left: Expression) -> Expression {
+        match self.cur_tok {
+            Token::Equals | Token::Plus | Token::Minus | Token::Multiply | Token::Divide => {
+                self.parse_infix_expr(left)
+            }
+            Token::LParent => Expression::Call(self.parse_call_expr(left)),
+            // Token::LSquare => self.parse_index_expr(left),
+            _ => panic!("Invalid for parsing an infix expr: {:#?}", left),
+        }
+    }
+
     fn parse_prefix(&mut self) -> Expression {
         match &self.cur_tok {
-            Token::Ident(ident) => match self.peek_tok {
-                Token::LParent => Expression::Call(self.parse_call_expr()),
-                _ => Expression::Literal(Literal::Variable(ident.into())),
-            },
             Token::Integer(int) => Expression::Literal(Literal::Integer(*int)),
             Token::Float(float) => Expression::Literal(Literal::Float(*float)),
             Token::String(string) => Expression::Literal(Literal::String(string.into())),
             Token::Boolean(boolean) => Expression::Literal(Literal::Boolean(*boolean)),
+            Token::Ident(ident) => Expression::Literal(Literal::Ident(ident.into())), 
             _ => panic!("No prefix parse found for: {}", self.cur_tok),
         }
     }
 
-    fn peek_is_end(&self) -> bool {
-        matches!(self.peek_tok, Token::Semicolon | Token::Eof)
-    }
-
-    fn get_precedence(&self, token: &Token) -> Precedence {
-        match token {
-            Token::Assign => Precedence::Assign,
-            Token::Operator(op) => match op {
-                Operator::Equals | Operator::NotEquals => Precedence::Equals,
-                Operator::Greater | Operator::Lesser => Precedence::LessGreater,
-                Operator::GreaterEquals | Operator::LesserEquals => Precedence::LessGreaterOrEqual,
-                Operator::Plus | Operator::Minus => Precedence::Sum,
-                Operator::Asterisk | Operator::Slash => Precedence::Product,
-            },
-            Token::LParent => Precedence::Call,
-            _ => Precedence::Lowest,
-        }
+    fn parse_infix_expr(&mut self, left_expr: Expression) -> Expression {
+        let op = self.cur_tok_to_in_op();
+        let prec = self.get_precedence(&self.cur_tok);
+        self.next_token();
+        let right_expr = self.parse_expr(prec);
+        Expression::Infix(InfixOpExpr {
+            sides: (Box::from(left_expr), Box::from(right_expr)),
+            operator: op,
+        })
     }
 
     fn parse_let_stmt(&mut self) -> LetStatement {
@@ -248,12 +240,11 @@ impl<'a> Parser<'a> {
         TypedIdent { ident, _type }
     }
 
-    fn parse_call_expr(&mut self) -> CallExpression {
-        let name = self.cur_tok.to_string();
-
-        self.expect_peek_tok(Token::LParent);
-
-        self.next_token();
+    fn parse_call_expr(&mut self, left: Expression) -> CallExpression {
+        let name = match left {
+            Expression::Literal(Literal::Ident(var)) => var,
+            _ => panic!("{left:?} is not an ident"),
+        };
 
         let args = self.parse_call_args();
 
@@ -300,6 +291,38 @@ impl<'a> Parser<'a> {
     fn expect_peek_tok(&self, expect: Token) {
         if self.peek_tok != expect {
             panic!("expected: {:?}, received: {:?}", expect, self.peek_tok)
+        }
+    }
+
+    pub fn next_token(&mut self) {
+        swap(&mut self.cur_tok, &mut self.peek_tok);
+        self.peek_tok = util::get_next_tok(self.lexer);
+    }
+
+    fn cur_tok_to_in_op(&self) -> Operator {
+        match self.cur_tok {
+            Token::Plus => Operator::Add,
+            Token::Minus => Operator::Sub,
+            Token::Divide => Operator::Div,
+            Token::Multiply => Operator::Mul,
+            Token::Assign => todo!(),
+            Token::Equals => Operator::Equals,
+            _ => panic!("Cannot convert {} to operator", self.cur_tok),
+        }
+    }
+
+    fn peek_is_end(&self) -> bool {
+        matches!(self.peek_tok, Token::Semicolon | Token::Eof)
+    }
+
+    fn get_precedence(&self, token: &Token) -> Precedence {
+        match token {
+            Token::Assign => Precedence::Assign,
+            Token::Plus | Token::Minus => Precedence::Sum,
+            Token::Multiply | Token::Divide => Precedence::Prod,
+            Token::Equals => Precedence::Equals,
+            Token::LParent => Precedence::Call,
+            _ => Precedence::Lowest,
         }
     }
 }

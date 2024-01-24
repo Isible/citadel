@@ -132,7 +132,7 @@ impl Lexer {
                     }
                 }
             }
-            None => return,
+            None => (),
         }
     }
 }
