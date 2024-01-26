@@ -23,14 +23,15 @@ impl Evaluator {
 
     fn eval_stmt(&mut self, node: IRStmt) -> Object {
         match node {
-            IRStmt::AbstractFunction(func) => todo!(),
+            IRStmt::DeclaredFunction(func) => todo!(),
             IRStmt::Function(func) => todo!(),
             IRStmt::Variable(var) => todo!(),
             IRStmt::Constant(_const) => todo!(),
             IRStmt::Label(label) => todo!(),
             IRStmt::Return(ret) => todo!(),
             IRStmt::Break(br) => todo!(),
-            IRStmt::Goto(goto) => todo!(),
+            IRStmt::Jump(goto) => todo!(),
+            IRStmt::Call(call) => todo!(),
             IRStmt::Expression(expr) => self.eval_expr(expr),
         }
     }
@@ -40,10 +41,7 @@ impl Evaluator {
             IRExpr::Call(_) => todo!(),
             IRExpr::Literal(lit) => self.eval_lit(lit),
             IRExpr::Ident(_) => todo!(),
-            IRExpr::Add(_) => todo!(),
-            IRExpr::Sub(_) => todo!(),
-            IRExpr::Mul(_) => todo!(),
-            IRExpr::Div(_) => todo!(),
+            IRExpr::ArithOp(_) => todo!(),
         }
     }
 
@@ -56,7 +54,7 @@ impl Evaluator {
             Literal::Bool(bool) => Object::Boolean(BoolObj(bool)),
             Literal::Integer(_, int) => Object::Integer(IntObj(int)),
             Literal::Array(_, arr) => todo!(),
-            Literal::Vector(_, vec) => todo!(),
+            Literal::Vector(vec) => todo!(),
         }
     }    
 }

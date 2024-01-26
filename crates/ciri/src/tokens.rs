@@ -19,6 +19,8 @@ pub enum Token {
     Apostrophe,
     /// : - colon is used to mark a variety of things and labels in particular
     Colon,
+    /// , - comma is used to list arguments
+    Comma,
     /// . - dot is used for namespaces and methods
     Dot,
 
@@ -41,8 +43,8 @@ pub enum Token {
     Lcl,
     /// sets the access of a variable to public
     Pub,
-    /// marks a function as abstract meaning it gets initialized in a different module
-    Abst,
+    /// marks a function as declared only meaning it gets initialized in a different module
+    Decl,
     /// Call a function
     Call,
     /// Return a value
@@ -56,6 +58,10 @@ pub enum Token {
     Mul,
     /// Division
     Div,
+    /// Break a loop
+    Break,
+    /// Jump to a label
+    Jump,
 
     // --others--
     /// A raw literal that is not enclosed in a literal `l{...}` holder
@@ -109,11 +115,12 @@ impl Display for Token {
                 Token::QuestionMark => String::from("?"),
                 Token::Assign => String::from("="),
                 Token::Colon => String::from(":"),
+                Token::Comma => String::from(","),
                 Token::Dot => String::from("."),
                 Token::Apostrophe => String::from("'"),
                 Token::Lcl => String::from("lcl"),
                 Token::Pub => String::from("pub"),
-                Token::Abst => String::from("abst"),
+                Token::Decl => String::from("decl"),
                 Token::Lit(val) => format!("l{{{val}}}"),
                 Token::RawLit(lit) => lit.to_string(),
                 Token::Ident(val) => val.to_owned(),
@@ -124,6 +131,8 @@ impl Display for Token {
                 Token::Sub => String::from("sub"),
                 Token::Mul => String::from("mul"),
                 Token::Div => String::from("div"),
+                Token::Jump => String::from("jmp"),
+                Token::Break => String::from("br"),
                 Token::LParent => String::from("("),
                 Token::RParent => String::from(")"),
                 Token::LSquare => String::from("["),

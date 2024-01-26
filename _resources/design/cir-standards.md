@@ -32,8 +32,8 @@ Reference a variable or function with `%`
 
 ### Access mods
 
-- `lcl` make a value local
-- `gbl` make a value global
+- `lcl` make a value local/private
+- `pub` make a value global/public
 
 ## Types
 

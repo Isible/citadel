@@ -112,16 +112,8 @@ impl<'a> Compiler<'a> {
 
     fn compile_arith_op_expr(&self, node: InfixOpExpr) -> IRExpr {
         match node.operator {
-            Operator::Add => IRExpr::Add(AddExpr {
-                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
-            }),
-            Operator::Sub => IRExpr::Sub(SubExpr {
-                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
-            }),
-            Operator::Div => IRExpr::Div(DivExpr {
-                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
-            }),
-            Operator::Mul => IRExpr::Mul(MulExpr {
+            Operator::Add | Operator::Sub | Operator::Mul | Operator::Div => IRExpr::ArithOp(ArithOpExpr {
+                op: self.compiler_op(node.operator),
                 values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
             }),
             Operator::Reassign => todo!(),
@@ -134,6 +126,17 @@ impl<'a> Compiler<'a> {
             Box::new(self.compile_expr(tuple.0)),
             Box::new(self.compile_expr(tuple.1)),
         )
+    }
+
+    fn compiler_op(&self, op: Operator) -> frontend::ast::Operator {
+        match op {
+            Operator::Add => frontend::ast::Operator::Add,
+            Operator::Sub => frontend::ast::Operator::Sub,
+            Operator::Mul => frontend::ast::Operator::Mul,
+            Operator::Div => frontend::ast::Operator::Div,
+            Operator::Reassign => todo!(),
+            Operator::Equals => todo!(),
+        }
     }
 
     fn compile_args(&self, args: Vec<Expression>) -> Vec<IRExpr> {

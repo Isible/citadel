@@ -2,7 +2,7 @@
 mod tests {
     use crate::{
         ast::{
-            AbstFuncStmt, BlockStmt, IRExpr, LabelStmt, Literal, ReturnStmt, IRStmt,
+            DeclFuncStmt, BlockStmt, IRExpr, LabelStmt, Literal, ReturnStmt, IRStmt,
             IRTypedIdent,
         },
         ir_gen::IRGenerator,
@@ -13,7 +13,7 @@ mod tests {
         let mut code_gen = IRGenerator::new();
 
         // abstract function
-        code_gen.gen_ir(IRStmt::AbstractFunction(AbstFuncStmt {
+        code_gen.gen_ir(IRStmt::DeclaredFunction(DeclFuncStmt {
             name: IRTypedIdent {
                 ident: "myFuncName".into(),
                 _type: "void".into(),

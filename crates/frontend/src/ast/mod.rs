@@ -6,7 +6,7 @@ pub mod traits;
 
 #[derive(Debug)]
 pub enum IRStmt {
-    AbstractFunction(AbstFuncStmt),
+    DeclaredFunction(DeclFuncStmt),
     Function(FuncStmt),
     Variable(VarStmt),
     Constant(ConstStmt),
@@ -14,7 +14,8 @@ pub enum IRStmt {
 
     Return(ReturnStmt),
     Break(BreakStmt),
-    Goto(GotoStmt),
+    Jump(JumpStmt),
+    Call(CallExpr),
 
     Expression(IRExpr),
 }
@@ -25,10 +26,7 @@ pub enum IRExpr {
     Literal(Literal),
     Ident(String),
 
-    Add(AddExpr),
-    Sub(SubExpr),
-    Mul(MulExpr),
-    Div(DivExpr),
+    ArithOp(ArithOpExpr),
 }
 
 #[derive(Debug)]
@@ -45,11 +43,19 @@ pub enum Literal {
     Integer(u8, isize),
 
     Array(usize, Vec<IRExpr>),
-    Vector(usize, Vec<IRExpr>),
+    Vector(Vec<IRExpr>),
 }
 
 #[derive(Debug)]
-pub struct AbstFuncStmt {
+pub enum Operator {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
+
+#[derive(Debug)]
+pub struct DeclFuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
     pub is_local: bool,
@@ -94,7 +100,7 @@ pub struct BreakStmt {
 }
 
 #[derive(Debug)]
-pub struct GotoStmt {
+pub struct JumpStmt {
     pub label: String,
 }
 
@@ -116,21 +122,7 @@ pub struct CallExpr {
 }
 
 #[derive(Debug)]
-pub struct AddExpr {
-    pub values: (Box<IRExpr>, Box<IRExpr>)
-}
-
-#[derive(Debug)]
-pub struct SubExpr {
-    pub values: (Box<IRExpr>, Box<IRExpr>)
-}
-
-#[derive(Debug)]
-pub struct MulExpr {
-    pub values: (Box<IRExpr>, Box<IRExpr>)
-}
-
-#[derive(Debug)]
-pub struct DivExpr {
+pub struct ArithOpExpr {
+    pub op: Operator,
     pub values: (Box<IRExpr>, Box<IRExpr>)
 }

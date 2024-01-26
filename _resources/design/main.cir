@@ -9,7 +9,7 @@
 }
 
 # `*` means that the value is a pointer
-@myFunc($someArg *i32) lcl i32 {
+@myFunc(someArg *i32) lcl i32 {
     $foo lcl i8 = l{59}
     # `^` to create a pointer
     $bar lcl *i8 = ^foo

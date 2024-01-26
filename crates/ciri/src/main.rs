@@ -30,7 +30,7 @@ fn run() -> Result<(), InterpreterError> {
         None => return Err(InterpreterError(Box::from(InvalidArgError(1)))),
     };
 
-    let mut lexer = match Lexer::new(first_arg) {
+    let mut lexer = match Lexer::new(&"tests/main.cir".into()) {
         Ok(lexer) => lexer,
         Err(err) => return Err(InterpreterError(Box::from(err))),
     };

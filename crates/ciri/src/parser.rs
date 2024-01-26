@@ -1,8 +1,13 @@
 use std::mem::swap;
 
-use frontend::ast::{IRStmt, ConstStmt, IRTypedIdent, IRExpr, VarStmt};
+use frontend::ast::{
+    ArithOpExpr, BlockStmt, BreakStmt, CallExpr, ConstStmt, DeclFuncStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt
+};
 
-use crate::{lexer::Lexer, tokens::{Token, Literal}};
+use crate::{
+    lexer::Lexer,
+    tokens::{Literal, Token},
+};
 
 pub struct Parser<'a> {
     lexer: &'a mut Lexer,
@@ -24,48 +29,32 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_stmt(&mut self) -> IRStmt {
-        match self.cur_tok {
-            Token::DollarSign => self.parse_variable(),
-            Token::QuestionMark => self.parse_variable(),
+    pub fn parse_stmt(&mut self) -> Option<IRStmt> {
+        Some(match self.cur_tok {
+            Token::DollarSign => self.parse_variable(true),
+            Token::QuestionMark => self.parse_variable(false),
             Token::At => self.parse_function(),
-            Token::PercentSign => todo!(),
-            Token::Assign => todo!(),
-            Token::Apostrophe => todo!(),
-            Token::Colon => todo!(),
-            Token::Dot => todo!(),
-            Token::LParent => todo!(),
-            Token::RParent => todo!(),
-            Token::LSquare => todo!(),
-            Token::RSquare => todo!(),
-            Token::LCurly => todo!(),
-            Token::RCurly => todo!(),
-            Token::Lcl => todo!(),
-            Token::Pub => todo!(),
-            Token::Abst => todo!(),
-            Token::Call => todo!(),
-            Token::Ret => todo!(),
-            Token::Add => todo!(),
-            Token::Sub => todo!(),
-            Token::Mul => todo!(),
-            Token::Div => todo!(),
-            Token::RawLit(_) => todo!(),
-            Token::Lit(_) => todo!(),
-            Token::Ident(_) => todo!(),
-            Token::Eof => todo!(),
-        }
+            Token::Apostrophe => self.parse_label(),
+            Token::Decl => self.parse_function_decl(),
+            Token::Call => IRStmt::Call(self.parse_call()),
+            Token::Ret => self.parse_return(),
+            Token::Break => self.parse_break(),
+            Token::Jump => self.parse_jump(),
+            Token::Eof => return None,
+            _ => panic!("Cannot parse statement from token: {}", self.cur_tok),
+        })
     }
 
     pub fn parse_expr(&mut self) -> IRExpr {
         match self.cur_tok {
-            Token::Call => todo!(),
-            Token::Add => todo!(),
-            Token::Sub => todo!(),
-            Token::Mul => todo!(),
-            Token::Div => todo!(),
+            Token::Call => IRExpr::Call(self.parse_call()),
+            Token::Add => self.parse_arith_op_expr(Operator::Add),
+            Token::Sub => self.parse_arith_op_expr(Operator::Sub),
+            Token::Mul => self.parse_arith_op_expr(Operator::Mul),
+            Token::Div => self.parse_arith_op_expr(Operator::Div),
             Token::Lit(_) => self.parse_lit(),
             Token::Ident(_) => todo!(),
-            _ => todo!(),
+            _ => todo!("cur tok: {:?}", self.cur_tok),
         }
     }
 
@@ -85,18 +74,13 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn parse_variable(&mut self) -> IRStmt {
-        let is_const = match self.cur_tok {
-            Token::DollarSign => true,
-            Token::QuestionMark => false,
-            _ => panic!()
-        };
-
-        dbg!("cur {}, next {}", &self.cur_tok, &self.peek_tok);
-
+    fn parse_variable(&mut self, is_const: bool) -> IRStmt {
         match self.peek_tok {
             Token::Ident(_) => (),
-            _ => panic!("Expect peek token to be an Identifier, received {} instead", self.peek_tok),
+            _ => panic!(
+                "Expect peek token to be an Identifier, received {} instead",
+                self.peek_tok
+            ),
         }
 
         self.next_token();
@@ -104,7 +88,10 @@ impl<'a> Parser<'a> {
         let name = self.cur_tok.to_string();
 
         if self.peek_tok != Token::Lcl && self.peek_tok != Token::Pub {
-            panic!("Expected access modifier like pub or lcl, received {:?} instead", self.peek_tok);
+            panic!(
+                "Expected access modifier like pub or lcl, received {:?} instead",
+                self.peek_tok
+            );
         }
 
         self.next_token();
@@ -119,14 +106,17 @@ impl<'a> Parser<'a> {
         // expect next token
         match self.peek_tok {
             Token::Ident(_) => (),
-            _ => panic!("Expect peek token to be an Identifier, received {} instead", self.peek_tok),
+            _ => panic!(
+                "Expect peek token to be an Identifier, received {} instead",
+                self.peek_tok
+            ),
         }
 
         self.next_token();
 
         let _type = self.cur_tok.to_string();
 
-        self.expect_peek_tok(Token::Assign);
+        self.expect_peek_tok(&Token::Assign);
 
         self.next_token();
 
@@ -136,22 +126,225 @@ impl<'a> Parser<'a> {
 
         match is_const {
             true => IRStmt::Constant(ConstStmt {
-                name: IRTypedIdent {
-                    ident: name,
-                    _type,
-                },
+                name: IRTypedIdent { ident: name, _type },
                 val,
                 is_local,
             }),
             false => IRStmt::Variable(VarStmt {
-                name: IRTypedIdent {
-                    ident: name,
-                    _type,
-                },
+                name: IRTypedIdent { ident: name, _type },
                 val,
                 is_local,
             }),
         }
+    }
+
+    fn parse_function(&mut self) -> IRStmt {
+        self.next_token();
+
+        let name = match self.cur_tok {
+            Token::Ident(_) => self.cur_tok.to_string(),
+            _ => panic!("Expected identifier after @ for the function name"),
+        };
+
+        self.next_token();
+
+        let args = self.parse_arg_list(Token::RParent);
+
+        let is_local = match self.peek_tok {
+            Token::Lcl => true,
+            Token::Pub => false,
+            _ => panic!("Expected pub or lcl, got {} instead", self.peek_tok),
+        };
+
+        self.next_token();
+
+        self.next_token();
+
+        let _type = self.cur_tok.to_string();
+
+        self.expect_peek_tok(&Token::LCurly);
+
+        self.next_token();
+
+        let block = self.parse_block();
+
+        IRStmt::Function(FuncStmt {
+            name: IRTypedIdent { ident: name, _type },
+            args,
+            block,
+            is_local,
+        })
+    }
+
+    fn parse_function_decl(&mut self) -> IRStmt {
+        self.expect_peek_tok(&Token::At);
+        self.next_token();
+        let name = match self.peek_tok {
+            Token::Ident(_) => self.peek_tok.to_string(),
+            _ => panic!("Expected ident after decl, got {} instead", self.peek_tok),
+        };
+        self.next_token();
+        self.expect_peek_tok(&Token::LParent);
+        self.next_token();
+        let args = self.parse_arg_list(Token::RParent);
+        let is_local = match self.peek_tok {
+            Token::Lcl => true,
+            Token::Pub => false,
+            _ => panic!("Expected pub or lcl, got {} instead", self.peek_tok),
+        };
+        self.next_token();
+        let _type = match self.peek_tok {
+            Token::Ident(_) => self.peek_tok.to_string(),
+            _ => panic!("Expected ident for a type, got {} instead", self.peek_tok),
+        };
+        IRStmt::DeclaredFunction(DeclFuncStmt {
+            name: IRTypedIdent { ident: name, _type },
+            args,
+            is_local,
+        })
+    }
+
+    fn parse_label(&mut self) -> IRStmt {
+        self.next_token();
+        let name = match self.cur_tok {
+            Token::Ident(_) => self.cur_tok.to_string(),
+            _ => panic!(
+                "Expected ident after label declaration, got {} instead",
+                self.cur_tok
+            ),
+        };
+        self.expect_peek_tok(&Token::Colon);
+        self.next_token();
+        self.expect_peek_tok(&Token::LCurly);
+        self.next_token();
+        let block = self.parse_block();
+        IRStmt::Label(LabelStmt { name, block })
+    }
+
+    fn parse_call(&mut self) -> CallExpr {
+        self.expect_peek_tok(&Token::PercentSign);
+        self.next_token();
+        let name = match self.peek_tok {
+            Token::Ident(_) => self.peek_tok.to_string(),
+            _ => panic!(
+                "Expected ident for call function name, got {} instead",
+                self.peek_tok
+            ),
+        };
+        self.next_token();
+        self.expect_peek_tok(&Token::LParent);
+        self.next_token();
+        let args = self.parse_expr_list(Token::RParent);
+        CallExpr { name, args }
+    }
+
+    fn parse_return(&mut self) -> IRStmt {
+        self.next_token();
+        let expr = self.parse_expr();
+        IRStmt::Return(ReturnStmt { ret_val: expr })
+    }
+
+    fn parse_break(&mut self) -> IRStmt {
+        self.expect_peek_tok(&Token::Apostrophe);
+        self.next_token();
+        let label = self.parse_label_ref();
+        IRStmt::Break(BreakStmt {
+            label,
+        })
+    }
+
+    fn parse_jump(&mut self) -> IRStmt {
+        self.expect_peek_tok(&Token::Apostrophe);
+        self.next_token();
+        let label = self.parse_label_ref();
+        IRStmt::Jump(JumpStmt {
+            label,
+        })
+    }
+
+    fn parse_arith_op_expr(&mut self, op: Operator) -> IRExpr {
+        self.next_token();
+        let left = self.parse_expr();
+        self.expect_peek_tok(&Token::Comma);
+        self.next_token();
+        self.next_token();
+        let right = self.parse_expr();
+        IRExpr::ArithOp(ArithOpExpr {
+            op,
+            values: (Box::from(left), Box::from(right))
+        })
+    }
+
+    fn parse_label_ref(&mut self) -> String {
+        let name = match self.peek_tok {
+            Token::Ident(_) => self.peek_tok.to_string(),
+            _ => panic!("Expected label name after apostrophe"),
+        };
+        self.next_token();
+        name
+    }
+
+    fn parse_block(&mut self) -> BlockStmt {
+        let mut block = Vec::new();
+        while self.peek_tok != Token::RCurly {
+            self.next_token();
+            block.push(self.parse_stmt().unwrap_or_else(|| panic!("Encountered EOF before end of block statement")));
+        }
+        self.next_token();
+        BlockStmt { stmts: block }
+    }
+
+    fn parse_expr_list(&mut self, end: Token) -> Vec<IRExpr> {
+        if self.peek_tok == end {
+            self.next_token();
+            return Vec::new();
+        }
+        let mut args = Vec::new();
+        self.next_token();
+        loop {
+            args.push(self.parse_expr());
+            if self.peek_tok == Token::Comma {
+                self.next_token();
+                self.next_token();
+            } else if self.peek_tok == end {
+                break;
+            } else {
+                self.expect_peek_tok(&Token::RParent);
+            }
+        }
+        self.next_token();
+
+        args
+    }
+
+    fn parse_arg_list(&mut self, end: Token) -> Vec<IRTypedIdent> {
+        if self.peek_tok == end {
+            self.next_token();
+            return Vec::new();
+        }
+        let mut args = Vec::new();
+        self.next_token();
+        loop {
+            args.push(self.parse_typed_ident());
+            if self.peek_tok == Token::Comma {
+                self.next_token();
+                self.next_token();
+            } else if self.peek_tok == end {
+                break;
+            } else {
+                self.expect_peek_tok(&end);
+            }
+        }
+        self.next_token();
+
+        args
+    }
+
+    fn parse_typed_ident(&mut self) -> IRTypedIdent {
+        let ident = self.cur_tok.to_string();
+        self.next_token();
+        let _type = self.cur_tok.to_string();
+        IRTypedIdent { ident, _type }
     }
 
     pub fn next_token(&mut self) {
@@ -160,8 +353,8 @@ impl<'a> Parser<'a> {
         self.peek_tok = self.lexer.tokenize();
     }
 
-    fn expect_peek_tok(&self, expect: Token) {
-        if self.peek_tok != expect {
+    fn expect_peek_tok(&self, expect: &Token) {
+        if &self.peek_tok != expect {
             panic!("expected: {:?}, received: {:?}", expect, self.peek_tok)
         }
     }

@@ -1,45 +1,58 @@
-use std::fmt::Display;
 use crate::util::vec_display::VecDisplay;
+use std::fmt::Display;
 
 use super::*;
 
-impl Display for AbstFuncStmt {
+impl Display for DeclFuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "abst @{}({}) {} {}", self.name.ident, self.args.to_string(), if self.is_local {
-            "lcl"
-        } else {
-            "pub"
-        }, self.name._type)
+        write!(
+            f,
+            "decl @{}({}) {} {}",
+            self.name.ident,
+            self.args.to_string(),
+            if self.is_local { "lcl" } else { "pub" },
+            self.name._type
+        )
     }
 }
 
 impl Display for FuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "@{}({}) {} {} {{\n{}\n}}", self.name.ident, self.args.to_string(), if self.is_local {
-            "lcl"
-        } else {
-            "pub"
-        }, self.name._type, self.block)
+        write!(
+            f,
+            "@{}({}) {} {} {{\n{}\n}}",
+            self.name.ident,
+            self.args.to_string(),
+            if self.is_local { "lcl" } else { "pub" },
+            self.name._type,
+            self.block
+        )
     }
 }
 
 impl Display for VarStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "?{} {} {} = {}", self.name, if self.is_local {
-            "lcl"
-        } else {
-            "pub"
-        }, self.name._type, self.val)
+        write!(
+            f,
+            "?{} {} {} = {}",
+            self.name,
+            if self.is_local { "lcl" } else { "pub" },
+            self.name._type,
+            self.val
+        )
     }
 }
 
 impl Display for ConstStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "${} {} {} = {}", self.name.ident, if self.is_local {
-            "lcl"
-        } else {
-            "pub"
-        }, self.name._type, self.val)
+        write!(
+            f,
+            "${} {} {} = {}",
+            self.name.ident,
+            if self.is_local { "lcl" } else { "pub" },
+            self.name._type,
+            self.val
+        )
     }
 }
 
@@ -57,13 +70,13 @@ impl Display for ReturnStmt {
 
 impl Display for BreakStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "break {}", self.label)
+        write!(f, "br {}", self.label)
     }
 }
 
-impl Display for GotoStmt {
+impl Display for JumpStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "goto {}", self.label)
+        write!(f, "jmp {}", self.label)
     }
 }
 
@@ -92,41 +105,35 @@ impl Display for CallExpr {
     }
 }
 
-impl Display for AddExpr {
+impl Display for ArithOpExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "add {}, {}", self.values.0, self.values.1)
-    }
-}
-
-impl Display for SubExpr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "sub {}, {}", self.values.0, self.values.1)
-    }
-}
-
-impl Display for MulExpr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "mul {}, {}", self.values.0, self.values.1)
-    }
-}
-
-impl Display for DivExpr {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "div {}, {}", self.values.0, self.values.1)
+        write!(
+            f,
+            "{} {}, {}",
+            match self.op {
+                Operator::Add => "add",
+                Operator::Sub => "sub",
+                Operator::Mul => "mul",
+                Operator::Div => "div",
+            },
+            self.values.0,
+            self.values.1
+        )
     }
 }
 
 impl Display for IRStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&match self {
-            IRStmt::AbstractFunction(func) => func.to_string(),
+            IRStmt::DeclaredFunction(func) => func.to_string(),
             IRStmt::Function(func) => func.to_string(),
             IRStmt::Variable(var) => var.to_string(),
             IRStmt::Constant(_const) => _const.to_string(),
             IRStmt::Label(label) => label.to_string(),
             IRStmt::Return(ret) => ret.to_string(),
             IRStmt::Break(br) => br.to_string(),
-            IRStmt::Goto(goto) => goto.to_string(),
+            IRStmt::Jump(jump) => jump.to_string(),
+            IRStmt::Call(call) => call.to_string(),
             IRStmt::Expression(expr) => expr.to_string(),
         })
     }
@@ -137,10 +144,7 @@ impl Display for IRExpr {
         f.write_str(&match self {
             IRExpr::Call(call) => call.to_string(),
             IRExpr::Literal(lit) => lit.to_string(),
-            IRExpr::Add(add) => add.to_string(),
-            IRExpr::Sub(sub) => sub.to_string(),
-            IRExpr::Mul(mul) => mul.to_string(),
-            IRExpr::Div(div) => div.to_string(),
+            IRExpr::ArithOp(op) => op.to_string(),
             IRExpr::Ident(string) => string.into(),
         })
     }
@@ -148,15 +152,19 @@ impl Display for IRExpr {
 
 impl Display for Literal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "l{{{}}}", &match self {
-            Literal::String(string) => format!("\"{}\"", string),
-            Literal::Char(char) => char.to_string(),
-            Literal::ShortFloat(_, val) => val.to_string(),
-            Literal::LongFloat(_, val) => val.to_string(),
-            Literal::Bool(val) => val.to_string(),
-            Literal::Integer(_, val) => val.to_string(),
-            Literal::Array(_, val) => format!("[{}]", val.to_string()),
-            Literal::Vector(_, val) => format!("<{}>", val.to_string()),
-        })
+        write!(
+            f,
+            "l{{{}}}",
+            &match self {
+                Literal::String(string) => format!("\"{}\"", string),
+                Literal::Char(char) => char.to_string(),
+                Literal::ShortFloat(_, val) => val.to_string(),
+                Literal::LongFloat(_, val) => val.to_string(),
+                Literal::Bool(val) => val.to_string(),
+                Literal::Integer(_, val) => val.to_string(),
+                Literal::Array(_, val) => format!("[{}]", val.to_string()),
+                Literal::Vector(val) => format!("<{}>", val.to_string()),
+            }
+        )
     }
 }

@@ -3,4 +3,4 @@
 $unitialized lcl i8 = salloc i8
 
 # abstract function defined elsewhere
-abst @test() i32
+decl @test() lcl i32

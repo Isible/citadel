@@ -72,7 +72,6 @@ impl Lexer {
                     Token::RawLit(lit) => lit,
                     _ => panic!("Given token is not a literal even though it is in a l{{...}}"),
                 };
-                self.next_char();
                 Token::Lit(lit)
             }
             _ => {
@@ -96,11 +95,13 @@ impl Lexer {
                     "ret" => Token::Ret,
                     "lcl" => Token::Lcl,
                     "pub" => Token::Pub,
-                    "abst" => Token::Abst,
+                    "decl" => Token::Decl,
                     "add" => Token::Add,
                     "sub" => Token::Sub,
                     "mul" => Token::Mul,
                     "div" => Token::Div,
+                    "br" => Token::Break,
+                    "jmp" => Token::Jump,
                     _ => Token::Ident(ident.into()),
                 }
             }
@@ -130,6 +131,7 @@ impl Lexer {
             c if c == Some('{') => Token::LCurly,
             c if c == Some('}') => Token::RCurly,
             c if c == Some('#') => self.tokenize_comment(),
+            c if c == Some(',') => Token::Comma,
             _ => todo!("{:?}", self.ch),
         }
     }
@@ -148,7 +150,7 @@ impl Lexer {
             self.next_char();
         }
         self.next_char();
-        let string = &self.file_handler.content[first_pos..self.next_pos-1];
+        let string = &self.file_handler.content[first_pos..self.next_pos - 1];
         dbg!("{}", &self.ch);
         Token::RawLit(crate::tokens::Literal::String(string.into()))
     }
