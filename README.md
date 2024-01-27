@@ -1,4 +1,4 @@
-# citadel
+# Citadel
 
 ## Introduction
 
