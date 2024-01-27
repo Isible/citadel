@@ -1,15 +1,17 @@
-/* The AST (Abstract Syntax Tree) for the Intermediary Representation
- * This has the nodes (statements, expressions) for the ir
+/* The AST (Abstract Syntax Tree) module for the Intermediary Representation (IR)
+ * This has the nodes (statements, expressions) for generating an IR
+ * 
+ * It is recommended to use the frontend::ir_gen module instead
+ * but you can of course also generate the ir yourself
  */
 
 pub mod traits;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum IRStmt {
     DeclaredFunction(DeclFuncStmt),
     Function(FuncStmt),
     Variable(VarStmt),
-    Constant(ConstStmt),
     Label(LabelStmt),
 
     Return(ReturnStmt),
@@ -20,7 +22,7 @@ pub enum IRStmt {
     Expression(IRExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum IRExpr {
     Call(CallExpr),
     Literal(Literal),
@@ -29,7 +31,7 @@ pub enum IRExpr {
     ArithOp(ArithOpExpr),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     String(String),
     Char(char),
@@ -46,7 +48,7 @@ pub enum Literal {
     Vector(Vec<IRExpr>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Operator {
     Add,
     Sub,
@@ -54,14 +56,14 @@ pub enum Operator {
     Div,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeclFuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
     pub is_local: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
@@ -69,59 +71,53 @@ pub struct FuncStmt {
     pub is_local: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VarStmt {
     pub name: IRTypedIdent,
     pub val: IRExpr,
     pub is_local: bool,
+    pub is_const: bool,
 }
 
-#[derive(Debug)]
-pub struct ConstStmt {
-    pub name: IRTypedIdent,
-    pub val: IRExpr,
-    pub is_local: bool,
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LabelStmt {
     pub name: String,
     pub block: BlockStmt,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ReturnStmt {
     pub ret_val: IRExpr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BreakStmt {
     pub label: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JumpStmt {
     pub label: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IRTypedIdent {
     pub ident: String,
     pub _type: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BlockStmt {
     pub stmts: Vec<IRStmt>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CallExpr {
     pub name: String,
     pub args: Vec<IRExpr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ArithOpExpr {
     pub op: Operator,
     pub values: (Box<IRExpr>, Box<IRExpr>)

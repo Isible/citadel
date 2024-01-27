@@ -34,21 +34,9 @@ impl Display for VarStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "?{} {} {} = {}",
+            "{}{} {} {} = {}",
+            if self.is_const { "$" } else { "?" },
             self.name,
-            if self.is_local { "lcl" } else { "pub" },
-            self.name._type,
-            self.val
-        )
-    }
-}
-
-impl Display for ConstStmt {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "${} {} {} = {}",
-            self.name.ident,
             if self.is_local { "lcl" } else { "pub" },
             self.name._type,
             self.val
@@ -128,7 +116,6 @@ impl Display for IRStmt {
             IRStmt::DeclaredFunction(func) => func.to_string(),
             IRStmt::Function(func) => func.to_string(),
             IRStmt::Variable(var) => var.to_string(),
-            IRStmt::Constant(_const) => _const.to_string(),
             IRStmt::Label(label) => label.to_string(),
             IRStmt::Return(ret) => ret.to_string(),
             IRStmt::Break(br) => br.to_string(),

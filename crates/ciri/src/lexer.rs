@@ -37,7 +37,9 @@ impl Lexer {
     fn tokenize_num(&mut self) -> Token {
         let mut found_fp = false;
         let first_pos = self.next_pos;
-        while self.ch.is_some() && (self.ch.unwrap().is_numeric() || self.ch.unwrap() == '.') {
+        while self.ch.is_some()
+            && (self.get_next_ch_unchecked().is_numeric() || self.get_next_ch_unchecked() == '.')
+        {
             if self.ch.unwrap() == '.' && !found_fp {
                 found_fp = true;
             } else if self.ch.unwrap() == '.' && found_fp {
@@ -46,7 +48,7 @@ impl Lexer {
             self.next_char();
         }
 
-        let val = &self.file_handler.content[first_pos - 1..self.next_pos - 1];
+        let val = &self.file_handler.content[first_pos - 1..self.next_pos];
 
         Token::RawLit(match found_fp {
             true => crate::tokens::Literal::Float(match val.parse() {
@@ -72,6 +74,7 @@ impl Lexer {
                     Token::RawLit(lit) => lit,
                     _ => panic!("Given token is not a literal even though it is in a l{{...}}"),
                 };
+                self.next_char();
                 Token::Lit(lit)
             }
             _ => {
@@ -186,5 +189,13 @@ impl Lexer {
             }
             None => return,
         }
+    }
+
+    fn get_next_ch_unchecked(&self) -> char {
+        self.file_handler
+            .content
+            .chars()
+            .nth(self.next_pos)
+            .unwrap()
     }
 }

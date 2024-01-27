@@ -75,12 +75,13 @@ impl<'a> Compiler<'a> {
     }
 
     fn compile_let_stmt(&self, node: LetStatement) -> IRStmt {
-        IRStmt::Constant(ConstStmt {
+        IRStmt::Variable(VarStmt {
             name: IRTypedIdent {
                 ident: node.name.ident,
                 _type: node.name._type,
             },
             is_local: true,
+            is_const: true,
             val: self.compile_expr(node.val),
         })
     }

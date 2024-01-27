@@ -1,9 +1,14 @@
-use frontend::ast::{IRStmt, IRExpr, Literal};
+use std::thread::panicking;
 
-use crate::{env::Environment, obj::{Object, StrObj, CharObj, FloatObj, BoolObj, IntObj}};
+use frontend::ast::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, VarStmt};
+
+use crate::{
+    env::{EnvObj, EnvObjType, Environment},
+    obj::{FuncObj, LabelObj, Object},
+};
 
 pub(crate) struct Evaluator {
-    env: Environment,
+    pub(crate) env: Environment,
 }
 
 impl Evaluator {
@@ -16,45 +21,90 @@ impl Evaluator {
     pub(crate) fn eval_program(&mut self, program: Vec<IRStmt>) -> Option<Object> {
         let mut val = None;
         for node in program {
-            val = Some(self.eval_stmt(node));
+            val = self.eval_stmt(node);
         }
         val
     }
 
-    fn eval_stmt(&mut self, node: IRStmt) -> Object {
+    pub(crate) fn eval_stmt(&mut self, node: IRStmt) -> Option<Object> {
         match node {
             IRStmt::DeclaredFunction(func) => todo!(),
-            IRStmt::Function(func) => todo!(),
-            IRStmt::Variable(var) => todo!(),
-            IRStmt::Constant(_const) => todo!(),
-            IRStmt::Label(label) => todo!(),
+            IRStmt::Function(func) => self.eval_function(func),
+            IRStmt::Variable(var) => self.eval_var(var),
+            IRStmt::Label(label) => self.eval_label(label),
             IRStmt::Return(ret) => todo!(),
             IRStmt::Break(br) => todo!(),
             IRStmt::Jump(goto) => todo!(),
-            IRStmt::Call(call) => todo!(),
-            IRStmt::Expression(expr) => self.eval_expr(expr),
+            IRStmt::Call(call) => Some(self.eval_call(call)),
+            IRStmt::Expression(expr) => Some(self.eval_expr(expr)),
         }
     }
 
     fn eval_expr(&mut self, node: IRExpr) -> Object {
         match node {
-            IRExpr::Call(_) => todo!(),
-            IRExpr::Literal(lit) => self.eval_lit(lit),
+            IRExpr::Call(call) => self.eval_call(call),
+            IRExpr::Literal(node) => Object::Literal(node),
             IRExpr::Ident(_) => todo!(),
             IRExpr::ArithOp(_) => todo!(),
         }
     }
 
-    fn eval_lit(&mut self, node: Literal) -> Object {
-        match node {
-            Literal::String(str) => Object::String(StrObj(str)),
-            Literal::Char(char) => Object::Char(CharObj(char)),
-            Literal::ShortFloat(_, float) => Object::Float(FloatObj(float)),
-            Literal::LongFloat(_, float) => Object::Float(FloatObj(float as f32)),
-            Literal::Bool(bool) => Object::Boolean(BoolObj(bool)),
-            Literal::Integer(_, int) => Object::Integer(IntObj(int)),
-            Literal::Array(_, arr) => todo!(),
-            Literal::Vector(vec) => todo!(),
+    fn eval_function(&mut self, node: FuncStmt) -> Option<Object> {
+        let obj = Object::FuncObj(FuncObj {
+            args: node.args,
+            block: node.block,
+        });
+        let (name, _type) = (node.name.ident, node.name._type);
+        self.env.set(
+            name,
+            EnvObj {
+                _type: EnvObjType::Function {
+                    is_local: node.is_local,
+                    ret_type: _type,
+                },
+                val: obj,
+            },
+        );
+        None
+    }
+
+    fn eval_var(&mut self, node: VarStmt) -> Option<Object> {
+        let val = self.eval_expr(node.val);
+        if val == Object::None {
+            panic!("The value of variable: `{}` is none", &node.name.ident);
         }
-    }    
+        self.env.set(
+            node.name.ident,
+            EnvObj {
+                _type: EnvObjType::Variable {
+                    is_const: node.is_const,
+                    is_local: node.is_local,
+                },
+                val,
+            },
+        );
+        None
+    }
+
+    fn eval_label(&mut self, node: LabelStmt) -> Option<Object> {
+        self.env.set(
+            node.name,
+            EnvObj {
+                _type: EnvObjType::Label,
+                val: Object::Label(LabelObj { block: node.block }),
+            },
+        );
+        None
+    }
+
+    fn eval_call(&mut self, node: CallExpr) -> Object {
+        match node.name.as_str() {
+            // debugging
+            "print" => {
+                println!("{:#?}", self.eval_expr(node.args.first().unwrap().clone()));
+                Object::None
+            }
+            _ => todo!(),
+        }
+    }
 }

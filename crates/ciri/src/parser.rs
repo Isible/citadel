@@ -1,7 +1,8 @@
 use std::mem::swap;
 
 use frontend::ast::{
-    ArithOpExpr, BlockStmt, BreakStmt, CallExpr, ConstStmt, DeclFuncStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt
+    ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt,
+    IRTypedIdent, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt,
 };
 
 use crate::{
@@ -123,19 +124,12 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         let val = self.parse_expr();
-
-        match is_const {
-            true => IRStmt::Constant(ConstStmt {
-                name: IRTypedIdent { ident: name, _type },
-                val,
-                is_local,
-            }),
-            false => IRStmt::Variable(VarStmt {
-                name: IRTypedIdent { ident: name, _type },
-                val,
-                is_local,
-            }),
-        }
+        IRStmt::Variable(VarStmt {
+            name: IRTypedIdent { ident: name, _type },
+            val,
+            is_local,
+            is_const,
+        })
     }
 
     fn parse_function(&mut self) -> IRStmt {
@@ -248,18 +242,14 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(&Token::Apostrophe);
         self.next_token();
         let label = self.parse_label_ref();
-        IRStmt::Break(BreakStmt {
-            label,
-        })
+        IRStmt::Break(BreakStmt { label })
     }
 
     fn parse_jump(&mut self) -> IRStmt {
         self.expect_peek_tok(&Token::Apostrophe);
         self.next_token();
         let label = self.parse_label_ref();
-        IRStmt::Jump(JumpStmt {
-            label,
-        })
+        IRStmt::Jump(JumpStmt { label })
     }
 
     fn parse_arith_op_expr(&mut self, op: Operator) -> IRExpr {
@@ -271,7 +261,7 @@ impl<'a> Parser<'a> {
         let right = self.parse_expr();
         IRExpr::ArithOp(ArithOpExpr {
             op,
-            values: (Box::from(left), Box::from(right))
+            values: (Box::from(left), Box::from(right)),
         })
     }
 
@@ -288,7 +278,10 @@ impl<'a> Parser<'a> {
         let mut block = Vec::new();
         while self.peek_tok != Token::RCurly {
             self.next_token();
-            block.push(self.parse_stmt().unwrap_or_else(|| panic!("Encountered EOF before end of block statement")));
+            block.push(
+                self.parse_stmt()
+                    .unwrap_or_else(|| panic!("Encountered EOF before end of block statement")),
+            );
         }
         self.next_token();
         BlockStmt { stmts: block }

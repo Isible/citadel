@@ -4,7 +4,7 @@ use errors::{InterpreterError, InvalidArgError};
 use lexer::Lexer;
 use parser::Parser;
 
-use crate::tokens::Token;
+use crate::{evaluator::Evaluator, tokens::Token};
 
 mod env;
 mod evaluator;
@@ -19,7 +19,7 @@ mod errors;
 mod util;
 
 fn main() -> Result<(), impl Error> {
-    run()
+    crate::run()
 }
 
 fn run() -> Result<(), InterpreterError> {
@@ -37,9 +37,13 @@ fn run() -> Result<(), InterpreterError> {
 
     let mut parser = Parser::new(&mut lexer);
 
+    let mut evaluator = Evaluator::new();
+
     let stmt = parser.parse_stmt();
 
-    println!("{:#?}", stmt);
+    evaluator.eval_stmt(stmt.unwrap());
+
+    println!("env: {:#?}", evaluator.env);
 
     Ok(())
 }

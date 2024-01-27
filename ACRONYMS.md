@@ -2,7 +2,13 @@
 
 - ret: return
 
+- br: break
+
+- jmp: jump
+
 - abst: abstract
+
+- decl: declaration/declare
 
 - lit: literal
 

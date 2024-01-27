@@ -1,3 +1,1 @@
-@test() lcl i32 {
-   ret add l{10}, l{20}
-}
+$test lcl i32 = call %print(l{10})

@@ -1,23 +1,24 @@
-#[derive(Debug)]
+use frontend::ast::{BlockStmt, IRTypedIdent, Literal};
+
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Object {
-    Integer(IntObj),
-    Float(FloatObj),
-    String(StrObj),
-    Boolean(BoolObj),
-    Char(CharObj),
+    Literal(Literal),
+    Ret(Box<Object>),
+    Br(String),
+    Jmp(String),
+    FuncObj(FuncObj),
+    Label(LabelObj),
+    // debuging
+    None,
 }
 
-#[derive(Debug)]
-pub(crate) struct IntObj(pub(crate) isize);
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct FuncObj {
+    pub(crate) args: Vec<IRTypedIdent>,
+    pub(crate) block: BlockStmt,
+}
 
-#[derive(Debug)]
-pub(crate) struct FloatObj(pub(crate) f32);
-
-#[derive(Debug)]
-pub(crate) struct StrObj(pub(crate) String);
-
-#[derive(Debug)]
-pub(crate) struct BoolObj(pub(crate) bool);
-
-#[derive(Debug)]
-pub(crate) struct CharObj(pub(crate) char);
+#[derive(Debug, Clone, PartialEq)]
+pub struct LabelObj {
+    pub(crate) block: BlockStmt,
+}

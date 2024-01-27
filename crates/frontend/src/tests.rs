@@ -30,16 +30,16 @@ mod tests {
         let mut code_gen = IRGenerator::new();
 
         code_gen.gen_ir(IRStmt::Label(LabelStmt {
-            name: "ballz".into(),
+            name: "myLabel".into(),
             block: BlockStmt {
                 stmts: vec![IRStmt::Return(ReturnStmt {
-                    ret_val: IRExpr::Literal(Literal::String("deez".into())),
+                    ret_val: IRExpr::Literal(Literal::String("test".into())),
                 })],
             },
         }));
 
         println!("{}", code_gen.as_string());
 
-        assert_eq!(code_gen.as_string(), "'ballz: {\nret l{\"deez\"}\n}")
+        assert_eq!(code_gen.as_string(), "'myLabel: {\n    ret l{\"test\"}\n}\n")
     }
 }

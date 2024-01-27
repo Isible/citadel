@@ -6,7 +6,6 @@ test_cmds = {
     "frontend": "cargo test --package frontend --lib -- tests --nocapture",
     "middleend": "cargo test --package middleend --lib -- tests --nocapture",
     "backend": "cargo test --package backend --lib -- tests --nocapture",
-    "fungus": "cargo test --package fungus --bin fungus -- tests --nocapture",
     "test-lang": "cargo test --package test-lang --bin test-lang -- tests --nocapture",
 }
 
@@ -23,7 +22,6 @@ def runTest(selection: str):
 
 print("What tests should be ran?")
 print("""Valid:
-- `fungus` - the rust compiler
 - `test-lang` - language for testing citadel
 - `api` - citadel api for devs
 - `frontend` - the compiler frontend (IR-gen)
