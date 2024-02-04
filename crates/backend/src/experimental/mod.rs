@@ -2,10 +2,14 @@
  * An experimental assembly compiler
  */
 
-use self::{asm::AsmElement, exp_api::{Backend, Target}};
+use frontend::ast::IRStmt;
 
-pub mod asm;
-pub mod exp_api;
+use self::{elements::AsmElement, api::{Backend, Target}};
+
+pub mod api;
+pub mod code_gen;
+pub mod compiler;
+pub mod elements;
 
 #[derive(Debug, Default)]
 pub struct AsmTarget;
@@ -16,7 +20,7 @@ impl Target for AsmTarget {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AsmBackend;
 
 impl Backend for AsmBackend {
@@ -24,15 +28,7 @@ impl Backend for AsmBackend {
 
     type Target = AsmTarget;
 
-    fn compile(&mut self, ir_stream: frontend::ir_gen::IRGenerator) -> Self::Output {
+    fn compile(&mut self, _ir_stream: Vec<IRStmt>) -> Self::Output {
         todo!()
-    }
-}
-
-pub struct Compiler;
-
-impl Compiler {
-    pub fn new() -> Self {
-        Self {}
     }
 }

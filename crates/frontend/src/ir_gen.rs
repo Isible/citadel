@@ -18,8 +18,12 @@ impl IRGenerator {
         self.ast.push(node);
     }
 
-    pub fn get_stream(&self) -> &Vec<IRStmt> {
+    pub fn get_stream_ref(&self) -> &Vec<IRStmt> {
         &self.ast
+    }
+
+    pub fn get_stream(self) -> Vec<IRStmt> {
+        self.ast
     }
 
     pub fn as_string(&self) -> String {

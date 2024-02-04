@@ -30,20 +30,13 @@ fn run() -> Result<(), InterpreterError> {
         None => return Err(InterpreterError(Box::from(InvalidArgError(1)))),
     };
 
-    let mut lexer = match Lexer::new(&"tests/main.cir".into()) {
-        Ok(lexer) => lexer,
-        Err(err) => return Err(InterpreterError(Box::from(err))),
-    };
+    let mut lexer = Lexer::new(&"tests/main.cir".into()).unwrap_or_else(|err| panic!("{err}"));
 
     let mut parser = Parser::new(&mut lexer);
 
     let mut evaluator = Evaluator::new();
 
-    let stmt = parser.parse_stmt();
-
-    evaluator.eval_stmt(stmt.unwrap());
-
-    println!("env: {:#?}", evaluator.env);
+    evaluator.eval_program(&mut parser);
 
     Ok(())
 }

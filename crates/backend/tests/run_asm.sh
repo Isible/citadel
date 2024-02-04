@@ -1,4 +1,4 @@
 nasm -f elf64 -o main.o main.asm
-ld -s -o main main.o
+ld -s -o out/main main.o
 rm main.o
-./main
+./out/main

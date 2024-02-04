@@ -3,8 +3,7 @@ use std::thread::panicking;
 use frontend::ast::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, VarStmt};
 
 use crate::{
-    env::{EnvObj, EnvObjType, Environment},
-    obj::{FuncObj, LabelObj, Object},
+    env::{EnvObj, EnvObjType, Environment}, obj::{FuncObj, LabelObj, Object}, parser::Parser
 };
 
 pub(crate) struct Evaluator {
@@ -18,10 +17,11 @@ impl Evaluator {
         }
     }
 
-    pub(crate) fn eval_program(&mut self, program: Vec<IRStmt>) -> Option<Object> {
+    pub(crate) fn eval_program(&mut self, parser: &mut Parser) -> Option<Object> {
         let mut val = None;
-        for node in program {
-            val = self.eval_stmt(node);
+        while let Some(stmt) = parser.parse_stmt() {
+            val = self.eval_stmt(stmt);
+            parser.next_token();
         }
         val
     }
@@ -34,7 +34,7 @@ impl Evaluator {
             IRStmt::Label(label) => self.eval_label(label),
             IRStmt::Return(ret) => todo!(),
             IRStmt::Break(br) => todo!(),
-            IRStmt::Jump(goto) => todo!(),
+            IRStmt::Jump(jmp) => todo!(),
             IRStmt::Call(call) => Some(self.eval_call(call)),
             IRStmt::Expression(expr) => Some(self.eval_expr(expr)),
         }

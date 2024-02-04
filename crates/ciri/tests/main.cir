@@ -1,1 +1,2 @@
-$test lcl i32 = call %print(l{10})
+call %print(l{100})
+call %print(l{4200})
