@@ -10,6 +10,7 @@ pub mod api;
 pub mod code_gen;
 pub mod compiler;
 pub mod elements;
+pub mod traits;
 
 #[derive(Debug, Default)]
 pub struct AsmTarget;
@@ -32,3 +33,5 @@ impl Backend for AsmBackend {
         todo!()
     }
 }
+
+

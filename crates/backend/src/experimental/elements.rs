@@ -37,9 +37,24 @@ pub struct Block {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
-    Register,
-    MemAddr,
-    Literal,
+    Register(Register),
+    MemAddr(Address),
+    Literal(Literal),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Register {
+    Rax,
+    Rbx,
+    Rcx,
+    Rdx,
+
+    Rdi,
+    Rsi,
+    Rbp,
+    Rsp,
+
+    
 }
 
 #[derive(Debug, Clone, PartialEq)]
