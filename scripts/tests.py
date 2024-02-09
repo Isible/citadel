@@ -11,7 +11,7 @@ test_cmds = {
 
 def runTest(selection: str):
     match selection:
-        case "*":
+        case "all":
             for i in test_cmds.values():
                 result = subprocess.run(i, shell=True, capture_output=True, text=True)
                 print(result.stdout, end="")
@@ -28,6 +28,7 @@ print("""Valid:
 - `middleend` - the compiler middleend (Optimizer)
 - `backend` - the compiler backend (Machine code gen)
 - `*` - run tests for all subprojects""")
-selection = input()
+selection = sys.argv[1]
 
 runTest(selection)
+
