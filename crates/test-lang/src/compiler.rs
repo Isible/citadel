@@ -1,4 +1,4 @@
-use frontend::{ast::*, ir_gen::IRGenerator};
+use frontend::{ir::*, ir_gen::IRGenerator};
 
 use crate::{
     ast::{
@@ -38,13 +38,13 @@ impl<'a> Compiler<'a> {
 
     fn init_program(&mut self) {
         self.generator
-            .gen_ir(frontend::ast::IRStmt::Label(LabelStmt {
+            .gen_ir(frontend::ir::IRStmt::Label(LabelStmt {
                 name: "entry".into(),
                 block: BlockStmt {
-                    stmts: vec![frontend::ast::IRStmt::Expression(
-                        frontend::ast::IRExpr::Call(CallExpr {
+                    stmts: vec![frontend::ir::IRStmt::Expression(
+                        frontend::ir::IRExpr::Call(CallExpr {
                             name: "main".into(),
-                            args: vec![frontend::ast::IRExpr::Call(CallExpr {
+                            args: vec![frontend::ir::IRExpr::Call(CallExpr {
                                 name: "citadel.std.env.args".into(),
                                 args: Vec::new(),
                             })],
@@ -129,12 +129,12 @@ impl<'a> Compiler<'a> {
         )
     }
 
-    fn compiler_op(&self, op: Operator) -> frontend::ast::Operator {
+    fn compiler_op(&self, op: Operator) -> frontend::ir::Operator {
         match op {
-            Operator::Add => frontend::ast::Operator::Add,
-            Operator::Sub => frontend::ast::Operator::Sub,
-            Operator::Mul => frontend::ast::Operator::Mul,
-            Operator::Div => frontend::ast::Operator::Div,
+            Operator::Add => frontend::ir::Operator::Add,
+            Operator::Sub => frontend::ir::Operator::Sub,
+            Operator::Mul => frontend::ir::Operator::Mul,
+            Operator::Div => frontend::ir::Operator::Div,
             Operator::Reassign => todo!(),
             Operator::Equals => todo!(),
         }
@@ -151,13 +151,13 @@ impl<'a> Compiler<'a> {
     fn compile_lit(&self, node: Literal) -> IRExpr {
         match node {
             Literal::Ident(_) => todo!(),
-            Literal::String(string) => IRExpr::Literal(frontend::ast::Literal::String(string)),
-            Literal::Integer(int) => IRExpr::Literal(frontend::ast::Literal::Integer(
+            Literal::String(string) => IRExpr::Literal(frontend::ir::Literal::String(string)),
+            Literal::Integer(int) => IRExpr::Literal(frontend::ir::Literal::Integer(
                 /* TODO: change this accordingly */ 32,
                 int as isize,
             )),
-            Literal::Float(float) => IRExpr::Literal(frontend::ast::Literal::LongFloat(64, float)),
-            Literal::Boolean(bool) => IRExpr::Literal(frontend::ast::Literal::Bool(bool)),
+            Literal::Float(float) => IRExpr::Literal(frontend::ir::Literal::LongFloat(64, float)),
+            Literal::Boolean(bool) => IRExpr::Literal(frontend::ir::Literal::Bool(bool)),
         }
     }
 

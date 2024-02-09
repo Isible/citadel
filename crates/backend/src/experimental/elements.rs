@@ -31,15 +31,27 @@ pub enum DirectiveType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Block {
-    // TODO: Might be able to change this to vec<instruction>
-    pub elements: Vec<AsmElement>,
+    pub elements: Vec<Instruction>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
     Register(Register),
-    MemAddr(Address),
+    MemAddr(MemAddr),
     Literal(Literal),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum MemAddr {
+    Register(Register),
+    Literal(Literal),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Literal {
+    Int(i32),
+    Float(f32),
+    Ident(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]

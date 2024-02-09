@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use frontend::ast::IRStmt;
+use frontend::ir::IRStmt;
 
 pub trait Target: Debug {
     fn name(&self) -> &str;

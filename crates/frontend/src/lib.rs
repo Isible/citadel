@@ -10,7 +10,7 @@
 //! However, since the IRGenerator is just a vector under the hood you can also easily implement your own. <br>
 //! For help we recommend looking at our own implementation: [`crate::ir_gen`]
 
-pub mod ast;
+pub mod ir;
 pub mod errors;
 pub mod ir_gen;
 mod tests;

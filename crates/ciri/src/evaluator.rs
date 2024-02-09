@@ -1,6 +1,6 @@
 use std::thread::panicking;
 
-use frontend::ast::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, VarStmt};
+use frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, VarStmt};
 
 use crate::{
     env::{EnvObj, EnvObjType, Environment}, obj::{FuncObj, LabelObj, Object}, parser::Parser

@@ -3,7 +3,7 @@
  * the represents the AST.
  */
 
-use crate::ast::IRStmt;
+use crate::ir::IRStmt;
 
 pub struct IRGenerator {
     ast: Vec<IRStmt>,
@@ -27,11 +27,6 @@ impl IRGenerator {
     }
 
     pub fn as_string(&self) -> String {
-        let mut lit_stream = Vec::new();
-        self.ast.iter().for_each(|stmt| {
-            lit_stream.push(stmt.to_string());
-            lit_stream.push("\n".into());
-        });
-        lit_stream.join("")
+        self.ast.iter().map(|stmt| stmt.to_string()).collect()
     }
 }

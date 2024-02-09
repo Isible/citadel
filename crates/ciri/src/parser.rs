@@ -1,6 +1,6 @@
 use std::mem::swap;
 
-use frontend::ast::{
+use frontend::ir::{
     ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt,
     IRTypedIdent, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt,
 };
@@ -65,11 +65,11 @@ impl<'a> Parser<'a> {
             _ => panic!(),
         };
         IRExpr::Literal(match lit {
-            Literal::String(_) => frontend::ast::Literal::String(self.cur_tok.to_string()),
-            Literal::Integer(int) => frontend::ast::Literal::Integer(32, *int as isize),
-            Literal::Float(float) => frontend::ast::Literal::LongFloat(64, *float),
-            Literal::Boolean(bool) => frontend::ast::Literal::Bool(*bool),
-            Literal::Char(ch) => frontend::ast::Literal::Char(*ch),
+            Literal::String(_) => frontend::ir::Literal::String(self.cur_tok.to_string()),
+            Literal::Integer(int) => frontend::ir::Literal::Integer(32, *int as isize),
+            Literal::Float(float) => frontend::ir::Literal::LongFloat(64, *float),
+            Literal::Boolean(bool) => frontend::ir::Literal::Bool(*bool),
+            Literal::Char(ch) => frontend::ir::Literal::Char(*ch),
             Literal::Array(_) => todo!(),
             Literal::Vector(_) => todo!(),
         })

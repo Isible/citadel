@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        ast::{
+        ir::{
             DeclFuncStmt, BlockStmt, IRExpr, LabelStmt, Literal, ReturnStmt, IRStmt,
             IRTypedIdent,
         },

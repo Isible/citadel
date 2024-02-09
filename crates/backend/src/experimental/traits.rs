@@ -1,6 +1,11 @@
 use std::fmt::Display;
 
-use super::elements::{AsmElement, Block, Directive, Instruction, InstructionType, Label, Operand};
+use crate::util::VecDisplay;
+
+use super::elements::{
+    AsmElement, Block, Directive, Instruction, InstructionType, Label, Literal, MemAddr, Operand,
+    Register,
+};
 
 impl Display for AsmElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -25,7 +30,7 @@ impl Display for Label {
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self._type, self.args)
+        write!(f, "{} {}", self._type, self.args.to_string())
     }
 }
 
@@ -37,7 +42,48 @@ impl Display for Directive {
 
 impl Display for Operand {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(
+            f,
+            "{}",
+            match self {
+                Operand::Register(regis) => regis.to_string(),
+                Operand::MemAddr(addr) => addr.to_string(),
+                Operand::Literal(lit) => lit.to_string(),
+            }
+        )
+    }
+}
+
+impl Display for Register {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", stringify!(self).to_lowercase())
+    }
+}
+
+impl Display for MemAddr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "[{}]",
+            match self {
+                MemAddr::Register(regis) => regis.to_string(),
+                MemAddr::Literal(lit) => lit.to_string(),
+            }
+        )
+    }
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match *self {
+                Literal::Int(int) => int.to_string(),
+                Literal::Float(float) => float.to_string(),
+                Literal::Ident(ref ident) => ident.into(),
+            }
+        )
     }
 }
 
@@ -50,44 +96,6 @@ impl Display for Block {
 
 impl Display for InstructionType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                InstructionType::Mov => "mov",
-                InstructionType::Syscall => "syscall",
-                InstructionType::Add => "add",
-                InstructionType::Sub => "sub",
-                InstructionType::Mul => "mul",
-                InstructionType::Div => "div",
-                InstructionType::And => todo!(),
-                InstructionType::Or => todo!(),
-                InstructionType::XOr => todo!(),
-                InstructionType::Not => todo!(),
-                InstructionType::Cmp => "cmp",
-                InstructionType::Jmp => "jmp",
-                InstructionType::JE => "je",
-                InstructionType::JNe => "jne",
-                InstructionType::JZ => "jz",
-                InstructionType::JNz => "jnz",
-                InstructionType::Call => "call",
-                InstructionType::Ret => "ret",
-                InstructionType::Push => "push",
-                InstructionType::Pop => "pop",
-                InstructionType::Shl => "shl",
-                InstructionType::Shr => "shr",
-                InstructionType::Movsb => todo!(),
-                InstructionType::Movsw => todo!(),
-                InstructionType::Int => "int",
-                InstructionType::Fadd => "fadd",
-                InstructionType::Fsub => "fsub",
-                InstructionType::FMul => "fmul",
-                InstructionType::FDiv => "fdiv",
-                InstructionType::FCmp => "fcmp",
-                InstructionType::FAbs => "fabs",
-                InstructionType::Dec => "dec",
-                InstructionType::Inc => "inc",
-            }
-        )
+        write!(f, "{}", stringify!(self).to_lowercase())
     }
 }

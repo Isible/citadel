@@ -1,4 +1,4 @@
-use frontend::ast::{BlockStmt, IRTypedIdent, Literal};
+use frontend::ir::{BlockStmt, IRTypedIdent, Literal};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Object {

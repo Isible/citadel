@@ -1,4 +1,4 @@
-use crate::util::vec_display::VecDisplay;
+use crate::util::VecDisplay;
 use std::fmt::Display;
 
 use super::*;

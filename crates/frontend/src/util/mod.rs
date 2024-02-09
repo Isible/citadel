@@ -1,8 +1,10 @@
-use crate::ast::{IRExpr, IRTypedIdent};
+use std::fmt::Debug;
 
-use self::vec_display::VecDisplay;
+use crate::ir::{IRExpr, IRTypedIdent};
 
-pub mod vec_display;
+pub(crate) trait VecDisplay: Debug {
+    fn to_string(&self) -> String;
+}
 
 impl VecDisplay for Vec<IRExpr> {
     fn to_string(&self) -> String {

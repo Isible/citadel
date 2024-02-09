@@ -2,9 +2,13 @@
  * An experimental assembly compiler
  */
 
-use frontend::ast::IRStmt;
+use frontend::ir::IRStmt;
 
-use self::{elements::AsmElement, api::{Backend, Target}};
+use self::{
+    api::{Backend, Target},
+    compiler::Compiler,
+    elements::AsmElement,
+};
 
 pub mod api;
 pub mod code_gen;
@@ -17,7 +21,7 @@ pub struct AsmTarget;
 
 impl Target for AsmTarget {
     fn name(&self) -> &str {
-        "assembly-target"
+        "assembly-x86-64"
     }
 }
 
@@ -29,9 +33,7 @@ impl Backend for AsmBackend {
 
     type Target = AsmTarget;
 
-    fn compile(&mut self, _ir_stream: Vec<IRStmt>) -> Self::Output {
-        todo!()
+    fn compile(&mut self, ir_stream: Vec<IRStmt>) -> Self::Output {
+        Compiler::new(ir_stream).compile_program()
     }
 }
-
-
