@@ -53,8 +53,6 @@ pub enum Register {
     Rsi,
     Rbp,
     Rsp,
-
-    
 }
 
 #[derive(Debug, Clone, PartialEq)]
