@@ -1,5 +1,6 @@
 use std::env;
 
+use codegen::CodeGenerator;
 use compiler::Compiler;
 use parser::Parser;
 
@@ -19,7 +20,7 @@ fn main() {
 fn run() {
     let args: Vec<String> = env::args().collect();
 
-    let mut name: &str;
+    let name: &str;
 
     let mut lexer = match args.get(1) {
         Some(arg) => {
@@ -39,5 +40,9 @@ fn run() {
     let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program since it was empty");
 
     compiler.compile_program();
-    util::compiler_output(&compiler, &format!("tests/output/{}.cir", name))
+    util::compiler_output(&compiler, &format!("tests/build/{}.cir", name));
+
+    let mut codegen = CodeGenerator::new(compiler.generator.get_stream());
+    let asm_code = codegen.compile();
+    dbg!("{}", &asm_code);
 }
