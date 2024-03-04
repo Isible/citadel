@@ -1,9 +1,12 @@
+//! Trait implementations for asm elements, mainly the Display trait
+
 use std::fmt::Display;
 
 use crate::{experimental::elements::DirectiveType, util::VecDisplay};
 
-use super::elements::{
-    AsmElement, Block, Declaration, Directive, Instruction, InstructionType, Label, Literal, MemAddr, Operand, Register
+use crate::experimental::elements::{
+    AsmElement, Block, Declaration, Directive, Instruction, InstructionType, Label, Literal,
+    MemAddr, Operand, Register,
 };
 
 impl Display for AsmElement {
@@ -23,10 +26,14 @@ impl Display for AsmElement {
 
 impl Display for Declaration {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self {
-            Declaration::Global(ident) => format!("global {}", ident),
-            Declaration::DefineBytes => todo!(),
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Declaration::Global(ident) => format!("global {}", ident),
+                Declaration::DefineBytes => todo!(),
+            }
+        )
     }
 }
 

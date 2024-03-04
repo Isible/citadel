@@ -1,6 +1,6 @@
-use std::thread::panicking;
+//! The evaluator module is responsible for evaluating/executing the IR nodes (AST).
 
-use frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, VarStmt};
+use frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, VarStmt};
 
 use crate::{
     env::{EnvObj, EnvObjType, Environment}, obj::{FuncObj, LabelObj, Object}, parser::Parser

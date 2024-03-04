@@ -1,3 +1,6 @@
+//! Objects for the interpreter. This is the most minimalistic
+//! representation of a AST node possible.
+
 use frontend::ir::{BlockStmt, IRTypedIdent, Literal};
 
 #[derive(Debug, Clone, PartialEq)]

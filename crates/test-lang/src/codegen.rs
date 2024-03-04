@@ -15,7 +15,7 @@ impl CodeGenerator {
         }
     }
 
-    pub fn compile(&mut self) -> Vec<AsmElement> {
-        self.backend.compile(&self.ir_stream)
+    pub fn compile(mut self) -> Vec<AsmElement> {
+        self.backend.compile(self.ir_stream)
     }
 }

@@ -1,3 +1,8 @@
+//! Api for implementing a new backend
+//! This is not exlusively for assembly backends,
+//! but will reside in the experimental module until
+//! it's design is finalized
+
 use std::fmt::Debug;
 
 use frontend::ir::IRStmt;
@@ -10,8 +15,7 @@ pub trait Backend: Debug + Default {
     type Output: Debug;
     type Target: self::Target + Default;
 
-    // TOOD: decide if ir_stream should be a reference or not
-    fn compile(&mut self, ir_stream: &Vec<IRStmt>) -> Self::Output;
+    fn compile(&mut self, ir_stream: Vec<IRStmt>) -> Self::Output;
 
     fn target(&self) -> Self::Target {
         Self::Target::default()
