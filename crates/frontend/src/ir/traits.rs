@@ -36,7 +36,7 @@ impl Display for VarStmt {
             f,
             "{}{} {} {} = {}",
             if self.is_const { "$" } else { "?" },
-            self.name,
+            self.name.ident,
             if self.is_local { "lcl" } else { "pub" },
             self.name._type,
             self.val
@@ -65,12 +65,6 @@ impl Display for BreakStmt {
 impl Display for JumpStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "jmp {}", self.label)
-    }
-}
-
-impl Display for IRTypedIdent {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.ident, self._type)
     }
 }
 

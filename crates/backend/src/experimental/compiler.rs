@@ -1,21 +1,35 @@
 use frontend::ir::IRStmt;
 
-use super::{code_gen::CodeGenerator, elements::AsmElement};
+use super::elements::{AsmElement, Declaration, Directive, DirectiveType};
 
 pub struct Compiler {
-    input: Vec<IRStmt>,
-    generator: CodeGenerator,
+
 }
 
 impl Compiler {
-    pub fn new(input: Vec<IRStmt>) -> Self {
+    pub fn new() -> Self {
         Self {
-            input,
-            generator: CodeGenerator::default(),
         }
     }
 
-    pub fn compile_program(&mut self) -> Vec<AsmElement> {
-        todo!()
+    pub fn create_header(&self) -> AsmElement {
+        AsmElement::Directive(Directive {
+            _type: DirectiveType::Text,
+            content: vec![Declaration::Global("start".to_string())]
+        })
+    }
+
+    pub fn compile_stmt(&mut self, node: &IRStmt) -> AsmElement {
+        match node {
+            IRStmt::DeclaredFunction(node) => todo!(),
+            IRStmt::Function(node) => todo!(),
+            IRStmt::Variable(node) => todo!(),
+            IRStmt::Label(node) => todo!(),
+            IRStmt::Return(node) => todo!(),
+            IRStmt::Break(node) => todo!(),
+            IRStmt::Jump(node) => todo!(),
+            IRStmt::Call(node) => todo!(),
+            IRStmt::Expression(node) => todo!(),
+        }
     }
 }

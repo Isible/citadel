@@ -10,7 +10,6 @@ pub fn get_lexer_for_file(file_path: &str) -> Lexer {
 }
 
 pub fn compiler_output(compiler: &Compiler, location: &str) {
-    let location: String = location.into();
     let buf = compiler.generator.as_string();
     let mut file = File::create(&location).unwrap_or_else(|_| panic!("Failed to create a new file at {location}"));
     file.write_all(buf.as_bytes()).expect("Failed to write to file");

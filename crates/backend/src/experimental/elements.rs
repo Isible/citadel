@@ -1,3 +1,5 @@
+use strum::AsRefStr;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum AsmElement {
     Label(Label),
@@ -9,6 +11,13 @@ pub enum AsmElement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Directive {
     pub _type: DirectiveType,
+    pub content: Vec<Declaration>
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Declaration {
+    Global(String),
+    DefineBytes,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -54,7 +63,8 @@ pub enum Literal {
     Ident(String),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+// TODO: Remove strum as a dependency
+#[derive(Debug, Clone, PartialEq, AsRefStr)]
 pub enum Register {
     Rax,
     Rbx,
@@ -67,7 +77,7 @@ pub enum Register {
     Rsp,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, AsRefStr)]
 pub enum InstructionType {
     Mov,
     Syscall,

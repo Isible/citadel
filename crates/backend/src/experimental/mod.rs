@@ -6,7 +6,6 @@ use frontend::ir::IRStmt;
 
 use self::{
     api::{Backend, Target},
-    compiler::Compiler,
     elements::AsmElement,
 };
 
@@ -15,6 +14,9 @@ pub mod code_gen;
 pub mod compiler;
 pub mod elements;
 pub mod traits;
+pub mod util;
+
+mod tests;
 
 #[derive(Debug, Default)]
 pub struct AsmTarget;
@@ -33,7 +35,7 @@ impl Backend for AsmBackend {
 
     type Target = AsmTarget;
 
-    fn compile(&mut self, ir_stream: Vec<IRStmt>) -> Self::Output {
-        Compiler::new(ir_stream).compile_program()
+    fn compile(&mut self, ir_stream: &Vec<IRStmt>) -> Self::Output {
+        util::compile_program(ir_stream)
     }
 }

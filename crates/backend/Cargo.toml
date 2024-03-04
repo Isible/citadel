@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 frontend ={ path = "../frontend"}
+strum = { version = "0.26.1", features = ["derive"]}
