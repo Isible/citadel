@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::ir::{
-        ir_gen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, LabelStmt,
+        irgen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, LabelStmt,
         Literal, ReturnStmt,
     };
 

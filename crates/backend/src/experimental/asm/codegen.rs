@@ -1,11 +1,10 @@
-//! The AsmGenerator is the equivalent to IRGenerator but for assembly instructions.
-//! Under the hood it also uses a vector to represent asm elements. This is purely
-//! a helper struct, meaning apis will only require the vector of asm elements.
-//! This means you can also implement your own version of this easily.
+//! This module is used for generating assembly code.
+//! It's implementation is very similar to the IRGenerator
+//! from [frontend::ir::generator](../../../../frontend/ir/irgen/index.html).
 
 use std::fmt::Display;
 
-use super::elements::AsmElement;
+use crate::experimental::asm::elements::AsmElement;
 
 #[derive(Debug, Default)]
 pub struct AsmGenerator {

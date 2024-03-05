@@ -5,7 +5,7 @@
 //! but you can of course also generate the ir yourself
 
 pub mod traits;
-pub mod ir_gen;
+pub mod irgen;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum IRStmt {
