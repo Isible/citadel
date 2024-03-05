@@ -1,3 +1,11 @@
+//! # Citadel - test-lang
+//! 
+//! The test-lang crate of the citadel project
+//! 
+//! For information on what exactly citadel is you should visit our [github-repository](https://github.com/Isible/citadel/blob/main/README.md)
+//! 
+//! This crate provides a simple example for implemnting a compiler using the citadel toolchain
+
 use std::env;
 
 use codegen::CodeGenerator;

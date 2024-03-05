@@ -1,3 +1,5 @@
+//! List of possible tokens in the language
+
 use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug, PartialEq, Clone)]

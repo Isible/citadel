@@ -1,1 +1,1 @@
-// Greetings traveler, this is the nonexistent api for the citadel toolchain
+//! Greetings traveler, this is the nonexistent api wrapper for the citadel toolchain

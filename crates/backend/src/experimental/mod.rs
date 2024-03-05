@@ -1,4 +1,6 @@
-//! An experimental assembly compiler for the x86-64 architecture.
+//! The experimental section of the citadel backend conatining the
+//! api for the backend and the target as well as
+//! an experimental assembly compiler for the x86-64 architecture.
 //! This is only used as a prototype for laying out the api and gathering
 //! information on how to design the actual backends and compilers.
 

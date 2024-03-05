@@ -1,3 +1,5 @@
+//! Lexer for the tokenizing source code into tokens.
+
 use crate::tokens::Token;
 
 pub struct Lexer {

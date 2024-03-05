@@ -1,7 +1,8 @@
-/* The Generator for converting source code to an IR AST
- * This will generate the ir and push it to a stream that
- * the represents the AST.
- */
+//! The Generator for converting source code to an IR AST
+//! This will generate the ir and push it to a stream that
+//! the represents the AST. You can implement this yourself
+//! if you don't want to use the provided generator or need
+//! specific capabilities
 
 use crate::ir::IRStmt;
 

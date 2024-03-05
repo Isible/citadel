@@ -1,11 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::{
-        ir::{
-            DeclFuncStmt, BlockStmt, IRExpr, LabelStmt, Literal, ReturnStmt, IRStmt,
-            IRTypedIdent,
-        },
-        ir_gen::IRGenerator,
+    use crate::ir::{
+        ir_gen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, LabelStmt,
+        Literal, ReturnStmt,
     };
 
     #[test]
@@ -40,6 +37,9 @@ mod tests {
 
         println!("{}", code_gen.as_string());
 
-        assert_eq!(code_gen.as_string(), "'myLabel: {\n    ret l{\"test\"}\n}\n")
+        assert_eq!(
+            code_gen.as_string(),
+            "'myLabel: {\n    ret l{\"test\"}\n}\n"
+        )
     }
 }
