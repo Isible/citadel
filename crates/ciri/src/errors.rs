@@ -1,3 +1,5 @@
+//! Error utilities and implementations
+
 use std::{fmt::{Debug, Display, write}, error::Error};
 
 macro_rules! impl_error {

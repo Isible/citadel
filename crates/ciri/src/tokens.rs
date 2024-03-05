@@ -1,3 +1,5 @@
+//! Simple representation of symvols and idents of the IR
+
 use std::fmt::Display;
 
 use crate::util;

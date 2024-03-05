@@ -1,3 +1,5 @@
+//! Parser for parsing list of tokens into list of actually related AST nodoes
+
 use std::mem::swap;
 
 use frontend::ir::{

@@ -1,4 +1,6 @@
-use frontend::{ir::*, ir_gen::IRGenerator};
+//! The compiler module is responsible for taking the AST and converting it into IR code.
+
+use frontend::{ir::*, ir::ir_gen::IRGenerator};
 
 use crate::{
     ast::{

@@ -1,3 +1,6 @@
+//! Very basic implementation of an environment to store variables, fucntions...
+//! Under the hood this uses a hashmap to store the data.
+
 use std::collections::HashMap;
 
 use crate::{errors, obj::Object};

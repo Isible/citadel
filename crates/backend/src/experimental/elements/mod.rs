@@ -1,3 +1,9 @@
+//! This module contains data structures and ast-like representations
+//! of assembly concepts. This is used to represent the assembly
+//! the compiler outputs.
+
+pub mod traits;
+
 use strum::AsRefStr;
 
 #[derive(Debug, Clone, PartialEq)]

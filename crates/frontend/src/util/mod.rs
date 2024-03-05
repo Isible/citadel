@@ -2,6 +2,8 @@ use std::fmt::Debug;
 
 use crate::ir::{IRExpr, IRTypedIdent};
 
+pub mod errors;
+
 pub(crate) trait VecDisplay: Debug {
     fn to_string(&self) -> String;
 }

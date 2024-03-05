@@ -1,3 +1,6 @@
+//! Interpreter for the citadel intermediary representation. Currently only
+//! supports the high representation since the LIR is still work in progress.
+
 use std::{error::Error, fs::File, io::Write};
 
 use errors::{InterpreterError, InvalidArgError};
@@ -19,7 +22,7 @@ mod errors;
 mod util;
 
 fn main() -> Result<(), impl Error> {
-    crate::run()
+    run()
 }
 
 fn run() -> Result<(), InterpreterError> {

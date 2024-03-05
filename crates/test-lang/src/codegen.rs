@@ -1,3 +1,5 @@
+//! Code generation module leveraging the backend to translate IR to assembly.
+
 use backend::experimental::{api::Backend, elements::AsmElement, AsmBackend};
 use frontend::ir::IRStmt;
 
@@ -15,7 +17,7 @@ impl CodeGenerator {
         }
     }
 
-    pub fn compile(&mut self) -> Vec<AsmElement> {
-        self.backend.compile(&self.ir_stream)
+    pub fn compile(mut self) -> Vec<AsmElement> {
+        self.backend.compile(self.ir_stream)
     }
 }

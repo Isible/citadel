@@ -1,3 +1,5 @@
+//! Errors that can be returned by the frontend.
+
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
