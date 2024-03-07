@@ -3,11 +3,12 @@
 
 use std::{error::Error, fs::File, io::Write};
 
-use errors::{InterpreterError, InvalidArgError};
+use errors::InterpreterError;
+use evaluator::Evaluator;
 use lexer::Lexer;
 use parser::Parser;
 
-use crate::{evaluator::Evaluator, tokens::Token};
+use crate::tokens::Token;
 
 mod env;
 mod evaluator;
@@ -26,20 +27,13 @@ fn main() -> Result<(), impl Error> {
 }
 
 fn run() -> Result<(), InterpreterError> {
-    let args = std::env::args().collect::<Vec<String>>();
-    // get arg at pos 1 since arg 0 is the directory
-    let first_arg = match args.get(1) {
-        Some(arg) => arg,
-        None => return Err(InterpreterError(Box::from(InvalidArgError(1)))),
-    };
-
     let mut lexer = Lexer::new(&"tests/main.cir".into()).unwrap_or_else(|err| panic!("{err}"));
 
     let mut parser = Parser::new(&mut lexer);
 
-    let mut evaluator = Evaluator::new();
+    let mut evaluator = Evaluator::new(&mut parser);
 
-    evaluator.eval_program(&mut parser);
+    evaluator.eval_program();
 
     Ok(())
 }

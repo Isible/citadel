@@ -1,2 +1,12 @@
-call %print(l{100})
-call %print(l{4200})
+'entry: {
+    call %main()
+}
+
+@main() lcl void {
+    call %print(l{"Good morning"})
+    call %test()
+}
+
+@test() lcl void {
+    call %print(l{"Hello :3"})
+}
