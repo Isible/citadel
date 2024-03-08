@@ -1,10 +1,6 @@
 'entry: {
     call %main(call %citadel.std.env.args())
-}
-@main() lcl void {
-    $x i32 lcl i32 = add l{1023}, mul l{100}, l{10}
+}@main() lcl void {
+    $x lcl i32 = add l{1023}, mul l{100}, l{10}
     call %puts(call %test())
-}
-@test() lcl string {
-    ret l{"Testing"}
 }

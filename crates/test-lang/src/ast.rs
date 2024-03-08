@@ -1,3 +1,5 @@
+//! Abstract Syntax Tree for the language
+
 #[derive(Debug, PartialEq)]
 pub enum Statement {
     Let(LetStatement),

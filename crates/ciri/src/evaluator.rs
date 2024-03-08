@@ -1,29 +1,41 @@
-use std::thread::panicking;
+//! The evaluator module is responsible for evaluating/executing the IR nodes (AST).
 
-use frontend::ast::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, VarStmt};
+use std::process::id;
+
+use frontend::ir::{
+    ArithOpExpr, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, Operator, VarStmt,
+};
 
 use crate::{
     env::{EnvObj, EnvObjType, Environment},
-    obj::{FuncObj, LabelObj, Object},
+    obj::{self, FuncObj, LabelObj, Object},
+    parser::Parser,
 };
 
-pub(crate) struct Evaluator {
+pub(crate) struct Evaluator<'a> {
+    pub(crate) parser: &'a mut Parser<'a>,
+    pub(crate) program: Vec<IRStmt>,
     pub(crate) env: Environment,
 }
 
-impl Evaluator {
-    pub(crate) fn new() -> Self {
+impl<'a> Evaluator<'a> {
+    pub(crate) fn new(parser: &'a mut Parser<'a>) -> Self {
         Self {
+            program: parser.parse_program(),
             env: Environment::new(),
+            parser,
         }
     }
 
-    pub(crate) fn eval_program(&mut self, program: Vec<IRStmt>) -> Option<Object> {
-        let mut val = None;
-        for node in program {
-            val = self.eval_stmt(node);
+    pub(crate) fn eval_program(&mut self) {
+        let table = &self.parser.symbols;
+        let entry = match table.get("entry").unwrap() {
+            IRStmt::Label(label) => &label.block.stmts,
+            _ => panic!("The entry point is not a label"),
+        };
+        for stmt in entry.clone() {
+            self.eval_stmt(stmt);
         }
-        val
     }
 
     pub(crate) fn eval_stmt(&mut self, node: IRStmt) -> Option<Object> {
@@ -34,7 +46,7 @@ impl Evaluator {
             IRStmt::Label(label) => self.eval_label(label),
             IRStmt::Return(ret) => todo!(),
             IRStmt::Break(br) => todo!(),
-            IRStmt::Jump(goto) => todo!(),
+            IRStmt::Jump(jmp) => todo!(),
             IRStmt::Call(call) => Some(self.eval_call(call)),
             IRStmt::Expression(expr) => Some(self.eval_expr(expr)),
         }
@@ -44,9 +56,38 @@ impl Evaluator {
         match node {
             IRExpr::Call(call) => self.eval_call(call),
             IRExpr::Literal(node) => Object::Literal(node),
-            IRExpr::Ident(_) => todo!(),
-            IRExpr::ArithOp(_) => todo!(),
+            IRExpr::Ident(ident) => self.eval_ident(ident),
+            IRExpr::ArithOp(op) => self.eval_arith_op(op),
         }
+    }
+
+    fn eval_ident(&mut self, ident: String) -> Object {
+        let obj = self
+            .env
+            .get(&ident)
+            .unwrap_or_else(|_| panic!("Variable: `{}` not found", &ident));
+        obj.val
+    }
+
+    fn eval_arith_op(&mut self, op: ArithOpExpr) -> Object {
+        let left = self.eval_expr(*op.values.0);
+        let right = self.eval_expr(*op.values.1);
+        let (left, right) = match (left, right) {
+            (
+                Object::Literal(Literal::Integer(_, left)),
+                Object::Literal(Literal::Integer(_, right)),
+            ) => (left, right),
+            object => panic!("Invalid operands: `{:#?}` and `{:#?}`", object.0, object.1),
+        };
+        Object::Literal(Literal::Integer(
+            0,
+            match op.op {
+                Operator::Add => left + right,
+                Operator::Sub => left - right,
+                Operator::Mul => left * right,
+                Operator::Div => left / right,
+            },
+        ))
     }
 
     fn eval_function(&mut self, node: FuncStmt) -> Option<Object> {
@@ -62,15 +103,15 @@ impl Evaluator {
                     is_local: node.is_local,
                     ret_type: _type,
                 },
-                val: obj,
+                val: obj.clone(),
             },
         );
-        None
+        Some(obj)
     }
 
     fn eval_var(&mut self, node: VarStmt) -> Option<Object> {
         let val = self.eval_expr(node.val);
-        if val == Object::None {
+        if val == Object::Void {
             panic!("The value of variable: `{}` is none", &node.name.ident);
         }
         self.env.set(
@@ -102,9 +143,23 @@ impl Evaluator {
             // debugging
             "print" => {
                 println!("{:#?}", self.eval_expr(node.args.first().unwrap().clone()));
-                Object::None
+                Object::Void
             }
-            _ => todo!(),
+            name => {
+                let func = self
+                    .parser
+                    .symbols
+                    .get(name)
+                    .unwrap_or_else(|| panic!("Function: `{}` not found", name));
+                let func = match func {
+                    IRStmt::Function(func) => func,
+                    _ => todo!(),
+                };
+                for stmt in func.block.stmts.clone() {
+                    self.eval_stmt(stmt);
+                }
+                Object::Void
+            }
         }
     }
 }

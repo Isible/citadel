@@ -1,4 +1,6 @@
 # entry label marks the entry point for any citadel IR
+extern print
+
 'entry: {
     call %main()
 }

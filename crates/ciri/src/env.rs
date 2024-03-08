@@ -1,3 +1,6 @@
+//! Very basic implementation of an environment to store variables, fucntions...
+//! Under the hood this uses a hashmap to store the data.
+
 use std::collections::HashMap;
 
 use crate::{errors, obj::Object};
@@ -33,8 +36,8 @@ impl Environment {
         }
     }
 
-    pub(crate) fn get(&self, key: String) -> Result<EnvObj, errors::InvalidKeyError<String>> {
-        match self.def.get(&key) {
+    pub(crate) fn get(&self, key: &String) -> Result<EnvObj, errors::InvalidKeyError<String>> {
+        match self.def.get(key) {
             Some(val) => Ok(val.clone()),
             None => todo!(),
         }

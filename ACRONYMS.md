@@ -23,3 +23,9 @@
 - IR: Intermediary Representation
 
 - AST: Abstract Syntax Tree
+
+- CHR: Citadel high level representation
+
+- CMR: Citadel medium level representation
+
+- CLR: Citadel low level representation

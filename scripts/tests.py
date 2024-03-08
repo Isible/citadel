@@ -27,8 +27,7 @@ print("""Valid:
 - `frontend` - the compiler frontend (IR-gen)
 - `middleend` - the compiler middleend (Optimizer)
 - `backend` - the compiler backend (Machine code gen)
-- `*` - run tests for all subprojects""")
+- `all` - run tests for all subprojects""")
 selection = sys.argv[1]
 
 runTest(selection)
-

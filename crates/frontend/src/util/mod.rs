@@ -1,8 +1,12 @@
-use crate::ast::{IRExpr, IRTypedIdent};
+use std::fmt::Debug;
 
-use self::vec_display::VecDisplay;
+use crate::ir::{IRExpr, IRTypedIdent};
 
-pub mod vec_display;
+pub mod errors;
+
+pub(crate) trait VecDisplay: Debug {
+    fn to_string(&self) -> String;
+}
 
 impl VecDisplay for Vec<IRExpr> {
     fn to_string(&self) -> String {
@@ -20,7 +24,7 @@ impl VecDisplay for Vec<IRTypedIdent> {
     fn to_string(&self) -> String {
         let mut idents = Vec::new();
         for ident in self {
-            idents.push(ident.to_string());
+            idents.push(format!("{} {}", ident.ident, ident._type));
         }
         idents.join("")
     }

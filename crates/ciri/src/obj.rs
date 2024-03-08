@@ -1,4 +1,7 @@
-use frontend::ast::{BlockStmt, IRTypedIdent, Literal};
+//! Objects for the interpreter. This is the most minimalistic
+//! representation of a AST node possible.
+
+use frontend::ir::{BlockStmt, IRTypedIdent, Literal};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Object {
@@ -9,7 +12,7 @@ pub(crate) enum Object {
     FuncObj(FuncObj),
     Label(LabelObj),
     // debuging
-    None,
+    Void,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -1,3 +1,5 @@
+//! Lexer for transforming a source string (file) into a list of tokens
+
 use core::panic;
 
 use clutils::{errors::FileHandlerError, files::FileHandler};
@@ -12,6 +14,7 @@ pub(crate) struct Lexer {
 }
 
 impl Lexer {
+    // TODO: Change from &String to PathBuf
     pub(crate) fn new(path: &String) -> Result<Self, FileHandlerError> {
         let mut lexer = Self {
             file_handler: FileHandler::new(path)?,
@@ -154,7 +157,6 @@ impl Lexer {
         }
         self.next_char();
         let string = &self.file_handler.content[first_pos..self.next_pos - 1];
-        dbg!("{}", &self.ch);
         Token::RawLit(crate::tokens::Literal::String(string.into()))
     }
 

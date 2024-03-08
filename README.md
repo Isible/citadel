@@ -4,6 +4,8 @@
 
 An experimental compiler backend
 
+Citadel: A bastion to protect from the dragon :p
+
 ## Setup
 
 1. Install [Rust](https://www.rust-lang.org/) and [Python](https://www.python.org/) minimum py-version: 3.12
