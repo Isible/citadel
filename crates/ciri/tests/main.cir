@@ -3,10 +3,6 @@
 }
 
 @main() lcl void {
-    call %print(l{"Good morning"})
-    call %test()
-}
-
-@test() lcl void {
-    call %print(l{"Hello :3"})
+    $x lcl i32 = add l{1023}, mul l{100}, l{10}
+    call %print(x)
 }

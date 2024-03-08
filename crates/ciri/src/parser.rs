@@ -67,7 +67,7 @@ impl<'a> Parser<'a> {
             Token::Mul => self.parse_arith_op_expr(Operator::Mul),
             Token::Div => self.parse_arith_op_expr(Operator::Div),
             Token::Lit(_) => self.parse_lit(),
-            Token::Ident(_) => todo!(),
+            Token::Ident(ref ident) => IRExpr::Ident(ident.to_string()),
             _ => todo!("cur tok: {:?}", self.cur_tok),
         }
     }

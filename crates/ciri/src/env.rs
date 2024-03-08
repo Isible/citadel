@@ -36,8 +36,8 @@ impl Environment {
         }
     }
 
-    pub(crate) fn get(&self, key: String) -> Result<EnvObj, errors::InvalidKeyError<String>> {
-        match self.def.get(&key) {
+    pub(crate) fn get(&self, key: &String) -> Result<EnvObj, errors::InvalidKeyError<String>> {
+        match self.def.get(key) {
             Some(val) => Ok(val.clone()),
             None => todo!(),
         }

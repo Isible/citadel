@@ -1,10 +1,14 @@
 //! The evaluator module is responsible for evaluating/executing the IR nodes (AST).
 
-use frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, VarStmt};
+use std::process::id;
+
+use frontend::ir::{
+    ArithOpExpr, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, Operator, VarStmt,
+};
 
 use crate::{
     env::{EnvObj, EnvObjType, Environment},
-    obj::{FuncObj, LabelObj, Object},
+    obj::{self, FuncObj, LabelObj, Object},
     parser::Parser,
 };
 
@@ -52,9 +56,38 @@ impl<'a> Evaluator<'a> {
         match node {
             IRExpr::Call(call) => self.eval_call(call),
             IRExpr::Literal(node) => Object::Literal(node),
-            IRExpr::Ident(_) => todo!(),
-            IRExpr::ArithOp(_) => todo!(),
+            IRExpr::Ident(ident) => self.eval_ident(ident),
+            IRExpr::ArithOp(op) => self.eval_arith_op(op),
         }
+    }
+
+    fn eval_ident(&mut self, ident: String) -> Object {
+        let obj = self
+            .env
+            .get(&ident)
+            .unwrap_or_else(|_| panic!("Variable: `{}` not found", &ident));
+        obj.val
+    }
+
+    fn eval_arith_op(&mut self, op: ArithOpExpr) -> Object {
+        let left = self.eval_expr(*op.values.0);
+        let right = self.eval_expr(*op.values.1);
+        let (left, right) = match (left, right) {
+            (
+                Object::Literal(Literal::Integer(_, left)),
+                Object::Literal(Literal::Integer(_, right)),
+            ) => (left, right),
+            object => panic!("Invalid operands: `{:#?}` and `{:#?}`", object.0, object.1),
+        };
+        Object::Literal(Literal::Integer(
+            0,
+            match op.op {
+                Operator::Add => left + right,
+                Operator::Sub => left - right,
+                Operator::Mul => left * right,
+                Operator::Div => left / right,
+            },
+        ))
     }
 
     fn eval_function(&mut self, node: FuncStmt) -> Option<Object> {
@@ -113,10 +146,14 @@ impl<'a> Evaluator<'a> {
                 Object::Void
             }
             name => {
-                let func = self.parser.symbols.get(name).unwrap_or_else(|| panic!("Function: `{}` not found", name));
+                let func = self
+                    .parser
+                    .symbols
+                    .get(name)
+                    .unwrap_or_else(|| panic!("Function: `{}` not found", name));
                 let func = match func {
                     IRStmt::Function(func) => func,
-                    _ => todo!()
+                    _ => todo!(),
                 };
                 for stmt in func.block.stmts.clone() {
                     self.eval_stmt(stmt);
