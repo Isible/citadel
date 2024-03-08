@@ -1,6 +1,8 @@
+//! Utilites and general purpose functions for the backend
+
 use std::fmt::Debug;
 
-use crate::experimental::elements::{Declaration, Operand};
+use crate::experimental::asm::elements::{Declaration, Operand};
 
 pub(crate) trait VecDisplay: Debug {
     fn to_string(&self) -> String;

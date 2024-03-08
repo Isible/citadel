@@ -2,7 +2,7 @@ use std::{fs::File, io::Write, path::PathBuf};
 
 use frontend::ir::IRStmt;
 
-use super::{compiler::Compiler, elements::AsmElement};
+use crate::experimental::asm::{compiler::Compiler, elements::AsmElement};
 
 pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
     let mut compiler = Compiler {};

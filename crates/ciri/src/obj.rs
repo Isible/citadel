@@ -12,7 +12,7 @@ pub(crate) enum Object {
     FuncObj(FuncObj),
     Label(LabelObj),
     // debuging
-    None,
+    Void,
 }
 
 #[derive(Debug, Clone, PartialEq)]

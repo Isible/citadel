@@ -1,7 +1,8 @@
-//! Api for implementing a new backend
-//! This is not exlusively for assembly backends,
-//! but will reside in the experimental module until
-//! it's design is finalized
+//! This is the api for implementing a new backend
+//! or compiling your IR.<br>
+//! This api is still unstable, which is why it will
+//! reside in the experimental module until it is
+//! stabelized.
 
 use std::fmt::Debug;
 

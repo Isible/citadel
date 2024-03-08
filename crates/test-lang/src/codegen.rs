@@ -1,6 +1,9 @@
 //! Code generation module leveraging the backend to translate IR to assembly.
 
-use backend::experimental::{api::Backend, elements::AsmElement, AsmBackend};
+use backend::experimental::{
+    api::Backend,
+    asm::{elements::AsmElement, AsmBackend},
+};
 use frontend::ir::IRStmt;
 
 #[derive(Debug)]
