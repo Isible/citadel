@@ -16,10 +16,10 @@ impl Compiler {
         Self {}
     }
 
-    pub fn create_header(&self) -> AsmElement {
+    pub fn create_entry(&self) -> AsmElement {
         AsmElement::Directive(Directive {
             _type: DirectiveType::Text,
-            content: vec![Declaration::Global("start".to_string())],
+            content: vec![Declaration::Global("_start".to_string())],
         })
     }
 

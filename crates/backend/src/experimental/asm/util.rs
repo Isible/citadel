@@ -7,7 +7,7 @@ use crate::experimental::asm::{compiler::Compiler, elements::AsmElement};
 pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
     let mut compiler = Compiler {};
     let mut program = Vec::new();
-    program.push(compiler.create_header());
+    program.push(compiler.create_entry());
     program.extend(
         input
             .into_iter()
