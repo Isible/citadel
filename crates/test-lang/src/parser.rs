@@ -1,3 +1,5 @@
+//! Parser module for parsing test-lang tokens into an abstract syntax tree
+
 use std::{error::Error, fmt::Display, mem::swap};
 
 use crate::{

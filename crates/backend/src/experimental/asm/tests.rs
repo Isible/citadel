@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::experimental::util;
+    use crate::experimental::asm::util;
 
 
     #[test]
@@ -21,7 +21,7 @@ mod tests {
         println!("{}", asm_code);
         util::compiler_output(vec![asm_code], "tests/out/out.asm");
         */
-        let program = util::compile_program(&vec![]);
+        let program = util::compile_program(vec![]);
         println!("Program: {:#?}", program);
     }
 }

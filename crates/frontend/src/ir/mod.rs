@@ -1,11 +1,11 @@
-/* The AST (Abstract Syntax Tree) module for the Intermediary Representation (IR)
- * This has the nodes (statements, expressions) for generating an IR
- * 
- * It is recommended to use the frontend::ir_gen module instead
- * but you can of course also generate the ir yourself
- */
+//! The AST (Abstract Syntax Tree) module for the Intermediary Representation (IR)
+//! This has the nodes (statements, expressions) for generating an IR
+//!
+//! It is recommended to use the [IR-Generator](frontend::ir::ir_gen) module for generating the IR
+//! but you can of course also generate the ir yourself
 
 pub mod traits;
+pub mod irgen;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum IRStmt {

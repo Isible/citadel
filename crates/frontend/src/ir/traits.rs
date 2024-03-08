@@ -1,3 +1,5 @@
+//! This file contains the `Display` trait implementations for the IR structs.
+
 use crate::util::VecDisplay;
 use std::fmt::Display;
 

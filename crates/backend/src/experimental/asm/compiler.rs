@@ -1,21 +1,25 @@
+//! This is the compiler for translating the IR to assembly
+//! Future: This will use the low-level IR at some point but
+//!         until the lir is finished, it will use the high-level IR
+//!
+//! Generally this is only serves as a helper for the actual Backend#compile
+//! function.
+
 use frontend::ir::IRStmt;
 
-use super::elements::{AsmElement, Declaration, Directive, DirectiveType};
+use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType};
 
-pub struct Compiler {
-
-}
+pub struct Compiler {}
 
 impl Compiler {
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 
     pub fn create_header(&self) -> AsmElement {
         AsmElement::Directive(Directive {
             _type: DirectiveType::Text,
-            content: vec![Declaration::Global("start".to_string())]
+            content: vec![Declaration::Global("start".to_string())],
         })
     }
 

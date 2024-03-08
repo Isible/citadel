@@ -1,4 +1,6 @@
-use std::mem::swap;
+//! Parser for parsing list of tokens into list of actually related AST nodoes
+
+use std::{collections::HashMap, mem::swap, os::unix::fs::symlink};
 
 use frontend::ir::{
     ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt,
@@ -15,6 +17,7 @@ pub struct Parser<'a> {
 
     cur_tok: Token,
     peek_tok: Token,
+    pub symbols: HashMap<String, IRStmt>,
 }
 
 impl<'a> Parser<'a> {
@@ -27,7 +30,17 @@ impl<'a> Parser<'a> {
             lexer,
             cur_tok,
             peek_tok,
+            symbols: HashMap::new(),
         }
+    }
+
+    pub fn parse_program(&mut self) -> Vec<IRStmt> {
+        let mut program = Vec::new();
+        while let Some(stmt) = self.parse_stmt() {
+            program.push(stmt);
+            self.next_token();
+        }
+        program
     }
 
     pub fn parse_stmt(&mut self) -> Option<IRStmt> {
@@ -54,7 +67,7 @@ impl<'a> Parser<'a> {
             Token::Mul => self.parse_arith_op_expr(Operator::Mul),
             Token::Div => self.parse_arith_op_expr(Operator::Div),
             Token::Lit(_) => self.parse_lit(),
-            Token::Ident(_) => todo!(),
+            Token::Ident(ref ident) => IRExpr::Ident(ident.to_string()),
             _ => todo!("cur tok: {:?}", self.cur_tok),
         }
     }
@@ -65,7 +78,7 @@ impl<'a> Parser<'a> {
             _ => panic!(),
         };
         IRExpr::Literal(match lit {
-            Literal::String(_) => frontend::ir::Literal::String(self.cur_tok.to_string()),
+            Literal::String(ref str) => frontend::ir::Literal::String(str.into()),
             Literal::Integer(int) => frontend::ir::Literal::Integer(32, *int as isize),
             Literal::Float(float) => frontend::ir::Literal::LongFloat(64, *float),
             Literal::Boolean(bool) => frontend::ir::Literal::Bool(*bool),
@@ -124,12 +137,17 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         let val = self.parse_expr();
-        IRStmt::Variable(VarStmt {
-            name: IRTypedIdent { ident: name, _type },
+        let var = IRStmt::Variable(VarStmt {
+            name: IRTypedIdent {
+                ident: name.clone(),
+                _type,
+            },
             val,
             is_local,
             is_const,
-        })
+        });
+        self.symbols.insert(name, var.clone());
+        var
     }
 
     fn parse_function(&mut self) -> IRStmt {
@@ -162,12 +180,17 @@ impl<'a> Parser<'a> {
 
         let block = self.parse_block();
 
-        IRStmt::Function(FuncStmt {
-            name: IRTypedIdent { ident: name, _type },
+        let func = IRStmt::Function(FuncStmt {
+            name: IRTypedIdent {
+                ident: name.clone(),
+                _type,
+            },
             args,
             block,
             is_local,
-        })
+        });
+        self.symbols.insert(name, func.clone());
+        func
     }
 
     fn parse_function_decl(&mut self) -> IRStmt {
@@ -212,7 +235,12 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(&Token::LCurly);
         self.next_token();
         let block = self.parse_block();
-        IRStmt::Label(LabelStmt { name, block })
+        let label = IRStmt::Label(LabelStmt {
+            name: name.clone(),
+            block,
+        });
+        self.symbols.insert(name, label.clone());
+        label
     }
 
     fn parse_call(&mut self) -> CallExpr {
