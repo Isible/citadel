@@ -7,3 +7,5 @@
 - Reduce cloning in ciri
 
 - Rename lcl -> priv
+
+- remove acessibility modifier in local variables

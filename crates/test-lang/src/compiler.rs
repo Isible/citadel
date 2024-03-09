@@ -1,10 +1,11 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
-use frontend::{ir::*, ir::irgen::IRGenerator};
+use frontend::{ir::irgen::IRGenerator, ir::*};
 
 use crate::{
     ast::{
-        BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent
+        BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement,
+        Literal, Operator, ReturnStatement, Statement, TypedIdent,
     },
     parser::{EofError, Parser},
 };
@@ -97,12 +98,21 @@ impl<'a> Compiler<'a> {
     fn compile_fn_stmt(&self, node: FnStatement) -> IRStmt {
         IRStmt::Function(FuncStmt {
             name: IRTypedIdent {
+                _type: match node.name.as_str() {
+                    "main" => "i32".into(),
+                    _ => node.ret_type,
+                },
                 ident: node.name,
-                _type: node.ret_type,
             },
             args: self.compile_def_args(node.args),
             is_local: true,
-            block: self.compile_block_stmt(node.block),
+            block: {
+                let mut block = self.compile_block_stmt(node.block).stmts;
+                block.push(IRStmt::Return(ReturnStmt {
+                    ret_val: IRExpr::Literal(frontend::ir::Literal::Integer(32, 0)),
+                }));
+                BlockStmt { stmts: block }
+            },
         })
     }
 
@@ -115,10 +125,12 @@ impl<'a> Compiler<'a> {
 
     fn compile_arith_op_expr(&self, node: InfixOpExpr) -> IRExpr {
         match node.operator {
-            Operator::Add | Operator::Sub | Operator::Mul | Operator::Div => IRExpr::ArithOp(ArithOpExpr {
-                op: self.compiler_op(node.operator),
-                values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
-            }),
+            Operator::Add | Operator::Sub | Operator::Mul | Operator::Div => {
+                IRExpr::ArithOp(ArithOpExpr {
+                    op: self.compiler_op(node.operator),
+                    values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
+                })
+            }
             Operator::Reassign => todo!(),
             Operator::Equals => todo!(),
         }

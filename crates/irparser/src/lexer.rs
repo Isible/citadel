@@ -99,7 +99,7 @@ impl Lexer {
                     }
                     "call" => Token::Call,
                     "ret" => Token::Ret,
-                    "lcl" => Token::Lcl,
+                    "lcl" => Token::Priv,
                     "pub" => Token::Pub,
                     "decl" => Token::Decl,
                     "add" => Token::Add,

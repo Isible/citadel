@@ -101,7 +101,7 @@ impl<'a> Parser<'a> {
 
         let name = self.cur_tok.to_string();
 
-        if self.peek_tok != Token::Lcl && self.peek_tok != Token::Pub {
+        if self.peek_tok != Token::Priv && self.peek_tok != Token::Pub {
             panic!(
                 "Expected access modifier like pub or lcl, received {:?} instead",
                 self.peek_tok
@@ -111,7 +111,7 @@ impl<'a> Parser<'a> {
         self.next_token();
 
         let is_local = match self.cur_tok {
-            Token::Lcl => true,
+            Token::Priv => true,
             Token::Pub => false,
             // unreachable due to previous token check
             _ => panic!(),
@@ -163,7 +163,7 @@ impl<'a> Parser<'a> {
         let args = self.parse_arg_list(Token::RParent);
 
         let is_local = match self.peek_tok {
-            Token::Lcl => true,
+            Token::Priv => true,
             Token::Pub => false,
             _ => panic!("Expected pub or lcl, got {} instead", self.peek_tok),
         };
@@ -205,7 +205,7 @@ impl<'a> Parser<'a> {
         self.next_token();
         let args = self.parse_arg_list(Token::RParent);
         let is_local = match self.peek_tok {
-            Token::Lcl => true,
+            Token::Priv => true,
             Token::Pub => false,
             _ => panic!("Expected pub or lcl, got {} instead", self.peek_tok),
         };

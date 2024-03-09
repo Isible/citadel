@@ -42,7 +42,7 @@ pub enum Token {
 
     // --keywords--
     /// sets the access of a variable to local
-    Lcl,
+    Priv,
     /// sets the access of a variable to public
     Pub,
     /// marks a function as declared only meaning it gets initialized in a different module
@@ -120,7 +120,7 @@ impl Display for Token {
                 Token::Comma => String::from(","),
                 Token::Dot => String::from("."),
                 Token::Apostrophe => String::from("'"),
-                Token::Lcl => String::from("lcl"),
+                Token::Priv => String::from("priv"),
                 Token::Pub => String::from("pub"),
                 Token::Decl => String::from("decl"),
                 Token::Lit(val) => format!("l{{{val}}}"),
