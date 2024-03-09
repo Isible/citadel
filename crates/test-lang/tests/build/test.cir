@@ -2,8 +2,8 @@
     call %main(call %citadel.std.env.args())
 }
 
-@main() lcl i32 {
-    $x lcl i32 = add l{1023}, mul l{100}, l{10}
+@main() priv i32 {
+    $x priv i32 = add l{1023}, mul l{100}, l{10}
     call %puts(call %test())
     ret l{0}
 }

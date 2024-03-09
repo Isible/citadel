@@ -1,6 +1,6 @@
 # salloc will allocate space on the stack for an i8
 # halloc will allocate space on the heap for the given type
-$unitialized lcl i8 = salloc i8
+$unitialized priv i8 = salloc i8
 
 # abstract function defined elsewhere
-decl @test() lcl i32
+decl @test() priv i32

@@ -1,1 +1,1 @@
-' entry : { call % main ( call % citadel . std . env . args ( ) ) } @ main ( ) lcl void { call % puts ( call % getName ( ) ) } @ getName ( ) lcl string { ret l{"test"} } EOF 
+' entry : { call % main ( call % citadel . std . env . args ( ) ) } @ main ( ) priv void { call % puts ( call % getName ( ) ) } @ getName ( ) priv string { ret l{"test"} } EOF 

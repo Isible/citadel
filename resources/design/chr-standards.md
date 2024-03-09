@@ -8,14 +8,14 @@ Define a variable with `$` or `?` (`$` indicates a constant, `?` indicates a var
 
 the name of the variable (myVar)
 
-the visibility of the variable (lcl, see: [visibility mods](#access-mods))
+the accessibility of the variable (priv, see: [accessibility mods](#access-mods))
 
 the type of the var (see: [types](#types)) (i32)
 
 and the value (integer literal l{...})
 
 ```text
-$myVar lcl i32 = l{0}
+$myVar priv i32 = l{0}
 ```
 
 ### Referencing
@@ -32,7 +32,7 @@ Reference a variable or function with `%`
 
 ### Access mods
 
-- `lcl` make a value local/private
+- `priv` make a value local/private
 - `pub` make a value global/public
 
 ## Types
