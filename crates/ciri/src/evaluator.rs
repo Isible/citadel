@@ -1,15 +1,13 @@
 //! The evaluator module is responsible for evaluating/executing the IR nodes (AST).
 
-use std::process::id;
-
 use frontend::ir::{
     ArithOpExpr, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, Operator, VarStmt,
 };
+use irparser::parser::Parser;
 
 use crate::{
     env::{EnvObj, EnvObjType, Environment},
-    obj::{self, FuncObj, LabelObj, Object},
-    parser::Parser,
+    obj::{FuncObj, LabelObj, Object}
 };
 
 pub(crate) struct Evaluator<'a> {

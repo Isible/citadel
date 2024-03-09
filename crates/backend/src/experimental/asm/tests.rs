@@ -1,27 +1,22 @@
 #[cfg(test)]
 mod tests {
-    use crate::experimental::asm::util;
+    use std::path::PathBuf;
 
+    use frontend::ir::IRStmt;
+    use irparser::{lexer::Lexer, parser::Parser};
+
+    use crate::experimental::{api::Backend, asm::{util, AsmBackend}};
 
     #[test]
-    fn test_asm_codegen() {
-        /*
-        let asm_code = AsmElement::Label(Label {
-            name: "start".into(),
-            block: Block {
-                elements: vec![Instruction {
-                    _type: InstructionType::Mov,
-                    args: vec![
-                        Operand::Register(Register::Rax),
-                        Operand::Literal(Literal::Int(10)),
-                    ],
-                }],
-            },
-        });
-        println!("{}", asm_code);
-        util::compiler_output(vec![asm_code], "tests/out/out.asm");
-        */
-        let program = util::compile_program(vec![]);
-        println!("Program: {:#?}", program);
+    fn test_asm_compiler() {
+        let mut backend = AsmBackend::default();
+        let asm_code = backend.compile(gen_ir_stream(&"tests/main.cir".into()));
+        util::compiler_output(asm_code, PathBuf::from("tests/out/out.asm"));
+    }
+
+    fn gen_ir_stream(path: &PathBuf) -> Vec<IRStmt> {
+        let mut lexer = Lexer::new(path.into()).unwrap();
+        let mut parser = Parser::new(&mut lexer);
+        parser.parse_program()
     }
 }

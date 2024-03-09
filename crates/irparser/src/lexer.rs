@@ -1,12 +1,13 @@
 //! Lexer for transforming a source string (file) into a list of tokens
 
 use core::panic;
+use std::path::PathBuf;
 
 use clutils::{errors::FileHandlerError, files::FileHandler};
 
 use crate::tokens::Token;
 
-pub(crate) struct Lexer {
+pub struct Lexer {
     pub(crate) file_handler: FileHandler,
 
     next_pos: usize,
@@ -14,10 +15,9 @@ pub(crate) struct Lexer {
 }
 
 impl Lexer {
-    // TODO: Change from &String to PathBuf
-    pub(crate) fn new(path: &String) -> Result<Self, FileHandlerError> {
+    pub fn new(path: &PathBuf) -> Result<Self, FileHandlerError> {
         let mut lexer = Self {
-            file_handler: FileHandler::new(path)?,
+            file_handler: FileHandler::new(path.to_str().unwrap())?,
             next_pos: 0,
             ch: None,
         };
@@ -25,7 +25,7 @@ impl Lexer {
         Ok(lexer)
     }
 
-    pub(crate) fn tokenize(&mut self) -> Token {
+    pub fn tokenize(&mut self) -> Token {
         self.skip_whitespace();
         match self.ch {
             Some(ch) => match ch {

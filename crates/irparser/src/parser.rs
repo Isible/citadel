@@ -1,4 +1,4 @@
-//! Parser for parsing list of tokens into list of actually related AST nodoes
+//! Parser for parsing list of tokens into list of actually related AST nodes
 
 use std::{collections::HashMap, mem::swap, os::unix::fs::symlink};
 

@@ -5,20 +5,13 @@ use frontend::ir::IRStmt;
 use crate::experimental::asm::{compiler::Compiler, elements::AsmElement};
 
 pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
-    let mut compiler = Compiler {};
-    let mut program = Vec::new();
-    program.push(compiler.create_entry());
-    program.extend(
-        input
-            .into_iter()
-            .map(|stmt| compiler.compile_stmt(&stmt))
-            .collect::<Vec<AsmElement>>(),
-    );
-    program
+    let mut compiler = Compiler::new();
+    compiler.compile_stmt(&input[0]);
+    compiler.out
 }
 
 pub fn compiler_output(asm: Vec<AsmElement>, location: PathBuf) {
-    let buf: String = asm.iter().map(|elem| elem.to_string()).collect();
+    let buf: Vec<String> = asm.iter().map(|elem| elem.to_string()).collect();
     let mut file = File::create(&location).unwrap_or_else(|err| {
         panic!(
             "Failed to create a new file at {}, error: {}",
@@ -26,6 +19,6 @@ pub fn compiler_output(asm: Vec<AsmElement>, location: PathBuf) {
             err
         )
     });
-    file.write_all(buf.as_bytes())
+    file.write_all(buf.join("\n").as_bytes())
         .expect("Failed to write to file");
 }

@@ -3,21 +3,14 @@
 
 use errors::InterpreterError;
 use evaluator::Evaluator;
-use lexer::Lexer;
-use parser::Parser;
 
+use irparser::{lexer::Lexer, parser::Parser};
 
 mod env;
 mod evaluator;
 mod obj;
 
-mod parser;
-
-mod lexer;
-mod tokens;
-
 mod errors;
-mod util;
 
 fn main() -> Result<(), InterpreterError> {
     run()
