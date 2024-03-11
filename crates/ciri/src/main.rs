@@ -4,7 +4,7 @@
 use errors::InterpreterError;
 use evaluator::Evaluator;
 
-use irparser::{lexer::Lexer, parser::Parser};
+use citadel_irparser::{lexer::Lexer, parser::Parser};
 
 mod env;
 mod evaluator;
@@ -17,7 +17,7 @@ fn main() -> Result<(), InterpreterError> {
 }
 
 fn run() -> Result<(), InterpreterError> {
-    let mut lexer = Lexer::new(&"tests/main.cir".into()).unwrap_or_else(|err| panic!("{err}"));
+    let mut lexer = Lexer::new(&"tests/main.chir".into()).unwrap_or_else(|err| panic!("{err}"));
 
     let mut parser = Parser::new(&mut lexer);
 

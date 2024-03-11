@@ -6,7 +6,7 @@
 
 use std::fmt::Debug;
 
-use frontend::ir::IRStmt;
+use citadel_frontend::ir::IRStmt;
 
 pub trait Target: Debug + Default {
     fn name(&self) -> &str;

@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write, path::PathBuf};
 
-use frontend::ir::IRStmt;
+use citadel_frontend::ir::IRStmt;
 
 use crate::experimental::asm::{compiler::Compiler, elements::AsmElement};
 

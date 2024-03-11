@@ -5,7 +5,7 @@
 //! Generally this is only serves as a helper for the actual Backend#compile
 //! function.
 
-use frontend::ir::{IRStmt, LabelStmt};
+use citadel_frontend::ir::{IRStmt, LabelStmt};
 
 use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType};
 

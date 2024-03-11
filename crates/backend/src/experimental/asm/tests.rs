@@ -2,15 +2,15 @@
 mod tests {
     use std::path::PathBuf;
 
-    use frontend::ir::IRStmt;
-    use irparser::{lexer::Lexer, parser::Parser};
+    use citadel_frontend::ir::IRStmt;
+    use citadel_irparser::{lexer::Lexer, parser::Parser};
 
     use crate::experimental::{api::Backend, asm::{util, AsmBackend}};
 
     #[test]
     fn test_asm_compiler() {
         let mut backend = AsmBackend::default();
-        let asm_code = backend.compile(gen_ir_stream(&"tests/main.cir".into()));
+        let asm_code = backend.compile(gen_ir_stream(&"tests/main.chir".into()));
         util::compiler_output(asm_code, PathBuf::from("tests/out/out.asm"));
     }
 

@@ -1,9 +1,9 @@
 //! Parser for parsing list of tokens into list of actually related AST nodes
 
-use std::{collections::HashMap, mem::swap, os::unix::fs::symlink};
+use std::{collections::HashMap, mem::swap};
 
-use frontend::ir::{
-    ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt,
+use citadel_frontend::ir::{
+    self, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt,
     IRTypedIdent, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt,
 };
 
@@ -78,11 +78,11 @@ impl<'a> Parser<'a> {
             _ => panic!(),
         };
         IRExpr::Literal(match lit {
-            Literal::String(ref str) => frontend::ir::Literal::String(str.into()),
-            Literal::Integer(int) => frontend::ir::Literal::Integer(32, *int as isize),
-            Literal::Float(float) => frontend::ir::Literal::LongFloat(64, *float),
-            Literal::Boolean(bool) => frontend::ir::Literal::Bool(*bool),
-            Literal::Char(ch) => frontend::ir::Literal::Char(*ch),
+            Literal::String(ref str) => ir::Literal::String(str.into()),
+            Literal::Integer(int) => ir::Literal::Int64(*int),
+            Literal::Float(float) => ir::Literal::Double(*float),
+            Literal::Boolean(bool) => ir::Literal::Bool(*bool),
+            Literal::Char(ch) => ir::Literal::Char(*ch),
             Literal::Array(_) => todo!(),
             Literal::Vector(_) => todo!(),
         })
@@ -165,7 +165,7 @@ impl<'a> Parser<'a> {
         let is_local = match self.peek_tok {
             Token::Priv => true,
             Token::Pub => false,
-            _ => panic!("Expected pub or lcl, got {} instead", self.peek_tok),
+            _ => panic!("Expected pub or priv, got {} instead", self.peek_tok),
         };
 
         self.next_token();

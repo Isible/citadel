@@ -29,3 +29,9 @@
 - CMR: Citadel medium level representation
 
 - CLR: Citadel low level representation
+
+- WIP: Work in progress
+
+- NYI: Not yet implemented
+
+- S2C: Subject to change

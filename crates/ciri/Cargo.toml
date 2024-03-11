@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 clutils = "0.0.9"
-frontend = { path = "../frontend" }
-irparser = { path = "../irparser" }
+citadel-frontend = { path = "../frontend" }
+citadel-irparser = { path = "../irparser" }

@@ -1,13 +1,13 @@
 //! The evaluator module is responsible for evaluating/executing the IR nodes (AST).
 
-use frontend::ir::{
+use citadel_frontend::ir::{
     ArithOpExpr, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, Operator, VarStmt,
 };
-use irparser::parser::Parser;
+use citadel_irparser::parser::Parser;
 
 use crate::{
     env::{EnvObj, EnvObjType, Environment},
-    obj::{FuncObj, LabelObj, Object}
+    obj::{FuncObj, LabelObj, Object},
 };
 
 pub(crate) struct Evaluator<'a> {
@@ -27,7 +27,7 @@ impl<'a> Evaluator<'a> {
 
     pub(crate) fn eval_program(&mut self) {
         let table = &self.parser.symbols;
-        let entry = match table.get("entry").unwrap() {
+        let entry = match table.get("_entry").unwrap() {
             IRStmt::Label(label) => &label.block.stmts,
             _ => panic!("The entry point is not a label"),
         };
@@ -71,21 +71,17 @@ impl<'a> Evaluator<'a> {
         let left = self.eval_expr(*op.values.0);
         let right = self.eval_expr(*op.values.1);
         let (left, right) = match (left, right) {
-            (
-                Object::Literal(Literal::Integer(_, left)),
-                Object::Literal(Literal::Integer(_, right)),
-            ) => (left, right),
+            (Object::Literal(Literal::Int64(left)), Object::Literal(Literal::Int64(right))) => {
+                (left, right)
+            }
             object => panic!("Invalid operands: `{:#?}` and `{:#?}`", object.0, object.1),
         };
-        Object::Literal(Literal::Integer(
-            0,
-            match op.op {
-                Operator::Add => left + right,
-                Operator::Sub => left - right,
-                Operator::Mul => left * right,
-                Operator::Div => left / right,
-            },
-        ))
+        Object::Literal(Literal::Int64(match op.op {
+            Operator::Add => left + right,
+            Operator::Sub => left - right,
+            Operator::Mul => left * right,
+            Operator::Div => left / right,
+        }))
     }
 
     fn eval_function(&mut self, node: FuncStmt) -> Option<Object> {

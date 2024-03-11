@@ -1,4 +1,4 @@
-'entry: {
+'_entry: {
     call %main()
 }
 

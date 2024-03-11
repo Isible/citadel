@@ -30,7 +30,7 @@ impl Lexer {
         match self.ch {
             Some(ch) => match ch {
                 c if c.is_numeric() => self.tokenize_num(),
-                c if c.is_alphabetic() => self.tokenize_ident(),
+                c if c.is_alphabetic() || c == '_' => self.tokenize_ident(),
                 _ => self.tokenize_special_char(),
             },
             None => Token::Eof,
@@ -99,7 +99,7 @@ impl Lexer {
                     }
                     "call" => Token::Call,
                     "ret" => Token::Ret,
-                    "lcl" => Token::Priv,
+                    "priv" => Token::Priv,
                     "pub" => Token::Pub,
                     "decl" => Token::Decl,
                     "add" => Token::Add,

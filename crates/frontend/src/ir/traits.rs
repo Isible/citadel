@@ -1,5 +1,4 @@
 //! This file contains the `Display` trait implementations for the IR structs.
-
 use crate::util::VecDisplay;
 use std::fmt::Display;
 
@@ -141,11 +140,15 @@ impl Display for Literal {
             &match self {
                 Literal::String(string) => format!("\"{}\"", string),
                 Literal::Char(char) => char.to_string(),
-                Literal::ShortFloat(_, val) => val.to_string(),
-                Literal::LongFloat(_, val) => val.to_string(),
+                Literal::Float(val) => val.to_string(),
+                Literal::Double(val) => val.to_string(),
                 Literal::Bool(val) => val.to_string(),
-                Literal::Integer(_, val) => val.to_string(),
-                Literal::Array(_, val) => format!("[{}]", val.to_string()),
+                Literal::Int8(val) => val.to_string(),
+                Literal::Int16(val) => val.to_string(),
+                Literal::Int32(val) => val.to_string(),
+                Literal::Int64(val) => val.to_string(),
+                Literal::Int128(val) => val.to_string(),
+                Literal::Array(len, val) => format!("[{}; {}]", val.to_string(), len),
                 Literal::Vector(val) => format!("<{}>", val.to_string()),
             }
         )

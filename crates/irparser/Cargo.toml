@@ -1,5 +1,5 @@
 [package]
-name = "irparser"
+name = "citadel-irparser"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 clutils = "0.0.9"
-frontend = { path = "../frontend" }
+citadel-frontend = { path = "../frontend" }

@@ -50,7 +50,7 @@ fn run() {
     compiler.compile_program();
     util::compiler_output(&compiler, &format!("tests/build/{}.cir", name));
 
-    let mut codegen = CodeGenerator::new(compiler.generator.get_stream());
+    let codegen = CodeGenerator::new(compiler.generator.get_stream());
     let asm_code = codegen.compile();
     dbg!("{}", &asm_code);
 }

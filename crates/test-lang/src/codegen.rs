@@ -1,10 +1,10 @@
 //! Code generation module leveraging the backend to translate IR to assembly.
 
-use backend::experimental::{
+use citadel_backend::experimental::{
     api::Backend,
     asm::{elements::AsmElement, AsmBackend},
 };
-use frontend::ir::IRStmt;
+use citadel_frontend::ir::IRStmt;
 
 #[derive(Debug)]
 pub struct CodeGenerator {

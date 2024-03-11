@@ -9,7 +9,7 @@ pub mod elements;
 
 mod tests;
 
-use frontend::ir::IRStmt;
+use citadel_frontend::ir::IRStmt;
 
 use crate::experimental::{
     api::{Backend, Target},

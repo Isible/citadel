@@ -1,0 +1,1 @@
+' _entry : { call % main ( call % citadel . std . env . args ( ) ) } @ main ( ) priv void { call % puts ( call % getName ( ) ) } @ getName ( ) priv string { ret l{"test"} } EOF 
