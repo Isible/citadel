@@ -43,7 +43,7 @@ impl Compiler {
 
     fn compile_label(&mut self, node: &LabelStmt) {
         match node.name.as_str() {
-            "entry" => {
+            "_entry" => {
                 self.create_entry();
                 self.out.push(AsmElement::Label(Label {
                     name: "_start".to_string(),
