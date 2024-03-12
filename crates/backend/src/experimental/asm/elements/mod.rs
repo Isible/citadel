@@ -4,6 +4,8 @@
 
 pub mod traits;
 
+// TODO: Rewrite to support simple codegen
+
 use strum::AsRefStr;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -46,11 +48,12 @@ pub enum DirectiveType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Block {
-    pub elements: Vec<Instruction>,
+    pub elements: Vec<AsmElement>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Operand {
+    Ident(String),
     Register(Register),
     MemAddr(MemAddr),
     Literal(Literal),

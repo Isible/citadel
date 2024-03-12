@@ -5,11 +5,11 @@
 //! Generally this is only serves as a helper for the actual Backend#compile
 //! function.
 
-use citadel_frontend::ir::{IRStmt, LabelStmt};
+use citadel_frontend::ir::{CallExpr, IRStmt, LabelStmt};
 
 use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType};
 
-use super::elements::{Block, Label};
+use super::elements::{Block, Instruction, InstructionType, Label, Operand};
 
 pub struct Compiler {
     pub out: Vec<AsmElement>,
@@ -36,9 +36,16 @@ impl Compiler {
             IRStmt::Return(node) => todo!(),
             IRStmt::Break(node) => todo!(),
             IRStmt::Jump(node) => todo!(),
-            IRStmt::Call(node) => todo!(),
+            IRStmt::Call(node) => self.compile_call(node),
             IRStmt::Expression(node) => todo!(),
         }
+    }
+
+    fn compile_call(&mut self, node: &CallExpr) {
+        self.out.push(AsmElement::Instruction(Instruction {
+            _type: InstructionType::Call,
+            args: vec![Operand::Ident(node.name.clone())],
+        }));
     }
 
     fn compile_label(&mut self, node: &LabelStmt) {
@@ -54,6 +61,9 @@ impl Compiler {
                 name: node.name.clone(),
                 block: Block { elements: vec![] },
             })),
+        }
+        for stmt in &node.block.stmts {
+            self.compile_stmt(stmt);
         }
     }
 }

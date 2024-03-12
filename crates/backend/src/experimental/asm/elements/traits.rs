@@ -39,7 +39,7 @@ impl Display for Declaration {
 
 impl Display for Label {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:\n{}", self.name, self.block)
+        write!(f, "{}:{}", self.name, self.block)
     }
 }
 
@@ -72,6 +72,7 @@ impl Display for Operand {
                 Operand::Register(regis) => regis.to_string(),
                 Operand::MemAddr(addr) => addr.to_string(),
                 Operand::Literal(lit) => lit.to_string(),
+                Operand::Ident(ident) => ident.to_string(),
             }
         )
     }
@@ -126,7 +127,7 @@ impl Display for Literal {
 impl Display for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let buf: Vec<String> = self.elements.iter().map(|elem| elem.to_string()).collect();
-        write!(f, "{}", buf.join("\n"))
+        write!(f, "    {}", buf.join("\n"))
     }
 }
 
@@ -152,7 +153,7 @@ impl Display for InstructionType {
                 InstructionType::JNe => todo!(),
                 InstructionType::JZ => todo!(),
                 InstructionType::JNz => todo!(),
-                InstructionType::Call => todo!(),
+                InstructionType::Call => "call",
                 InstructionType::Ret => todo!(),
                 InstructionType::Push => todo!(),
                 InstructionType::Pop => todo!(),

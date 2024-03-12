@@ -1,3 +1,13 @@
+'main: {
+
+}
+
 '_entry: {
-    
+    call %main()
+    call %test()
+    call %lol()
+}
+
+'test: {
+
 }
