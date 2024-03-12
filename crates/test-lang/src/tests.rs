@@ -4,7 +4,7 @@ mod test {
 
     #[test]
     fn test_lexer() {
-        let mut lexer = util::get_lexer_for_file("tests/lexer-test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/lexer-test.tl".into());
 
         let expected = [
             Token::Fn,
@@ -37,7 +37,7 @@ mod test {
     #[test]
     fn test_parser() {
         // TODO: Write proper tests
-        let mut lexer = util::get_lexer_for_file("tests/parser-test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/parser-test.tl".into());
         let mut parser = Parser::new(&mut lexer);
 
         let mut ast = Vec::new();
@@ -57,10 +57,10 @@ mod test {
     #[test]
     fn test_compiler() {
         // TODO: Write proper tests
-        let mut lexer = util::get_lexer_for_file("tests/compiler-test.tl");
+        let mut lexer = util::get_lexer_for_file("tests/compiler-test.tl".into());
         let mut parser = Parser::new(&mut lexer);
         let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
         compiler.compile_program();
-        util::compiler_output(&compiler, "tests/build/test.chir");
+        util::compiler_output(&compiler, "tests/build/test.chir".into());
     }
 }

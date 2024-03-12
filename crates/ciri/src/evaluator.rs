@@ -94,7 +94,6 @@ impl<'a> Evaluator<'a> {
             name,
             EnvObj {
                 _type: EnvObjType::Function {
-                    is_local: node.is_local,
                     ret_type: _type,
                 },
                 val: obj.clone(),
@@ -113,7 +112,6 @@ impl<'a> Evaluator<'a> {
             EnvObj {
                 _type: EnvObjType::Variable {
                     is_const: node.is_const,
-                    is_local: node.is_local,
                 },
                 val,
             },

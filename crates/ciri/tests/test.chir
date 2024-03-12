@@ -1,9 +1,11 @@
 '_entry: {
-    call %main(call %citadel.std.env.args())
+    call %main()
 }
-@main() priv void {
-    call %puts(call %getName())
+
+@main() void {
+    call %print(call %getName())
 }
-@getName() priv string {
+
+@getName() string {
     ret l{"test"}
 }

@@ -65,7 +65,6 @@ pub enum Operator {
 pub struct DeclFuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
-    pub is_local: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -73,14 +72,12 @@ pub struct FuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
     pub block: BlockStmt,
-    pub is_local: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct VarStmt {
     pub name: IRTypedIdent,
     pub val: IRExpr,
-    pub is_local: bool,
     pub is_const: bool,
 }
 

@@ -4,10 +4,6 @@
 
 - `decl`
 
-- `priv`
-
-- `pub`
-
 - `call`
 
 - `ret`

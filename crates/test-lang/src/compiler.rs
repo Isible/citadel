@@ -41,14 +41,11 @@ impl<'a> Compiler<'a> {
 
     fn init_program(&mut self) {
         self.generator.gen_ir(IRStmt::Label(LabelStmt {
-            name: "entry".into(),
+            name: "_entry".into(),
             block: BlockStmt {
                 stmts: vec![IRStmt::Expression(IRExpr::Call(CallExpr {
                     name: "main".into(),
-                    args: vec![IRExpr::Call(CallExpr {
-                        name: "citadel.std.env.args".into(),
-                        args: Vec::new(),
-                    })],
+                    args: Vec::new(),
                 }))],
             },
         }))
@@ -80,7 +77,6 @@ impl<'a> Compiler<'a> {
                 ident: node.name.ident,
                 _type: node.name._type,
             },
-            is_local: true,
             is_const: true,
             val: self.compile_expr(node.val),
         })
@@ -94,6 +90,15 @@ impl<'a> Compiler<'a> {
 
     fn compile_fn_stmt(&self, node: FnStatement) -> IRStmt {
         IRStmt::Function(FuncStmt {
+            block: {
+                let mut block = self.compile_block_stmt(node.block).stmts;
+                if node.name.as_str() == "main" {
+                    block.push(IRStmt::Return(ReturnStmt {
+                        ret_val: IRExpr::Literal(ir::Literal::Int32(0)),
+                    }));
+                }
+                BlockStmt { stmts: block }
+            },
             name: IRTypedIdent {
                 _type: match node.name.as_str() {
                     "main" => "i32".into(),
@@ -102,20 +107,16 @@ impl<'a> Compiler<'a> {
                 ident: node.name,
             },
             args: self.compile_def_args(node.args),
-            is_local: true,
-            block: {
-                let mut block = self.compile_block_stmt(node.block).stmts;
-                block.push(IRStmt::Return(ReturnStmt {
-                    ret_val: IRExpr::Literal(ir::Literal::Int32(0)),
-                }));
-                BlockStmt { stmts: block }
-            },
         })
     }
 
     fn compile_call_expr(&self, node: CallExpression) -> IRExpr {
         IRExpr::Call(CallExpr {
-            name: node.name,
+            name: if &node.name == "puts" {
+                "print".into()
+            } else {
+                node.name
+            },
             args: self.compile_args(node.args),
         })
     }
@@ -163,9 +164,7 @@ impl<'a> Compiler<'a> {
         match node {
             Literal::Ident(_) => todo!(),
             Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
-            Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int64(
-                int,
-            )),
+            Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int64(int)),
             Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),
             Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(bool)),
         }

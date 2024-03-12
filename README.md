@@ -6,6 +6,10 @@ An experimental compiler backend with a similar approach as llvm but trying to b
 
 Citadel: A bastion to protect from the dragon :p
 
+## Design
+
+Citadel is designed to be self-hosted, meaning you do not need to install anything besides the rust crates. Infact, Citadel itself is only an api that allows developers to create optimizer, backends and of course their compiler.
+
 ## Mission
 
 The mission of this project is to empower more people to try building compilers and for making rust a better option for building them. Let the compiler wars begin :p

@@ -1,6 +1,8 @@
 import subprocess
 import sys
 
+# TODO: Add remaining tests
+
 test_cmds = {
     "api": "cargo test --package api --lib -- tests --nocapture",
     "frontend": "cargo test --package frontend --lib -- tests --nocapture",

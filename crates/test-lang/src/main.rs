@@ -6,7 +6,7 @@
 //! 
 //! This crate provides a simple example for implemnting a compiler using the citadel toolchain
 
-use std::env;
+use std::path::PathBuf;
 
 use codegen::CodeGenerator;
 use compiler::Compiler;
@@ -26,31 +26,23 @@ fn main() {
 }
 
 fn run() {
-    let args: Vec<String> = env::args().collect();
+    let path = util::get_file_by_arg(PathBuf::from("tests/compiler-test.tl"));
 
-    let name: &str;
-
-    let mut lexer = match args.get(1) {
-        Some(arg) => {
-            name = arg;
-            util::get_lexer_for_file(arg)
-        }
-        None => panic!("Need to specify a file to compile"),
-    };
-
+    let name = path.to_string_lossy().to_string();
     let name = name[..name.len() - 3].to_string();
 
     let name: Vec<&str> = name.split('/').collect();
 
     let name = name.last().unwrap();
 
+    let mut lexer = util::get_lexer_for_file(path);
     let mut parser = Parser::new(&mut lexer);
     let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program since it was empty");
 
     compiler.compile_program();
-    util::compiler_output(&compiler, &format!("tests/build/{}.cir", name));
+    util::compiler_output(&compiler, format!("tests/build/{}.cir", name).into());
 
     let codegen = CodeGenerator::new(compiler.generator.get_stream());
     let asm_code = codegen.compile();
-    dbg!("{}", &asm_code);
+    util::asm_output(asm_code, "tests/build/out.asm".into())
 }

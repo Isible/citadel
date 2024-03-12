@@ -9,10 +9,8 @@ use crate::{errors, obj::Object};
 pub enum EnvObjType {
     Variable {
         is_const: bool,
-        is_local: bool,
     },
     Function {
-        is_local: bool,
         ret_type: String,
     },
     Label,

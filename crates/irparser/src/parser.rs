@@ -101,31 +101,6 @@ impl<'a> Parser<'a> {
 
         let name = self.cur_tok.to_string();
 
-        if self.peek_tok != Token::Priv && self.peek_tok != Token::Pub {
-            panic!(
-                "Expected access modifier like pub or lcl, received {:?} instead",
-                self.peek_tok
-            );
-        }
-
-        self.next_token();
-
-        let is_local = match self.cur_tok {
-            Token::Priv => true,
-            Token::Pub => false,
-            // unreachable due to previous token check
-            _ => panic!(),
-        };
-
-        // expect next token
-        match self.peek_tok {
-            Token::Ident(_) => (),
-            _ => panic!(
-                "Expect peek token to be an Identifier, received {} instead",
-                self.peek_tok
-            ),
-        }
-
         self.next_token();
 
         let _type = self.cur_tok.to_string();
@@ -143,7 +118,6 @@ impl<'a> Parser<'a> {
                 _type,
             },
             val,
-            is_local,
             is_const,
         });
         self.symbols.insert(name, var.clone());
@@ -162,14 +136,6 @@ impl<'a> Parser<'a> {
 
         let args = self.parse_arg_list(Token::RParent);
 
-        let is_local = match self.peek_tok {
-            Token::Priv => true,
-            Token::Pub => false,
-            _ => panic!("Expected pub or priv, got {} instead", self.peek_tok),
-        };
-
-        self.next_token();
-
         self.next_token();
 
         let _type = self.cur_tok.to_string();
@@ -187,7 +153,6 @@ impl<'a> Parser<'a> {
             },
             args,
             block,
-            is_local,
         });
         self.symbols.insert(name, func.clone());
         func
@@ -204,11 +169,6 @@ impl<'a> Parser<'a> {
         self.expect_peek_tok(&Token::LParent);
         self.next_token();
         let args = self.parse_arg_list(Token::RParent);
-        let is_local = match self.peek_tok {
-            Token::Priv => true,
-            Token::Pub => false,
-            _ => panic!("Expected pub or lcl, got {} instead", self.peek_tok),
-        };
         self.next_token();
         let _type = match self.peek_tok {
             Token::Ident(_) => self.peek_tok.to_string(),
@@ -217,7 +177,6 @@ impl<'a> Parser<'a> {
         IRStmt::DeclaredFunction(DeclFuncStmt {
             name: IRTypedIdent { ident: name, _type },
             args,
-            is_local,
         })
     }
 

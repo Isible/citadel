@@ -1,7 +1,0 @@
-'_entry:  {
-    call %main(call %citadel.std.env.args())
-}
-
-@main($args <<i8>>) priv i32 {
-    $test priv i32 = l{16}
-}

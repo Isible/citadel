@@ -1,8 +1,8 @@
 '_entry: {
-    call %main(call %citadel.std.env.args())
+    call %main()
 }
 
-@main() priv void {
-    $x priv i32 = add l{1023}, mul l{100}, l{10}
+@main() void {
+    $x i32 = add l{1023}, mul l{100}, l{10}
     call %puts(call %test())
 }
