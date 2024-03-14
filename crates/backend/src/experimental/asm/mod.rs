@@ -3,7 +3,6 @@
 //! leveraging the [backend api](api/index.html).
 
 pub mod codegen;
-pub mod compiler;
 pub mod util;
 pub mod elements;
 

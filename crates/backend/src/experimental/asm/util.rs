@@ -2,10 +2,10 @@ use std::{fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::IRStmt;
 
-use crate::experimental::asm::{compiler::Compiler, elements::AsmElement};
+use crate::experimental::asm::{codegen::CodeGenerator, elements::AsmElement};
 
 pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
-    let mut compiler = Compiler::new();
+    let mut compiler = CodeGenerator::new();
     for stmt in input {
         compiler.compile_stmt(&stmt);
     }
