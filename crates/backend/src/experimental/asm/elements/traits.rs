@@ -5,7 +5,7 @@ use std::fmt::Display;
 use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
 
 use crate::experimental::asm::elements::{
-    AsmElement, Block, Declaration, Directive, Instruction, InstructionType, Label, Literal,
+    AsmElement, Block, Declaration, Directive, Instruction, Opcode, Label, Literal,
     MemAddr, Operand, Register,
 };
 
@@ -31,7 +31,7 @@ impl Display for Declaration {
             "{}",
             match self {
                 Declaration::Global(ident) => format!("global {}", ident),
-                Declaration::DefineBytes => todo!(),
+                Declaration::DefineBytes(ident, lit) => format!("{} db \"{}\"", ident, lit),
             }
         )
     }
@@ -45,7 +45,7 @@ impl Display for Label {
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self._type, self.args.to_string())
+        write!(f, "{} {}", self.opcode, self.args.to_string())
     }
 }
 
@@ -131,45 +131,45 @@ impl Display for Block {
     }
 }
 
-impl Display for InstructionType {
+impl Display for Opcode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                InstructionType::Mov => "mov",
-                InstructionType::Syscall => "syscall",
-                InstructionType::Add => "add",
-                InstructionType::Sub => "sub",
-                InstructionType::Mul => "mul",
-                InstructionType::Div => todo!(),
-                InstructionType::And => todo!(),
-                InstructionType::Or => todo!(),
-                InstructionType::XOr => todo!(),
-                InstructionType::Not => todo!(),
-                InstructionType::Cmp => todo!(),
-                InstructionType::Jmp => todo!(),
-                InstructionType::JE => todo!(),
-                InstructionType::JNe => todo!(),
-                InstructionType::JZ => todo!(),
-                InstructionType::JNz => todo!(),
-                InstructionType::Call => "call",
-                InstructionType::Ret => todo!(),
-                InstructionType::Push => todo!(),
-                InstructionType::Pop => todo!(),
-                InstructionType::Shl => todo!(),
-                InstructionType::Shr => todo!(),
-                InstructionType::Movsb => todo!(),
-                InstructionType::Movsw => todo!(),
-                InstructionType::Int => todo!(),
-                InstructionType::Fadd => todo!(),
-                InstructionType::Fsub => todo!(),
-                InstructionType::FMul => todo!(),
-                InstructionType::FDiv => todo!(),
-                InstructionType::FCmp => todo!(),
-                InstructionType::FAbs => todo!(),
-                InstructionType::Dec => todo!(),
-                InstructionType::Inc => todo!(),
+                Opcode::Mov => "mov",
+                Opcode::Syscall => "syscall",
+                Opcode::Add => "add",
+                Opcode::Sub => "sub",
+                Opcode::Mul => "mul",
+                Opcode::Div => todo!(),
+                Opcode::And => todo!(),
+                Opcode::Or => todo!(),
+                Opcode::XOr => todo!(),
+                Opcode::Not => todo!(),
+                Opcode::Cmp => todo!(),
+                Opcode::Jmp => todo!(),
+                Opcode::JE => todo!(),
+                Opcode::JNe => todo!(),
+                Opcode::JZ => todo!(),
+                Opcode::JNz => todo!(),
+                Opcode::Call => "call",
+                Opcode::Ret => todo!(),
+                Opcode::Push => todo!(),
+                Opcode::Pop => todo!(),
+                Opcode::Shl => todo!(),
+                Opcode::Shr => todo!(),
+                Opcode::Movsb => todo!(),
+                Opcode::Movsw => todo!(),
+                Opcode::Int => todo!(),
+                Opcode::Fadd => todo!(),
+                Opcode::Fsub => todo!(),
+                Opcode::FMul => todo!(),
+                Opcode::FDiv => todo!(),
+                Opcode::FCmp => todo!(),
+                Opcode::FAbs => todo!(),
+                Opcode::Dec => todo!(),
+                Opcode::Inc => todo!(),
             }
         )
     }

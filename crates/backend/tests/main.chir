@@ -1,13 +1,3 @@
-'main: {
-
-}
-
 '_entry: {
-    call %main()
-    call %test()
-    call %lol()
-}
-
-'test: {
-
+    call %print(l{"Hello world"})
 }

@@ -25,7 +25,7 @@ pub struct Directive {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Declaration {
     Global(String),
-    DefineBytes,
+    DefineBytes(String, String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -36,7 +36,7 @@ pub struct Label {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
-    pub _type: InstructionType,
+    pub opcode: Opcode,
     pub args: Vec<Operand>
 }
 
@@ -87,7 +87,7 @@ pub enum Register {
 }
 
 #[derive(Debug, Clone, PartialEq, AsRefStr)]
-pub enum InstructionType {
+pub enum Opcode {
     Mov,
     Syscall,
 

@@ -4,10 +4,18 @@ use citadel_frontend::ir::IRStmt;
 
 use crate::experimental::asm::{codegen::CodeGenerator, elements::AsmElement};
 
+use super::elements::{Directive, DirectiveType};
+
 pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
     let mut compiler = CodeGenerator::new();
     for stmt in input {
-        compiler.compile_stmt(&stmt);
+        compiler.gen_stmt(&stmt);
+    }
+    if !compiler.data.is_empty() {
+        compiler.out.push(AsmElement::Directive(Directive {
+            _type: DirectiveType::Data,
+            content: compiler.data,
+        }));
     }
     compiler.out
 }
