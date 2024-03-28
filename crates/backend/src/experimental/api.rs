@@ -16,7 +16,7 @@ pub trait Backend: Debug + Default {
     type Output: Debug;
     type Target: self::Target + Default;
 
-    fn compile(&mut self, ir_stream: Vec<IRStmt>) -> Self::Output;
+    fn generate(&self, ir_stream: Vec<IRStmt>) -> Self::Output;
 
     fn target(&self) -> Self::Target {
         Self::Target::default()

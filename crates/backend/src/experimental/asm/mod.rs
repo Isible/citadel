@@ -32,7 +32,7 @@ impl Backend for AsmBackend {
 
     type Target = AsmTarget;
 
-    fn compile(&mut self, ir_stream: Vec<IRStmt>) -> Self::Output {
+    fn generate(&self, ir_stream: Vec<IRStmt>) -> Self::Output {
         util::compile_program(ir_stream)
     }
 }
