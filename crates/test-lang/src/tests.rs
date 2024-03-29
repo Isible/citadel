@@ -1,6 +1,10 @@
 #[cfg(test)]
 mod test {
-    use crate::{parser::Parser, tokens::Token, util, compiler::Compiler};
+    use std::{fs, path::PathBuf};
+
+    use citadel_backend::experimental::{api::Backend, asm::AsmBackend};
+
+    use crate::{compiler::Compiler, parser::Parser, tokens::Token, util};
 
     #[test]
     fn test_lexer() {
@@ -59,8 +63,17 @@ mod test {
         // TODO: Write proper tests
         let mut lexer = util::get_lexer_for_file("tests/compiler-test.tl".into());
         let mut parser = Parser::new(&mut lexer);
-        let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
+        let mut compiler =
+            Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
         compiler.compile_program();
-        util::compiler_output(&compiler, "tests/build/test.chir".into());
+
+        let backend = AsmBackend::default();
+        let asm = backend.generate(compiler.generator.get_stream());
+        let asm_lit = asm
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<String>>()
+            .join("\n");
+        fs::write(PathBuf::from("tests/build/compiler-test.s"), asm_lit).expect("Failed to write to file");
     }
 }

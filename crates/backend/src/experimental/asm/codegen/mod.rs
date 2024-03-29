@@ -7,7 +7,7 @@
 
 pub mod util;
 
-use citadel_frontend::ir::{CallExpr, FuncStmt, IRStmt, LabelStmt};
+use citadel_frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt};
 
 use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType};
 
@@ -34,14 +34,15 @@ impl CodeGenerator {
     pub fn gen_stmt(&mut self, node: &IRStmt) {
         match node {
             IRStmt::DeclaredFunction(node) => todo!(),
-            IRStmt::Function(node) => todo!(),
+            IRStmt::Function(node) => self.gen_function(node),
             IRStmt::Variable(node) => todo!(),
             IRStmt::Label(node) => self.gen_label(node),
-            IRStmt::Return(node) => todo!(),
+            IRStmt::Return(node) => (),
             IRStmt::Break(node) => todo!(),
             IRStmt::Jump(node) => todo!(),
             IRStmt::Call(node) => self.gen_call(node),
-            IRStmt::Expression(node) => todo!(),
+            IRStmt::Expression(IRExpr::Call(node)) => self.gen_call(node),
+            IRStmt::Expression(node) => todo!("{:?}", node),
         }
     }
 
@@ -53,6 +54,20 @@ impl CodeGenerator {
                 args: vec![Operand::Ident(node.name.clone())],
             })),
         }
+    }
+
+    fn gen_function(&mut self, node: &FuncStmt) {
+        self.out.push(AsmElement::Label(Label {
+            name: node.name.ident.clone(),
+            block: Block { elements: vec![] },
+        }));
+        for stmt in &node.block.stmts {
+            self.gen_stmt(stmt);
+        }
+        self.out.push(AsmElement::Instruction(Instruction {
+            opcode: Opcode::Ret,
+            args: vec![],
+        }));
     }
 
     fn gen_print(&mut self, node: &CallExpr) {

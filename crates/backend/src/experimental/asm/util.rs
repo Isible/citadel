@@ -12,7 +12,7 @@ pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
         compiler.gen_stmt(&stmt);
     }
     if !compiler.data.is_empty() {
-        compiler.out.push(AsmElement::Directive(Directive {
+        compiler.out.insert(0, AsmElement::Directive(Directive {
             _type: DirectiveType::Data,
             content: compiler.data,
         }));

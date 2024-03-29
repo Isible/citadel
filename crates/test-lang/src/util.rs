@@ -54,7 +54,7 @@ pub fn get_next_tok(lexer: &mut Lexer) -> Token {
     }
 }
 
-pub fn get_file_by_arg(default: PathBuf) -> PathBuf {
+pub fn file_by_arg(default: PathBuf) -> PathBuf {
     let args = args().collect::<Vec<String>>();
     if let Some(arg) = args.get(1) {
         PathBuf::from(arg)

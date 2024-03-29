@@ -26,7 +26,7 @@ fn main() {
 }
 
 fn run() {
-    let path = util::get_file_by_arg(PathBuf::from("tests/compiler-test.tl"));
+    let path = util::file_by_arg(PathBuf::from("tests/compiler-test.tl"));
 
     let name = path.to_string_lossy().to_string();
     let name = name[..name.len() - 3].to_string();
@@ -43,6 +43,6 @@ fn run() {
     util::compiler_output(&compiler, format!("tests/build/{}.cir", name).into());
 
     let codegen = CodeGenerator::new(compiler.generator.get_stream());
-    let asm_code = codegen.compile();
+    let asm_code = codegen.generate();
     util::asm_output(asm_code, "tests/build/out.asm".into())
 }

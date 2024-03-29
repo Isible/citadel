@@ -154,7 +154,7 @@ impl Display for Opcode {
                 Opcode::JZ => todo!(),
                 Opcode::JNz => todo!(),
                 Opcode::Call => "call",
-                Opcode::Ret => todo!(),
+                Opcode::Ret => "ret",
                 Opcode::Push => todo!(),
                 Opcode::Pop => todo!(),
                 Opcode::Shl => todo!(),
