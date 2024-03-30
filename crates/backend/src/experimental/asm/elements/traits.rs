@@ -5,7 +5,7 @@ use std::fmt::Display;
 use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
 
 use crate::experimental::asm::elements::{
-    AsmElement, Block, Declaration, Directive, Instruction, Opcode, Label, Literal,
+    AsmElement, Declaration, Directive, Instruction, Opcode, Label, Literal,
     MemAddr, Operand, Register,
 };
 
@@ -31,7 +31,7 @@ impl Display for Declaration {
             "{}",
             match self {
                 Declaration::Global(ident) => format!("global {}", ident),
-                Declaration::DefineBytes(ident, lit) => format!("{} db \"{}\"", ident, lit),
+                Declaration::DefineBytes(ident, lit, terminator) => format!("{} db \"{}\", {:?}", ident, lit, terminator),
             }
         )
     }
@@ -39,7 +39,7 @@ impl Display for Declaration {
 
 impl Display for Label {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}", self.name, self.block)
+        write!(f, "{}:", self.name)
     }
 }
 
@@ -56,6 +56,7 @@ impl Display for Directive {
             "section .{}\n{}",
             match self._type {
                 DirectiveType::Data => "data",
+                DirectiveType::Rodata => "rodata",
                 DirectiveType::Text => "text",
             },
             self.content.to_string()
@@ -118,16 +119,9 @@ impl Display for Literal {
             match *self {
                 Literal::Int(int) => int.to_string(),
                 Literal::Float(float) => float.to_string(),
-                Literal::Ident(ref ident) => ident.into(),
+                Literal::String(ref string) => string.into(),
             }
         )
-    }
-}
-
-impl Display for Block {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf: Vec<String> = self.elements.iter().map(|elem| elem.to_string()).collect();
-        write!(f, "    {}", buf.join("\n"))
     }
 }
 

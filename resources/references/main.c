@@ -1,4 +1,4 @@
+#include <stdio.h>
 int main(void) {
-    const char x[] = "hello";
-    float y = (float) 0;
+    printf("Hello, World!\n");
 }

@@ -8,6 +8,8 @@ pub mod traits;
 
 use strum::AsRefStr;
 
+use crate::experimental::asm::codegen::util;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum AsmElement {
     Label(Label),
@@ -19,36 +21,31 @@ pub enum AsmElement {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Directive {
     pub _type: DirectiveType,
-    pub content: Vec<Declaration>
+    pub content: Vec<Declaration>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Declaration {
     Global(String),
-    DefineBytes(String, String),
+    DefineBytes(String, String, u8),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Label {
     pub name: String,
-    pub block: Block,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Instruction {
     pub opcode: Opcode,
-    pub args: Vec<Operand>
+    pub args: Vec<Operand>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DirectiveType {
     Data,
+    Rodata,
     Text,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Block {
-    pub elements: Vec<AsmElement>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -69,7 +66,7 @@ pub enum MemAddr {
 pub enum Literal {
     Int(i32),
     Float(f32),
-    Ident(String),
+    String(String),
 }
 
 // TODO: Remove strum as a dependency
@@ -131,4 +128,33 @@ pub enum Opcode {
 
     Dec,
     Inc,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum StdFunction {
+    Print,
+}
+
+impl StdFunction {
+    pub fn generate(&self) -> Vec<AsmElement> {
+        match self {
+            Self::Print => {
+                vec![
+                    AsmElement::Label(Label {
+                        name: self.name().to_string(),
+                    }),
+                    util::gen_mov_ins(Register::Rax, Operand::Literal(Literal::Int(1))),
+                    util::gen_mov_ins(Register::Rdi, Operand::Literal(Literal::Int(1))),
+                    util::gen_syscall(),
+                    util::gen_ret(),
+                ]
+            }
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Print => "print",
+        }
+    }
 }

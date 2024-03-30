@@ -9,7 +9,7 @@ mod tests {
 
     #[test]
     fn test_asm_compiler() {
-        let mut backend = AsmBackend::default();
+        let backend = AsmBackend::default();
         let asm_code = backend.generate(gen_ir_stream(&"tests/main.chir".into()));
         util::compiler_output(asm_code, PathBuf::from("tests/out/out.asm"));
     }

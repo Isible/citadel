@@ -74,6 +74,6 @@ mod test {
             .map(|x| x.to_string())
             .collect::<Vec<String>>()
             .join("\n");
-        fs::write(PathBuf::from("tests/build/compiler-test.s"), asm_lit).expect("Failed to write to file");
+        fs::write(PathBuf::from("tests/build/compiler-test.asm"), asm_lit).expect("Failed to write to file");
     }
 }

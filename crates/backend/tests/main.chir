@@ -1,3 +1,6 @@
 '_entry: {
     call %print(l{"Hello world"})
+    call %print(l{"Deez nuts"})
+    call %print(l{"Amongus"})
+    call %print(l{"Lololololol"})
 }

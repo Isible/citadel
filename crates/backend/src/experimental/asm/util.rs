@@ -1,23 +1,50 @@
-use std::{fs::File, io::Write, path::PathBuf};
+use std::{collections::HashSet, default, fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::IRStmt;
 
 use crate::experimental::asm::{codegen::CodeGenerator, elements::AsmElement};
 
-use super::elements::{Directive, DirectiveType};
+use super::elements::{Directive, DirectiveType, StdFunction};
 
 pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
-    let mut compiler = CodeGenerator::new();
+    let mut codegen = CodeGenerator::default();
+
+    gen_code(input, &mut codegen);
+
+    let data = codegen.rodata;
+    let defined_functions = codegen.defined_functions;
+    let mut out = codegen.out;
+
+    dbg!(&defined_functions);
+
+    // Add data section
+    add_data_section(data, &mut out);
+
+    gen_defined_functions(defined_functions, &mut out);
+
+    out
+}
+
+fn gen_code(input: Vec<IRStmt>, codegen: &mut CodeGenerator) {
     for stmt in input {
-        compiler.gen_stmt(&stmt);
+        codegen.gen_stmt(&stmt);
     }
-    if !compiler.data.is_empty() {
-        compiler.out.insert(0, AsmElement::Directive(Directive {
-            _type: DirectiveType::Data,
-            content: compiler.data,
+}
+
+fn add_data_section(data: Vec<super::elements::Declaration>, out: &mut Vec<AsmElement>) {
+    if !data.is_empty() {
+        out.insert(0, AsmElement::Directive(Directive {
+            _type: DirectiveType::Rodata,
+            content: data,
         }));
     }
-    compiler.out
+}
+
+fn gen_defined_functions(defined_functions: HashSet<StdFunction>, out: &mut Vec<AsmElement>) {
+    for func in defined_functions {
+        dbg!("Generating function");
+        out.extend(func.generate());
+    }
 }
 
 pub fn compiler_output(asm: Vec<AsmElement>, location: PathBuf) {

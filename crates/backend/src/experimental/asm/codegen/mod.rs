@@ -7,23 +7,29 @@
 
 pub mod util;
 
+use std::collections::HashSet;
+
 use citadel_frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt};
 
-use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType};
+use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType, Literal};
 
-use super::elements::{Block, Instruction, Label, Literal, Opcode, Operand, Register};
+use super::elements::{Instruction, Label, Opcode, Operand, Register, StdFunction};
 
+#[derive(Default)]
 pub struct CodeGenerator {
     pub out: Vec<AsmElement>,
 
-    pub data: Vec<Declaration>,
+    // Literals
+
+    /// Read only data section
+    pub rodata: Vec<Declaration>,
+    /// Literal constant index
+    pub lc_index: usize,
+
+    pub defined_functions: HashSet<StdFunction>,
 }
 
 impl CodeGenerator {
-    pub fn new() -> Self {
-        Self { out: Vec::new(), data: Vec::new() }
-    }
-
     pub fn create_entry(&mut self) {
         self.out.push(AsmElement::Directive(Directive {
             _type: DirectiveType::Text,
@@ -49,45 +55,33 @@ impl CodeGenerator {
     fn gen_call(&mut self, node: &CallExpr) {
         match node.name.as_str() {
             "print" => self.gen_print(node),
-            _ => self.out.push(AsmElement::Instruction(Instruction {
-                opcode: Opcode::Call,
-                args: vec![Operand::Ident(node.name.clone())],
-            })),
+            _ => self.out.push(util::gen_call(&node.name)),
         }
     }
 
     fn gen_function(&mut self, node: &FuncStmt) {
         self.out.push(AsmElement::Label(Label {
             name: node.name.ident.clone(),
-            block: Block { elements: vec![] },
         }));
         for stmt in &node.block.stmts {
             self.gen_stmt(stmt);
         }
-        self.out.push(AsmElement::Instruction(Instruction {
-            opcode: Opcode::Ret,
-            args: vec![],
-        }));
+        self.out.push(util::gen_ret());
     }
 
     fn gen_print(&mut self, node: &CallExpr) {
-        let arg = util::string_from_lit(&node.args[0]);
+        let arg: String = util::string_from_lit(&node.args[0]).into();
         dbg!(&arg);
-        let instructions = vec![
-            util::gen_mov_ins(Register::Rax, Operand::Literal(Literal::Int(1))),
-            util::gen_mov_ins(Register::Rdi, Operand::Literal(Literal::Int(1))),
-            util::gen_mov_ins(Register::Rsi, Operand::Ident(String::from("testing"))),
-            util::gen_mov_ins(Register::Rdx, Operand::Literal(Literal::Int(arg.len() as i32))),
-            AsmElement::Instruction(Instruction {
-                opcode: Opcode::Syscall,
-                args: vec![],
-            }),
-        ];
-        self.data.push(Declaration::DefineBytes(
-            "testing".to_string(),
-            arg.to_string(),
+        self.out.push(util::gen_mov_ins(Register::Rsi, Operand::Ident(format!("LC{}", self.lc_index))));
+        self.out.push(util::gen_mov_ins(Register::Rdx, Operand::Literal(Literal::Int((arg.len() + 1) as i32))));
+        self.out.push(util::gen_call("print"));
+        self.rodata.push(Declaration::DefineBytes(
+            format!("LC{}", self.lc_index),
+            arg,
+            0xa,
         ));
-        self.out.extend(instructions);
+        self.lc_index += 1;
+        self.defined_functions.insert(StdFunction::Print);
     }
 
     fn gen_label(&mut self, node: &LabelStmt) {
@@ -96,12 +90,10 @@ impl CodeGenerator {
                 self.create_entry();
                 self.out.push(AsmElement::Label(Label {
                     name: "_start".to_string(),
-                    block: Block { elements: vec![] },
                 }))
             }
             _ => self.out.push(AsmElement::Label(Label {
                 name: node.name.clone(),
-                block: Block { elements: vec![] },
             })),
         }
         for stmt in &node.block.stmts {
