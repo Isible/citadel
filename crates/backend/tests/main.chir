@@ -1,6 +1,9 @@
 '_entry: {
-    call %print(l{"Hello world"})
-    call %print(l{"Deez nuts"})
-    call %print(l{"Amongus"})
-    call %print(l{"Lololololol"})
+    call %main()
+}
+
+@main() i32 {
+    $x i32 = l{19}
+    $y i32 = l{69}
+    ret x
 }

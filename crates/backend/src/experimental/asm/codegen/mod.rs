@@ -9,24 +9,29 @@ pub mod util;
 
 use std::collections::HashSet;
 
-use citadel_frontend::ir::{CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt};
+use citadel_frontend::ir::{
+    self, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
+};
 
-use crate::experimental::asm::elements::{AsmElement, Declaration, Directive, DirectiveType, Literal};
+use crate::experimental::asm::elements::{
+    AsmElement, Declaration, Directive, DirectiveType, Literal,
+};
 
-use super::elements::{Instruction, Label, Opcode, Operand, Register, StdFunction};
+use super::elements::{self, DataSize, Instruction, Label, MemAddr, Opcode, Operand, Register, StdFunction};
 
 #[derive(Default)]
 pub struct CodeGenerator {
     pub out: Vec<AsmElement>,
 
     // Literals
-
     /// Read only data section
     pub rodata: Vec<Declaration>,
     /// Literal constant index
     pub lc_index: usize,
 
     pub defined_functions: HashSet<StdFunction>,
+
+    pub stack_pointer: isize,
 }
 
 impl CodeGenerator {
@@ -41,9 +46,9 @@ impl CodeGenerator {
         match node {
             IRStmt::DeclaredFunction(node) => todo!(),
             IRStmt::Function(node) => self.gen_function(node),
-            IRStmt::Variable(node) => todo!(),
+            IRStmt::Variable(node) => self.gen_variable(node),
             IRStmt::Label(node) => self.gen_label(node),
-            IRStmt::Return(node) => (),
+            IRStmt::Return(node) => self.gen_return(node),
             IRStmt::Break(node) => todo!(),
             IRStmt::Jump(node) => todo!(),
             IRStmt::Call(node) => self.gen_call(node),
@@ -59,12 +64,57 @@ impl CodeGenerator {
         }
     }
 
+    fn gen_return(&mut self, node: &ReturnStmt) {
+        let ret_val = match &node.ret_val {
+            IRExpr::Ident(ident) => ident.clone(),
+            _ => todo!("Handle non-literal expressions here"),
+        };
+        self.out.push(util::gen_mov_ins(
+            Operand::Register(Register::Rax),
+            util::get_stack_location(self.stack_pointer as i32),
+        ));
+        self.out.push(util::destroy_stackframe());
+    }
+
+    fn gen_variable(&mut self, node: &VarStmt) {
+        let size = match node.name._type.as_str() {
+            "i8" => 1,
+            "i16" => 2,
+            "i32" => 4,
+            "i64" => 8,
+            "i128" => 16,
+            typename => todo!("Compilation of type: {} is not implemented yet", typename),
+        };
+        let val = match &node.val {
+            IRExpr::Literal(lit) => match lit {
+                ir::Literal::Int64(val) => *val as i32,
+                int => todo!("Handle non-i32 literals here: {:?}", int),
+            },
+            _ => todo!("Handle non-literal expressions here"),
+        };
+        self.out.push(util::gen_mov_ins(
+            util::get_stack_location(self.stack_pointer as i32 - size),
+            Operand::SizedLiteral(Literal::Int(val), DataSize::DWord),
+        ));
+        self.stack_pointer -= size as isize;
+    }
+
     fn gen_function(&mut self, node: &FuncStmt) {
         self.out.push(AsmElement::Label(Label {
             name: node.name.ident.clone(),
         }));
+
+        let stack_frame = util::create_stackframe();
+
+        self.out.push(stack_frame.0);
+        self.out.push(stack_frame.1);
+
         for stmt in &node.block.stmts {
             self.gen_stmt(stmt);
+        }
+
+        if node.name._type == "void" {
+            self.out.push(util::destroy_stackframe());
         }
         self.out.push(util::gen_ret());
     }
@@ -72,8 +122,14 @@ impl CodeGenerator {
     fn gen_print(&mut self, node: &CallExpr) {
         let arg: String = util::string_from_lit(&node.args[0]).into();
         dbg!(&arg);
-        self.out.push(util::gen_mov_ins(Register::Rsi, Operand::Ident(format!("LC{}", self.lc_index))));
-        self.out.push(util::gen_mov_ins(Register::Rdx, Operand::Literal(Literal::Int((arg.len() + 1) as i32))));
+        self.out.push(util::gen_mov_ins(
+            Operand::Register(Register::Rsi),
+            Operand::Ident(format!("LC{}", self.lc_index)),
+        ));
+        self.out.push(util::gen_mov_ins(
+            Operand::Register(Register::Rdx),
+            Operand::Literal(Literal::Int((arg.len() + 1) as i32)),
+        ));
         self.out.push(util::gen_call("print"));
         self.rodata.push(Declaration::DefineBytes(
             format!("LC{}", self.lc_index),

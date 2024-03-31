@@ -1,6 +1,5 @@
-fn main(): void {
-    puts("Hello World");
-    puts("I am a dino");
-    puts("and a cat");
-    puts("as well as a pig");
+fn main(): i32 {
+    let x: i32 = 69;
+    let y: i32 = 420;
+    return y;
 }

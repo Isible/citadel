@@ -67,6 +67,17 @@ mod test {
             Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
         compiler.compile_program();
 
+        util::compiler_output(&compiler, PathBuf::from("tests/build/compiler-test.chir"))
+    }
+
+    #[test]
+    fn test_codegen() {
+        let mut lexer = util::get_lexer_for_file("tests/codegen-test.tl".into());
+        let mut parser = Parser::new(&mut lexer);
+        let mut compiler =
+            Compiler::new(&mut parser).expect("Failed to compile program because file was empty");
+        compiler.compile_program();
+        
         let backend = AsmBackend::default();
         let asm = backend.generate(compiler.generator.get_stream());
         let asm_lit = asm
@@ -74,6 +85,6 @@ mod test {
             .map(|x| x.to_string())
             .collect::<Vec<String>>()
             .join("\n");
-        fs::write(PathBuf::from("tests/build/compiler-test.asm"), asm_lit).expect("Failed to write to file");
+        fs::write(PathBuf::from("tests/build/codegen-test.asm"), asm_lit).expect("Failed to write to file");
     }
 }

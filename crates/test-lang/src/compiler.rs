@@ -93,9 +93,14 @@ impl<'a> Compiler<'a> {
             block: {
                 let mut block = self.compile_block_stmt(node.block).stmts;
                 if node.name.as_str() == "main" {
-                    block.push(IRStmt::Return(ReturnStmt {
-                        ret_val: IRExpr::Literal(ir::Literal::Int32(0)),
-                    }));
+                    if let Some(last) = block.last() {
+                        match last {
+                            IRStmt::Return(_) => (),
+                            _ => block.push(IRStmt::Return(ReturnStmt {
+                                ret_val: IRExpr::Literal(ir::Literal::Int32(0)),
+                            })),
+                        }
+                    }
                 }
                 BlockStmt { stmts: block }
             },
@@ -162,7 +167,7 @@ impl<'a> Compiler<'a> {
 
     fn compile_lit(&self, node: Literal) -> IRExpr {
         match node {
-            Literal::Ident(_) => todo!(),
+            Literal::Ident(ident) => IRExpr::Ident(ident),
             Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
             Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int64(int)),
             Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),

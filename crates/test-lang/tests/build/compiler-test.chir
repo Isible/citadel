@@ -2,7 +2,7 @@
     call %main()
 }
 
-@main() void {
-    $x i32 = add l{1023}, mul l{100}, l{10}
-    call %puts(call %test())
+@main() i32 {
+    $x i32 = l{69}
+    ret x
 }

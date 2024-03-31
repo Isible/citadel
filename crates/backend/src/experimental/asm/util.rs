@@ -1,4 +1,4 @@
-use std::{collections::HashSet, default, fs::File, io::Write, path::PathBuf};
+use std::{collections::HashSet, fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::IRStmt;
 

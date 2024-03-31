@@ -54,11 +54,21 @@ pub enum Operand {
     Register(Register),
     MemAddr(MemAddr),
     Literal(Literal),
+    SizedLiteral(Literal, DataSize),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DataSize {
+    Byte,
+    Word,
+    DWord,
+    QWord,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum MemAddr {
     Register(Register),
+    RegisterPos(Register, i32),
     Literal(Literal),
 }
 
@@ -143,8 +153,8 @@ impl StdFunction {
                     AsmElement::Label(Label {
                         name: self.name().to_string(),
                     }),
-                    util::gen_mov_ins(Register::Rax, Operand::Literal(Literal::Int(1))),
-                    util::gen_mov_ins(Register::Rdi, Operand::Literal(Literal::Int(1))),
+                    util::gen_mov_ins(Operand::Register(Register::Rax), Operand::Literal(Literal::Int(1))),
+                    util::gen_mov_ins(Operand::Register(Register::Rdi), Operand::Literal(Literal::Int(1))),
                     util::gen_syscall(),
                     util::gen_ret(),
                 ]

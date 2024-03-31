@@ -5,9 +5,11 @@ use std::fmt::Display;
 use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
 
 use crate::experimental::asm::elements::{
-    AsmElement, Declaration, Directive, Instruction, Opcode, Label, Literal,
-    MemAddr, Operand, Register,
+    AsmElement, Declaration, Directive, Instruction, Label, Literal, MemAddr, Opcode, Operand,
+    Register,
 };
+
+use super::DataSize;
 
 impl Display for AsmElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -31,7 +33,8 @@ impl Display for Declaration {
             "{}",
             match self {
                 Declaration::Global(ident) => format!("global {}", ident),
-                Declaration::DefineBytes(ident, lit, terminator) => format!("{} db \"{}\", {:?}", ident, lit, terminator),
+                Declaration::DefineBytes(ident, lit, terminator) =>
+                    format!("{} db \"{}\", {:?}", ident, lit, terminator),
             }
         )
     }
@@ -73,7 +76,23 @@ impl Display for Operand {
                 Operand::Register(regis) => regis.to_string(),
                 Operand::MemAddr(addr) => addr.to_string(),
                 Operand::Literal(lit) => lit.to_string(),
+                Operand::SizedLiteral(lit, data_size) => format!("{} {}", data_size, lit),
                 Operand::Ident(ident) => ident.to_string(),
+            }
+        )
+    }
+}
+
+impl Display for DataSize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DataSize::Byte => "byte",
+                DataSize::Word => "word",
+                DataSize::DWord => "dword",
+                DataSize::QWord => "qword",
             }
         )
     }
@@ -104,8 +123,9 @@ impl Display for MemAddr {
             f,
             "[{}]",
             match self {
-                MemAddr::Register(regis) => regis.to_string(),
+                MemAddr::Register(reg) => reg.to_string(),
                 MemAddr::Literal(lit) => lit.to_string(),
+                MemAddr::RegisterPos(reg, pos) => format!("{}{}", reg, pos),
             }
         )
     }
@@ -149,8 +169,8 @@ impl Display for Opcode {
                 Opcode::JNz => todo!(),
                 Opcode::Call => "call",
                 Opcode::Ret => "ret",
-                Opcode::Push => todo!(),
-                Opcode::Pop => todo!(),
+                Opcode::Push => "push",
+                Opcode::Pop => "pop",
                 Opcode::Shl => todo!(),
                 Opcode::Shr => todo!(),
                 Opcode::Movsb => todo!(),
