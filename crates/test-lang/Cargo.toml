@@ -9,3 +9,4 @@ edition = "2021"
 clutils = "0.0.9"
 citadel-frontend = { path = "../frontend"}
 citadel-backend = { path = "../backend" }
+citadel-api = { path = "../api" }

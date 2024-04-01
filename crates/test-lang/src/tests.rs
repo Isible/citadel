@@ -2,7 +2,8 @@
 mod test {
     use std::{fs, path::PathBuf};
 
-    use citadel_backend::experimental::{api::Backend, asm::AsmBackend};
+    use citadel_api::compile;
+    use citadel_backend::experimental::{api::Backend, asm::{AsmBackend, AsmTarget}};
 
     use crate::{compiler::Compiler, parser::Parser, tokens::Token, util};
 
@@ -78,11 +79,9 @@ mod test {
         let ast = parser
             .parse_program()
             .expect("Failed to parse program because file was empty");
-        let compiler = Compiler::default();
-        let ir_stream = compiler.compile_program(ast);
+        
+        let asm = compile!(AsmBackend, AsmTarget, Compiler, ast);
 
-        let backend = AsmBackend::default();
-        let asm = backend.generate(ir_stream);
         let asm_lit = asm
             .iter()
             .map(|x| x.to_string())

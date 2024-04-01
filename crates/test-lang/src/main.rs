@@ -8,6 +8,8 @@
 
 use std::path::PathBuf;
 
+use citadel_api::compile;
+use citadel_backend::experimental::asm::{AsmBackend, AsmTarget};
 use codegen::CodeGenerator;
 use compiler::Compiler;
 use parser::Parser;
@@ -31,9 +33,8 @@ fn run() {
     let mut lexer = util::get_lexer_for_file(path);
     let mut parser = Parser::new(&mut lexer);
     let ast = parser.parse_program().expect("Failed to parse program");
-    let compiler = Compiler::default();
+    
+    let asm = compile!(AsmBackend, AsmTarget, Compiler, ast);
 
-    let codegen = CodeGenerator::new(compiler.compile_program(ast));
-    let asm_code = codegen.generate();
-    util::asm_output(asm_code, "tests/build/out.asm".into())
+    util::asm_output(asm, "tests/build/out.asm".into())
 }

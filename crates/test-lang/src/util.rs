@@ -8,7 +8,7 @@ use std::{
 use citadel_backend::experimental::asm::elements::AsmElement;
 use citadel_frontend::ir::IRStmt;
 
-use crate::{ast::Statement, compiler::Compiler, lexer::Lexer, tokens::Token};
+use crate::{lexer::Lexer, tokens::Token};
 
 pub fn get_lexer_for_file(file_path: PathBuf) -> Lexer {
     let mut file = File::open(file_path).expect("Failed to open file");
@@ -19,7 +19,11 @@ pub fn get_lexer_for_file(file_path: PathBuf) -> Lexer {
 }
 
 pub fn compiler_output(stream: Vec<IRStmt>, location: PathBuf) {
-    let buf = stream.iter().map(|ir| ir.to_string()).collect::<Vec<String>>().join("\n");
+    let buf = stream
+        .iter()
+        .map(|ir| ir.to_string())
+        .collect::<Vec<String>>()
+        .join("\n");
     let mut file = File::create(&location).unwrap_or_else(|err| {
         panic!(
             "Failed to create a new file at {}, error: {err}",
