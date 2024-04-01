@@ -1,46 +1,39 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
-use citadel_frontend::ir::{self, irgen::IRGenerator, *};
+use citadel_frontend::{api::IRCompiler, ir::{self, *}};
 
-use crate::{
+use crate::
     ast::{
         BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement,
         Literal, Operator, ReturnStatement, Statement, TypedIdent,
-    },
-    parser::{EofError, Parser},
-};
+    }
+;
 
-pub struct Compiler<'a> {
-    pub generator: IRGenerator,
-    pub parser: &'a mut Parser<'a>,
+#[derive(Default)]
+pub struct Compiler;
+
+impl IRCompiler for Compiler {
+    type Ast = Vec<Statement>;
+
+    fn gen_ir(&mut self, ast: Self::Ast) -> Vec<IRStmt> {
+        self.compile_program(ast)
+    }
 }
 
-impl<'a> Compiler<'a> {
-    pub fn new(parser: &'a mut Parser<'a>) -> Result<Self, EofError> {
-        let mut compiler = Self {
-            generator: IRGenerator::new(),
-            parser,
-        };
+impl Compiler {
+    pub fn compile_program(&self, ast: Vec<Statement>) -> Vec<IRStmt> {
+        let mut ir_stream = Vec::new();
+        
+        ir_stream.push(self.init_program());
 
-        compiler.init_program();
-
-        Ok(compiler)
-    }
-
-    pub fn compile_program(&mut self) {
-        loop {
-            let stmt = match self.parser.parse_stmt() {
-                Ok(stmt) => stmt,
-                Err(_) => break,
-            };
-            let node = self.compile_stmt(stmt);
-            self.generator.gen_ir(node);
-            self.parser.next_token();
+        for stmt in ast {
+            ir_stream.push(self.compile_stmt(stmt))
         }
+        ir_stream
     }
 
-    fn init_program(&mut self) {
-        self.generator.gen_ir(IRStmt::Label(LabelStmt {
+    fn init_program(&self) -> IRStmt {
+        IRStmt::Label(LabelStmt {
             name: "_entry".into(),
             block: BlockStmt {
                 stmts: vec![IRStmt::Expression(IRExpr::Call(CallExpr {
@@ -48,7 +41,7 @@ impl<'a> Compiler<'a> {
                     args: Vec::new(),
                 }))],
             },
-        }))
+        })
     }
 
     fn compile_stmt(&self, stmt: Statement) -> IRStmt {

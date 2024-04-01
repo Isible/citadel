@@ -44,6 +44,19 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn parse_program(&mut self) -> Result<Vec<Statement>, EofError> {
+        let mut program = Vec::new();
+        while self.cur_tok != Token::Eof {
+            program.push(match self.parse_stmt() {
+                Ok(stmt) => stmt,
+                Err(_) => break,
+            });
+            self.next_token();
+        }
+
+        Ok(program)
+    }
+
     // Every parse function needs to set cur_token to the last character in the line
     pub fn parse_stmt(&mut self) -> Result<Statement, EofError> {
         Ok(match &self.cur_tok {
