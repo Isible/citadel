@@ -2,14 +2,13 @@
 
 use std::{error::Error, fmt::Display, mem::swap};
 
-use crate::{
+use super::{
     ast::{
         BlockStatement, CallExpression, Expression, FnStatement, IfStatement, InfixOpExpr,
         LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent,
     },
     lexer::Lexer,
     tokens::Token,
-    util,
 };
 
 pub struct Parser<'a> {
@@ -35,8 +34,8 @@ pub enum Precedence {
 
 impl<'a> Parser<'a> {
     pub fn new(lexer: &'a mut Lexer) -> Self {
-        let cur_tok = util::get_next_tok(lexer);
-        let peek_tok = util::get_next_tok(lexer);
+        let cur_tok = lexer.get_next_tok();
+        let peek_tok = lexer.get_next_tok();
         Self {
             lexer,
             cur_tok,
@@ -44,22 +43,22 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse_program(&mut self) -> Result<Vec<Statement>, EofError> {
+    pub fn parse_program(&mut self) -> Vec<Statement> {
         let mut program = Vec::new();
         while self.cur_tok != Token::Eof {
             program.push(match self.parse_stmt() {
-                Ok(stmt) => stmt,
-                Err(_) => break,
+                Some(stmt) => stmt,
+                None => break,
             });
             self.next_token();
         }
 
-        Ok(program)
+        program
     }
 
     // Every parse function needs to set cur_token to the last character in the line
-    pub fn parse_stmt(&mut self) -> Result<Statement, EofError> {
-        Ok(match &self.cur_tok {
+    pub fn parse_stmt(&mut self) -> Option<Statement> {
+        Some(match &self.cur_tok {
             Token::Let => Statement::Let(self.parse_let_stmt()),
             Token::Fn => Statement::Fn(self.parse_fn_stmt()),
             Token::If => Statement::If(self.parse_if_stmt()),
@@ -68,7 +67,7 @@ impl<'a> Parser<'a> {
             Token::Return => Statement::Return(self.parse_return_stmt()),
             Token::LCurly => Statement::Block(self.parse_block_stmt(Token::RCurly)),
             Token::RCurly => todo!("next tok: {}", self.peek_tok),
-            Token::Eof => return Err(EofError),
+            Token::Eof => return None,
             _ => Statement::Expression(self.parse_expr(Precedence::Lowest)),
         })
     }
@@ -104,7 +103,7 @@ impl<'a> Parser<'a> {
             Token::Float(float) => Expression::Literal(Literal::Float(*float)),
             Token::String(string) => Expression::Literal(Literal::String(string.into())),
             Token::Boolean(boolean) => Expression::Literal(Literal::Boolean(*boolean)),
-            Token::Ident(ident) => Expression::Literal(Literal::Ident(ident.into())), 
+            Token::Ident(ident) => Expression::Literal(Literal::Ident(ident.into())),
             _ => panic!("No prefix parse found for: {}", self.cur_tok),
         }
     }
@@ -206,8 +205,8 @@ impl<'a> Parser<'a> {
         self.next_token();
         while self.cur_tok != end {
             block.push(match self.parse_stmt() {
-                Ok(stmt) => stmt,
-                Err(_) => break,
+                Some(stmt) => stmt,
+                None => break,
             });
             self.next_token();
         }
@@ -311,7 +310,7 @@ impl<'a> Parser<'a> {
 
     pub fn next_token(&mut self) {
         swap(&mut self.cur_tok, &mut self.peek_tok);
-        self.peek_tok = util::get_next_tok(self.lexer);
+        self.peek_tok = self.lexer.get_next_tok();
     }
 
     fn cur_tok_to_in_op(&self) -> Operator {
