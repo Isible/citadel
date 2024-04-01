@@ -14,7 +14,7 @@ Citadel: A bastion to protect from the dragon :p
 
 3. Try building the repository using `cargo build` in the `citadel` root folder
 
-4. [Optional] Run the tests using `python _scripts/tests.py` and then follow the instructions
+4. [Optional] Run the tests using `python scripts/tests.py` and then follow the instructions
 
 ## Project-structure
 
