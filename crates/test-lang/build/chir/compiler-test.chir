@@ -1,0 +1,8 @@
+'_entry: {
+    call %main()
+}
+@main() i32 {
+    $x i32 = l{69}
+    $y i32 = l{420}
+    ret y
+}

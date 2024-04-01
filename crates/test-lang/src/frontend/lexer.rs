@@ -1,6 +1,6 @@
 //! Lexer for the tokenizing source code into tokens.
 
-use crate::tokens::Token;
+use super::tokens::Token;
 
 pub struct Lexer {
     input: String,
@@ -124,17 +124,23 @@ impl Lexer {
     }
 
     fn skip_whitespace(&mut self) {
-        match self.cur_char {
-            Some(mut ch) => {
-                while ch.is_whitespace() {
-                    self.next_char();
-                    match self.cur_char {
-                        Some(cch) => ch = cch,
-                        None => return,
-                    }
+        if let Some(mut ch) = self.cur_char {
+            while ch.is_whitespace() {
+                self.next_char();
+                match self.cur_char {
+                    Some(cch) => ch = cch,
+                    None => return,
                 }
             }
-            None => (),
+        }
+    }
+
+    pub(super) fn get_next_tok(&mut self) -> Token {
+        loop {
+            let tok = self.tokenize();
+            if let Some(tok) = tok {
+                return tok;
+            }
         }
     }
 }

@@ -2,12 +2,7 @@
 
 use citadel_frontend::{api::IRCompiler, ir::{self, *}};
 
-use crate::
-    ast::{
-        BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement,
-        Literal, Operator, ReturnStatement, Statement, TypedIdent,
-    }
-;
+use super::ast::{self, BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement, ReturnStatement, Statement, TypedIdent};
 
 #[derive(Default)]
 pub struct Compiler;
@@ -121,14 +116,14 @@ impl Compiler {
 
     fn compile_arith_op_expr(&self, node: InfixOpExpr) -> IRExpr {
         match node.operator {
-            Operator::Add | Operator::Sub | Operator::Mul | Operator::Div => {
+            ast::Operator::Add | ast::Operator::Sub | ast::Operator::Mul | ast::Operator::Div => {
                 IRExpr::ArithOp(ArithOpExpr {
                     op: self.compiler_op(node.operator),
                     values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
                 })
             }
-            Operator::Reassign => todo!(),
-            Operator::Equals => todo!(),
+            ast::Operator::Reassign => todo!(),
+            ast::Operator::Equals => todo!(),
         }
     }
 
@@ -139,14 +134,14 @@ impl Compiler {
         )
     }
 
-    fn compiler_op(&self, op: Operator) -> ir::Operator {
+    fn compiler_op(&self, op: ast::Operator) -> ir::Operator {
         match op {
-            Operator::Add => ir::Operator::Add,
-            Operator::Sub => ir::Operator::Sub,
-            Operator::Mul => ir::Operator::Mul,
-            Operator::Div => ir::Operator::Div,
-            Operator::Reassign => todo!(),
-            Operator::Equals => todo!(),
+            ast::Operator::Add => ir::Operator::Add,
+            ast::Operator::Sub => ir::Operator::Sub,
+            ast::Operator::Mul => ir::Operator::Mul,
+            ast::Operator::Div => ir::Operator::Div,
+            ast::Operator::Reassign => todo!(),
+            ast::Operator::Equals => todo!(),
         }
     }
 
@@ -158,13 +153,13 @@ impl Compiler {
         arg_outs
     }
 
-    fn compile_lit(&self, node: Literal) -> IRExpr {
+    fn compile_lit(&self, node: ast::Literal) -> IRExpr {
         match node {
-            Literal::Ident(ident) => IRExpr::Ident(ident),
-            Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
-            Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int64(int)),
-            Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),
-            Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(bool)),
+            ast::Literal::Ident(ident) => IRExpr::Ident(ident),
+            ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
+            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int64(int)),
+            ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),
+            ast::Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(bool)),
         }
     }
 

@@ -18,7 +18,7 @@ impl VecDisplay for Vec<Operand> {
                 str
             })
             .collect();
-        if self.len() > 0 {
+        if !self.is_empty() {
             (&str[..str.len() - 1]).into()
         } else {
             String::new()
