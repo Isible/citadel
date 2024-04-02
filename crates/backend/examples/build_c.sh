@@ -1,0 +1,1 @@
+gcc -S main.c -o main.s
