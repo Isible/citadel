@@ -2,11 +2,11 @@ use std::{collections::HashSet, fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::IRStmt;
 
-use crate::experimental::asm::{codegen::CodeGenerator, elements::AsmElement};
+use crate::experimental::{api::Target, asm::{codegen::CodeGenerator, elements::AsmElement}};
 
 use super::elements::{Directive, DirectiveType, StdFunction};
 
-pub fn compile_program(input: Vec<IRStmt>) -> Vec<AsmElement> {
+pub fn compile_program<T: Target>(input: Vec<IRStmt>, _target: T) -> Vec<AsmElement> {
     let mut codegen = CodeGenerator::default();
 
     gen_code(input, &mut codegen);

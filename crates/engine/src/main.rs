@@ -1,4 +1,4 @@
-use std::{env::var, fs, path::PathBuf, str::ParseBoolError};
+use std::{fs, path::PathBuf};
 
 use citadel_backend::experimental::{api::Backend, asm::AsmBackend};
 use citadel_irparser::{lexer::Lexer, parser};

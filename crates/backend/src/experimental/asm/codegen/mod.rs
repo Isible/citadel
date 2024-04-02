@@ -17,7 +17,16 @@ use crate::experimental::asm::elements::{
     AsmElement, Declaration, Directive, DirectiveType, Literal,
 };
 
-use super::elements::{self, DataSize, Instruction, Label, MemAddr, Opcode, Operand, Register, StdFunction};
+use super::elements::{DataSize, Label, Operand, Register, StdFunction};
+
+pub const FUNCTIONS_ARG_REGISTERS: [Register; 6] = [
+    Register::Rdi,
+    Register::Rsi,
+    Register::Rdx,
+    Register::Rcx,
+    Register::R9,
+    Register::R10,
+];
 
 #[derive(Default)]
 pub struct CodeGenerator {

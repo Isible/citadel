@@ -82,15 +82,45 @@ pub enum Literal {
 // TODO: Remove strum as a dependency
 #[derive(Debug, Clone, PartialEq, AsRefStr)]
 pub enum Register {
+    // 64 bit
     Rax,
     Rbx,
     Rcx,
     Rdx,
 
-    Rdi,
     Rsi,
-    Rbp,
+    Rdi,
     Rsp,
+    Rbp,
+
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
+
+    // 32 bit
+    Eax,
+    Ebx,
+    Ecx,
+    Edx,
+
+    Edi,
+    Esi,
+    Ebp,
+    Esp,
+
+    R8d,
+    R9d,
+    R10d,
+    R11d,
+    R12d,
+    R13d,
+    R14d,
+    R15d,
 }
 
 #[derive(Debug, Clone, PartialEq, AsRefStr)]

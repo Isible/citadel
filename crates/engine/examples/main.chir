@@ -1,3 +1,0 @@
-'_entry: {
-    call %print(l{"Hello World"})
-}

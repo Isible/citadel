@@ -16,11 +16,11 @@ use crate::experimental::{
 };
 
 #[derive(Debug, Default)]
-pub struct AsmTarget;
+pub struct TargetX86_64;
 
-impl Target for AsmTarget {
+impl Target for TargetX86_64 {
     fn name(&self) -> &str {
-        "assembly-x86-64"
+        "x86-64"
     }
 }
 
@@ -30,9 +30,9 @@ pub struct AsmBackend;
 impl Backend for AsmBackend {
     type Output = Vec<AsmElement>;
 
-    type Target = AsmTarget;
+    type Target = TargetX86_64;
 
     fn generate(&self, ir_stream: Vec<IRStmt>) -> Self::Output {
-        util::compile_program(ir_stream)
+        util::compile_program(ir_stream, self.target())
     }
 }
