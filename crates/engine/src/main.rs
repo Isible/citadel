@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use citadel_backend::experimental::{api::Backend, asm::AsmBackend};
+use citadel_backend::experimental::{api::Backend, asm::{AsmBackend, TargetX86_64}};
 use citadel_irparser::{lexer::Lexer, parser};
 use clap::Parser;
 
@@ -20,7 +20,7 @@ fn run() {
     let mut lexer = Lexer::new(&args.file).expect("Failed to find file");
     let mut parser = parser::Parser::new(&mut lexer);
     let ir_stream = parser.parse_program();
-    let backend = AsmBackend::default();
+    let backend = AsmBackend::new(TargetX86_64);
     let asm = backend.generate(ir_stream);
     let mut path = args.file.to_str().unwrap()[..args.file.to_str().unwrap().len() - 4].to_string();
     path.push('s');

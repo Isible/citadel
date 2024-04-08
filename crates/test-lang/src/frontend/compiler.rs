@@ -7,14 +7,6 @@ use super::ast::{self, BlockStatement, CallExpression, Expression, FnStatement, 
 #[derive(Default)]
 pub struct Compiler;
 
-impl IRCompiler for Compiler {
-    type Ast = Vec<Statement>;
-
-    fn gen_ir(&mut self, ast: Self::Ast) -> Vec<IRStmt> {
-        self.compile_program(ast)
-    }
-}
-
 impl Compiler {
     pub fn compile_program(&self, ast: Vec<Statement>) -> Vec<IRStmt> {
         let mut ir_stream = Vec::new();

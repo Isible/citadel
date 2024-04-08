@@ -5,11 +5,11 @@ mod tests {
     use citadel_frontend::ir::IRStmt;
     use citadel_irparser::{lexer::Lexer, parser::Parser};
 
-    use crate::experimental::{api::Backend, asm::{util, AsmBackend}};
+    use crate::experimental::{api::Backend, asm::{util, AsmBackend, TargetX86_64}};
 
     #[test]
     fn test_asm_compiler() {
-        let backend = AsmBackend::default();
+        let backend = AsmBackend::new(TargetX86_64);
         let asm_code = backend.generate(gen_ir_stream(&"tests/main.chir".into()));
         util::compiler_output(asm_code, PathBuf::from("tests/out/out.asm"));
     }
