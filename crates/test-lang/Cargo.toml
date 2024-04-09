@@ -7,5 +7,7 @@ edition = "2021"
 
 [dependencies]
 clutils = "0.0.9"
-frontend = { path = "../frontend"}
-backend = { path = "../backend" }
+citadel-frontend = { path = "../frontend"}
+citadel-backend = { path = "../backend" }
+citadel-api = { path = "../api" }
+clap = { version = "4.5.4", features = ["derive"] }

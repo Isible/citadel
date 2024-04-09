@@ -28,6 +28,6 @@ impl IRGenerator {
     }
 
     pub fn as_string(&self) -> String {
-        self.ast.iter().map(|stmt| stmt.to_string()).collect()
+        self.ast.iter().map(|stmt| stmt.to_string()).collect::<Vec<String>>().join("\n")
     }
 }

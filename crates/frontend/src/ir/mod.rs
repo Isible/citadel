@@ -34,15 +34,20 @@ pub enum IRExpr {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     String(String),
+    // TODO: Make this a byte
     Char(char),
 
-    ShortFloat(u8, f32),
-    LongFloat(u8, f64),
+    Float(f32),
+    Double(f64),
     
     /// Bool is an i1. 
     Bool(bool),
 
-    Integer(u8, isize),
+    Int8(i8),
+    Int16(i16),
+    Int32(i32),
+    Int64(i64),
+    Int128(i128),
 
     Array(usize, Vec<IRExpr>),
     Vector(Vec<IRExpr>),
@@ -60,7 +65,6 @@ pub enum Operator {
 pub struct DeclFuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
-    pub is_local: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -68,14 +72,12 @@ pub struct FuncStmt {
     pub name: IRTypedIdent,
     pub args: Vec<IRTypedIdent>,
     pub block: BlockStmt,
-    pub is_local: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct VarStmt {
     pub name: IRTypedIdent,
     pub val: IRExpr,
-    pub is_local: bool,
     pub is_const: bool,
 }
 

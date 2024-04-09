@@ -1,8 +1,0 @@
-'entry: {
-    call %main()
-}
-
-@main() lcl void {
-    $x lcl i32 = add l{1023}, mul l{100}, l{10}
-    call %print(x)
-}

@@ -1,10 +1,13 @@
 [package]
-name = "backend"
+name = "citadel-backend"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-frontend ={ path = "../frontend"}
-strum = { version = "0.26.1", features = ["derive"]}
+citadel-frontend = { path = "../frontend" }
+strum = { version = "0.26.1", features = ["derive"] }
+
+[dev-dependencies]
+citadel-irparser = { path = "../irparser" }

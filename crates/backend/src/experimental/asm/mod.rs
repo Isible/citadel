@@ -3,37 +3,50 @@
 //! leveraging the [backend api](api/index.html).
 
 pub mod codegen;
-pub mod compiler;
-pub mod util;
 pub mod elements;
+pub mod util;
 
 mod tests;
 
-use frontend::ir::IRStmt;
+use std::slice;
+
+use citadel_frontend::ir::IRStmt;
 
 use crate::experimental::{
     api::{Backend, Target},
     asm::elements::AsmElement,
 };
 
-#[derive(Debug, Default)]
-pub struct AsmTarget;
+#[derive(Debug, Default, Clone, Copy)]
+pub struct TargetX86_64;
 
-impl Target for AsmTarget {
+impl Target for TargetX86_64 {
     fn name(&self) -> &str {
-        "assembly-x86-64"
+        "x86-64"
     }
 }
 
 #[derive(Debug, Default)]
-pub struct AsmBackend;
+pub struct AsmBackend<T: Target> {
+    target: T,
+}
 
-impl Backend for AsmBackend {
+impl<T: Target> AsmBackend<T> {
+    pub fn new(target: T) -> Self {
+        Self { target }
+    }
+}
+
+impl<T: Target> Backend for AsmBackend<T> {
+    type Element = AsmElement;
     type Output = Vec<AsmElement>;
+    type Target = T;
 
-    type Target = AsmTarget;
+    fn target(&self) -> Self::Target {
+        self.target
+    }
 
-    fn compile(&mut self, ir_stream: Vec<IRStmt>) -> Self::Output {
-        util::compile_program(ir_stream)
+    fn generate(&self, ir_stream: Vec<IRStmt>) -> Self::Output {
+        util::compile_program(ir_stream, self.target())
     }
 }

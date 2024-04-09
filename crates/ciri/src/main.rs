@@ -3,18 +3,12 @@
 
 use errors::InterpreterError;
 use evaluator::Evaluator;
-use lexer::Lexer;
-use parser::Parser;
 
+use citadel_irparser::{lexer::Lexer, parser::Parser};
 
 mod env;
 mod evaluator;
 mod obj;
-
-mod parser;
-
-mod lexer;
-mod tokens;
 
 mod errors;
 mod util;
@@ -24,7 +18,8 @@ fn main() -> Result<(), InterpreterError> {
 }
 
 fn run() -> Result<(), InterpreterError> {
-    let mut lexer = Lexer::new(&"tests/main.cir".into()).unwrap_or_else(|err| panic!("{err}"));
+    let mut lexer = Lexer::new(&util::get_file_by_arg("crates/ciri/tests/main.chir".into()))
+        .unwrap_or_else(|err| panic!("{err}"));
 
     let mut parser = Parser::new(&mut lexer);
 

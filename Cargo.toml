@@ -1,10 +1,12 @@
 [workspace]
 members = [
     "crates/api",       # Developer api
-    "crates/frontend",  # ir-compiler
+    "crates/frontend",  # IR generator
     "crates/middleend", # optimizer
     "crates/backend",   # machine code compiler
     "crates/test-lang", # language for testing
+    "crates/irparser",  # IR Lexer & Parser
     "crates/ciri",      # IR Interpreter
+    "crates/engine",    # Citadel execution engine
 ]
 resolver = "2"

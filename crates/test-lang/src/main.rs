@@ -1,56 +1,15 @@
-//! # Citadel - test-lang
-//! 
-//! The test-lang crate of the citadel project
-//! 
-//! For information on what exactly citadel is you should visit our [github-repository](https://github.com/Isible/citadel/blob/main/README.md)
-//! 
-//! This crate provides a simple example for implemnting a compiler using the citadel toolchain
+mod cli;
 
-use std::env;
+use std::io;
 
-use codegen::CodeGenerator;
-use compiler::Compiler;
-use parser::Parser;
+use cli::Args;
 
-pub mod ast;
-pub mod codegen;
-pub mod compiler;
-pub mod lexer;
-pub mod parser;
-pub mod tokens;
-mod tests;
-mod util;
+fn main() -> io::Result<()> {
+    let args = Args::new();
 
-fn main() {
-    run();
-}
-
-fn run() {
-    let args: Vec<String> = env::args().collect();
-
-    let name: &str;
-
-    let mut lexer = match args.get(1) {
-        Some(arg) => {
-            name = arg;
-            util::get_lexer_for_file(arg)
-        }
-        None => panic!("Need to specify a file to compile"),
-    };
-
-    let name = name[..name.len() - 3].to_string();
-
-    let name: Vec<&str> = name.split('/').collect();
-
-    let name = name.last().unwrap();
-
-    let mut parser = Parser::new(&mut lexer);
-    let mut compiler = Compiler::new(&mut parser).expect("Failed to compile program since it was empty");
-
-    compiler.compile_program();
-    util::compiler_output(&compiler, &format!("tests/build/{}.cir", name));
-
-    let mut codegen = CodeGenerator::new(compiler.generator.get_stream());
-    let asm_code = codegen.compile();
-    dbg!("{}", &asm_code);
+    if args.chir {
+        test_lang::compile_chir(args.input_file_path, args.output_path)
+    } else {
+        test_lang::compile_asm(args.input_file_path, args.output_path)
+    }
 }

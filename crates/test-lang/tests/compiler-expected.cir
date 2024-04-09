@@ -1,7 +1,0 @@
-'entry:  {
-    call §main(call §citadel.std.env.args())
-}
-
-@main($args <<i8>>) lcl i32 {
-    $test lcl i32 = l{16}
-}

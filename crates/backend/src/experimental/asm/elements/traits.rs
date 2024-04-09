@@ -5,9 +5,11 @@ use std::fmt::Display;
 use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
 
 use crate::experimental::asm::elements::{
-    AsmElement, Block, Declaration, Directive, Instruction, InstructionType, Label, Literal,
-    MemAddr, Operand, Register,
+    AsmElement, Declaration, Directive, Instruction, Label, Literal, MemAddr, Opcode, Operand,
+    Register,
 };
+
+use super::DataSize;
 
 impl Display for AsmElement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -31,7 +33,8 @@ impl Display for Declaration {
             "{}",
             match self {
                 Declaration::Global(ident) => format!("global {}", ident),
-                Declaration::DefineBytes => todo!(),
+                Declaration::DefineBytes(ident, lit, terminator) =>
+                    format!("{} db \"{}\", {:?}", ident, lit, terminator),
             }
         )
     }
@@ -39,13 +42,13 @@ impl Display for Declaration {
 
 impl Display for Label {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:\n{}", self.name, self.block)
+        write!(f, "{}:", self.name)
     }
 }
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self._type, self.args.to_string())
+        write!(f, "{} {}", self.opcode, self.args.to_string())
     }
 }
 
@@ -56,6 +59,7 @@ impl Display for Directive {
             "section .{}\n{}",
             match self._type {
                 DirectiveType::Data => "data",
+                DirectiveType::Rodata => "rodata",
                 DirectiveType::Text => "text",
             },
             self.content.to_string()
@@ -72,6 +76,23 @@ impl Display for Operand {
                 Operand::Register(regis) => regis.to_string(),
                 Operand::MemAddr(addr) => addr.to_string(),
                 Operand::Literal(lit) => lit.to_string(),
+                Operand::SizedLiteral(lit, data_size) => format!("{} {}", data_size, lit),
+                Operand::Ident(ident) => ident.to_string(),
+            }
+        )
+    }
+}
+
+impl Display for DataSize {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                DataSize::Byte => "byte",
+                DataSize::Word => "word",
+                DataSize::DWord => "dword",
+                DataSize::QWord => "qword",
             }
         )
     }
@@ -91,6 +112,31 @@ impl Display for Register {
                 Register::Rsi => "rsi",
                 Register::Rbp => "rbp",
                 Register::Rsp => "rsp",
+                Register::R8 => "r8",
+                Register::R9 => "r9",
+                Register::R10 => "r10",
+                Register::R11 => "r11",
+                Register::R12 => "r12",
+                Register::R13 => "r13",
+                Register::R14 => "r14",
+                Register::R15 => "r15",
+                
+                Register::Eax => "eax",
+                Register::Ebx => "ebx",
+                Register::Ecx => "ecx",
+                Register::Edx => "edx",
+                Register::Edi => "edi",
+                Register::Esi => "esi",
+                Register::Ebp => "ebp",
+                Register::Esp => "esp",
+                Register::R8d => "r8d",
+                Register::R9d => "r9d",
+                Register::R10d => "r10d",
+                Register::R11d => "r11d",
+                Register::R12d => "r12d",
+                Register::R13d => "r13d",
+                Register::R14d => "r14d",
+                Register::R15d => "r15d",
             }
         )
     }
@@ -102,8 +148,9 @@ impl Display for MemAddr {
             f,
             "[{}]",
             match self {
-                MemAddr::Register(regis) => regis.to_string(),
+                MemAddr::Register(reg) => reg.to_string(),
                 MemAddr::Literal(lit) => lit.to_string(),
+                MemAddr::RegisterPos(reg, pos) => format!("{}{}", reg, pos),
             }
         )
     }
@@ -117,58 +164,51 @@ impl Display for Literal {
             match *self {
                 Literal::Int(int) => int.to_string(),
                 Literal::Float(float) => float.to_string(),
-                Literal::Ident(ref ident) => ident.into(),
+                Literal::String(ref string) => string.into(),
             }
         )
     }
 }
 
-impl Display for Block {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let buf: Vec<String> = self.elements.iter().map(|elem| elem.to_string()).collect();
-        write!(f, "{}", buf.join("\n"))
-    }
-}
-
-impl Display for InstructionType {
+impl Display for Opcode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                InstructionType::Mov => "mov",
-                InstructionType::Syscall => "syscall",
-                InstructionType::Add => "add",
-                InstructionType::Sub => "sub",
-                InstructionType::Mul => "mul",
-                InstructionType::Div => todo!(),
-                InstructionType::And => todo!(),
-                InstructionType::Or => todo!(),
-                InstructionType::XOr => todo!(),
-                InstructionType::Not => todo!(),
-                InstructionType::Cmp => todo!(),
-                InstructionType::Jmp => todo!(),
-                InstructionType::JE => todo!(),
-                InstructionType::JNe => todo!(),
-                InstructionType::JZ => todo!(),
-                InstructionType::JNz => todo!(),
-                InstructionType::Call => todo!(),
-                InstructionType::Ret => todo!(),
-                InstructionType::Push => todo!(),
-                InstructionType::Pop => todo!(),
-                InstructionType::Shl => todo!(),
-                InstructionType::Shr => todo!(),
-                InstructionType::Movsb => todo!(),
-                InstructionType::Movsw => todo!(),
-                InstructionType::Int => todo!(),
-                InstructionType::Fadd => todo!(),
-                InstructionType::Fsub => todo!(),
-                InstructionType::FMul => todo!(),
-                InstructionType::FDiv => todo!(),
-                InstructionType::FCmp => todo!(),
-                InstructionType::FAbs => todo!(),
-                InstructionType::Dec => todo!(),
-                InstructionType::Inc => todo!(),
+                Opcode::Mov => "mov",
+                Opcode::Syscall => "syscall",
+                Opcode::Add => "add",
+                Opcode::Sub => "sub",
+                Opcode::Mul => "mul",
+                Opcode::Div => todo!(),
+                Opcode::And => todo!(),
+                Opcode::Or => todo!(),
+                Opcode::XOr => todo!(),
+                Opcode::Not => todo!(),
+                Opcode::Cmp => todo!(),
+                Opcode::Jmp => todo!(),
+                Opcode::JE => todo!(),
+                Opcode::JNe => todo!(),
+                Opcode::JZ => todo!(),
+                Opcode::JNz => todo!(),
+                Opcode::Call => "call",
+                Opcode::Ret => "ret",
+                Opcode::Push => "push",
+                Opcode::Pop => "pop",
+                Opcode::Shl => todo!(),
+                Opcode::Shr => todo!(),
+                Opcode::Movsb => todo!(),
+                Opcode::Movsw => todo!(),
+                Opcode::Int => todo!(),
+                Opcode::Fadd => todo!(),
+                Opcode::Fsub => todo!(),
+                Opcode::FMul => todo!(),
+                Opcode::FDiv => todo!(),
+                Opcode::FCmp => todo!(),
+                Opcode::FAbs => todo!(),
+                Opcode::Dec => todo!(),
+                Opcode::Inc => todo!(),
             }
         )
     }

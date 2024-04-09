@@ -8,8 +8,7 @@ extern print
 section data:
     msg db "Hello World", 0
 
-section entry:
-    jmp main
+entry main
 
 main:
     # variable bar is pushed onto the stack

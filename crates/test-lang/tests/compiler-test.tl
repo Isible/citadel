@@ -1,4 +1,5 @@
-fn main(): void {
-    let x: i32 = 1023 + 100 * 10;
-    puts(test());
+fn main(): i32 {
+    let x: i32 = 69;
+    let y: i32 = 420;
+    return y;
 }

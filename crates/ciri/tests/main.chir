@@ -1,0 +1,11 @@
+'_entry: {
+    call %main()
+}
+@main() i32 {
+    $x i32 = add l{1023}, mul l{100}, l{10}
+    call %test()
+    ret l{0}
+}
+@test() void {
+    call %print(l{"Hello World"})
+}

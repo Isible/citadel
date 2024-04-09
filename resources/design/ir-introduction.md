@@ -33,10 +33,10 @@ int main(void) {
 
 ```chr
 # The main function
-@main() lcl i32 {
+@main() i32 {
     # l{...} means that the value is a literal
-    $x lcl i8 = l{100}
-    ?myString lcl [char] = l{"Hello World"}
+    $x i8 = l{100}
+    ?myString [char] = l{"Hello World"}
     ret l{0}
 }
 ```

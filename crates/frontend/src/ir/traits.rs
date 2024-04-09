@@ -1,5 +1,4 @@
 //! This file contains the `Display` trait implementations for the IR structs.
-
 use crate::util::VecDisplay;
 use std::fmt::Display;
 
@@ -9,10 +8,9 @@ impl Display for DeclFuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "decl @{}({}) {} {}",
+            "decl @{}({}) {}",
             self.name.ident,
             self.args.to_string(),
-            if self.is_local { "lcl" } else { "pub" },
             self.name._type
         )
     }
@@ -22,10 +20,9 @@ impl Display for FuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "@{}({}) {} {} {{\n{}\n}}",
+            "@{}({}) {} {{\n{}\n}}",
             self.name.ident,
             self.args.to_string(),
-            if self.is_local { "lcl" } else { "pub" },
             self.name._type,
             self.block
         )
@@ -36,10 +33,9 @@ impl Display for VarStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}{} {} {} = {}",
+            "{}{} {} = {}",
             if self.is_const { "$" } else { "?" },
             self.name.ident,
-            if self.is_local { "lcl" } else { "pub" },
             self.name._type,
             self.val
         )
@@ -141,11 +137,15 @@ impl Display for Literal {
             &match self {
                 Literal::String(string) => format!("\"{}\"", string),
                 Literal::Char(char) => char.to_string(),
-                Literal::ShortFloat(_, val) => val.to_string(),
-                Literal::LongFloat(_, val) => val.to_string(),
+                Literal::Float(val) => val.to_string(),
+                Literal::Double(val) => val.to_string(),
                 Literal::Bool(val) => val.to_string(),
-                Literal::Integer(_, val) => val.to_string(),
-                Literal::Array(_, val) => format!("[{}]", val.to_string()),
+                Literal::Int8(val) => val.to_string(),
+                Literal::Int16(val) => val.to_string(),
+                Literal::Int32(val) => val.to_string(),
+                Literal::Int64(val) => val.to_string(),
+                Literal::Int128(val) => val.to_string(),
+                Literal::Array(len, val) => format!("[{}; {}]", val.to_string(), len),
                 Literal::Vector(val) => format!("<{}>", val.to_string()),
             }
         )

@@ -16,7 +16,6 @@ mod tests {
                 _type: "void".into(),
             },
             args: Vec::new(),
-            is_local: false,
         }));
 
         dbg!("Generated IR: {:#?}", code_gen.get_stream());
