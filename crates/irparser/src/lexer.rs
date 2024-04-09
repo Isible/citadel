@@ -1,9 +1,9 @@
 //! Lexer for transforming a source string (file) into a list of tokens
 
 use core::panic;
-use std::path::PathBuf;
+use std::{io, path::PathBuf};
 
-use clutils::{errors::FileHandlerError, files::FileHandler};
+use clutils::files::FileHandler;
 
 use crate::tokens::Token;
 
@@ -15,9 +15,9 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(path: &PathBuf) -> Result<Self, FileHandlerError> {
+    pub fn new(path: PathBuf) -> io::Result<Self> {
         let mut lexer = Self {
-            file_handler: FileHandler::new(path.to_str().unwrap())?,
+            file_handler: FileHandler::new(path)?,
             next_pos: 0,
             ch: None,
         };
@@ -51,7 +51,7 @@ impl Lexer {
             self.next_char();
         }
 
-        let val = &self.file_handler.content[first_pos - 1..self.next_pos];
+        let val = &self.file_handler.file_content[first_pos - 1..self.next_pos];
 
         Token::RawLit(match found_fp {
             true => crate::tokens::Literal::Float(match val.parse() {
@@ -68,7 +68,7 @@ impl Lexer {
     fn tokenize_ident(&mut self) -> Token {
         match self.ch {
             c if c == Some('l')
-                && self.file_handler.content.chars().nth(self.next_pos) == Some('{') =>
+                && self.file_handler.file_content.chars().nth(self.next_pos) == Some('{') =>
             {
                 self.next_char();
                 self.next_char();
@@ -82,14 +82,14 @@ impl Lexer {
             }
             _ => {
                 let first_pos = self.next_pos;
-                let mut next_char = self.file_handler.content.chars().nth(self.next_pos);
+                let mut next_char = self.file_handler.file_content.chars().nth(self.next_pos);
                 while next_char.is_some()
                     && (next_char.unwrap().is_alphanumeric() || next_char.unwrap() == '_')
                 {
                     self.next_char();
-                    next_char = self.file_handler.content.chars().nth(self.next_pos);
+                    next_char = self.file_handler.file_content.chars().nth(self.next_pos);
                 }
-                let ident = &self.file_handler.content[first_pos - 1..self.next_pos];
+                let ident = &self.file_handler.file_content[first_pos - 1..self.next_pos];
                 match ident {
                     "true" | "false" => {
                         Token::RawLit(crate::tokens::Literal::Boolean(match ident {
@@ -118,7 +118,7 @@ impl Lexer {
         match self.ch {
             c if c == Some('"') => self.tokenize_string(),
             c if c == Some('\'') => {
-                if self.file_handler.content.chars().nth(self.next_pos + 1) == Some('\'') {
+                if self.file_handler.file_content.chars().nth(self.next_pos + 1) == Some('\'') {
                     return self.tokenize_char();
                 }
                 return Token::Apostrophe;
@@ -152,11 +152,11 @@ impl Lexer {
 
     fn tokenize_string(&mut self) -> Token {
         let first_pos = self.next_pos;
-        while self.file_handler.content.chars().nth(self.next_pos) != Some('"') {
+        while self.file_handler.file_content.chars().nth(self.next_pos) != Some('"') {
             self.next_char();
         }
         self.next_char();
-        let string = &self.file_handler.content[first_pos..self.next_pos - 1];
+        let string = &self.file_handler.file_content[first_pos..self.next_pos - 1];
         Token::RawLit(crate::tokens::Literal::String(string.into()))
     }
 
@@ -174,7 +174,7 @@ impl Lexer {
     }
 
     pub(crate) fn next_char(&mut self) {
-        self.ch = self.file_handler.content.chars().nth(self.next_pos);
+        self.ch = self.file_handler.file_content.chars().nth(self.next_pos);
         self.next_pos += 1;
     }
 
@@ -195,7 +195,7 @@ impl Lexer {
 
     fn get_next_ch_unchecked(&self) -> char {
         self.file_handler
-            .content
+            .file_content
             .chars()
             .nth(self.next_pos)
             .unwrap()

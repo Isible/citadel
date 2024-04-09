@@ -17,7 +17,7 @@ fn main() {
 
 fn run() {
     let args = Args::parse();
-    let mut lexer = Lexer::new(&args.file).expect("Failed to find file");
+    let mut lexer = Lexer::new(args.file.clone()).expect("Failed to find file");
     let mut parser = parser::Parser::new(&mut lexer);
     let ir_stream = parser.parse_program();
     let backend = AsmBackend::new(TargetX86_64);
