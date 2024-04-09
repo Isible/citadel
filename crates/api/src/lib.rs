@@ -46,7 +46,8 @@ where
             .stream
             .into_iter()
             .map(|elem| elem.to_string())
-            .collect();
+            .collect::<Vec<String>>()
+            .join("\n");
         fs::write(path, contents)
     }
 }
