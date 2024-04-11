@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 citadel-frontend = { path = "../frontend" }
-strum = { version = "0.26.1", features = ["derive"] }
 
 [dev-dependencies]
 citadel-irparser = { path = "../irparser" }

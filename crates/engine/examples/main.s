@@ -1,12 +1,13 @@
+section .rodata
+LC0 db "l{"Hello World"}", 10
 section .text
-    global _start
-
+global _start
 _start:
-    mov rax,1
-    mov rdi,1
-    mov rsi,testing
-    mov rdx,11
-    syscall
-
-section .data
-    testing db "Hello World"
+mov rsi,LC0
+mov rdx,17
+call print
+print:
+mov rax,1
+mov rdi,1
+syscall 
+ret 

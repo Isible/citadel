@@ -1,6 +1,9 @@
-use std::{fs, path::PathBuf};
+use std::{fs, io, path::PathBuf};
 
-use citadel_backend::experimental::{api::Backend, asm::{AsmBackend, TargetX86_64}};
+use citadel_backend::experimental::{
+    api::Backend,
+    asm::{AsmBackend, TargetX86_64},
+};
 use citadel_irparser::{lexer::Lexer, parser};
 use clap::Parser;
 
@@ -11,13 +14,14 @@ struct Args {
     file: PathBuf,
 }
 
-fn main() {
-    run();
+fn main() -> io::Result<()> {
+    run()
 }
 
-fn run() {
+fn run() -> io::Result<()> {
     let args = Args::parse();
-    let mut lexer = Lexer::new(args.file.clone()).expect("Failed to find file");
+    let file_content = fs::read(&args.file)?;
+    let mut lexer = Lexer::new(std::str::from_utf8(&file_content).unwrap());
     let mut parser = parser::Parser::new(&mut lexer);
     let ir_stream = parser.parse_program();
     let backend = AsmBackend::new(TargetX86_64);
@@ -26,4 +30,5 @@ fn run() {
     path.push('s');
     let buf: Vec<String> = asm.iter().map(|elem| elem.to_string()).collect();
     fs::write(path, buf.join("\n")).expect("Failed to write to file");
+    Ok(())
 }

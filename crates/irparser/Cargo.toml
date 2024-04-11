@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 clutils = "0.0.10"
 citadel-frontend = { path = "../frontend" }
+logos = "0.14.0"
+colored = "2.1.0"

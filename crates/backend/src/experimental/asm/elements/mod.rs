@@ -6,8 +6,6 @@ pub mod traits;
 
 // TODO: Rewrite to support simple codegen
 
-use strum::AsRefStr;
-
 use crate::experimental::asm::codegen::util;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -79,8 +77,7 @@ pub enum Literal {
     String(String),
 }
 
-// TODO: Remove strum as a dependency
-#[derive(Debug, Clone, PartialEq, AsRefStr)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Register {
     // 64 bit
     Rax,
@@ -123,7 +120,7 @@ pub enum Register {
     R15d,
 }
 
-#[derive(Debug, Clone, PartialEq, AsRefStr)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Opcode {
     Mov,
     Syscall,

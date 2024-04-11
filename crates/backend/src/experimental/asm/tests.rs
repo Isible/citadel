@@ -1,11 +1,14 @@
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
+    use std::{fs, path::PathBuf};
 
     use citadel_frontend::ir::IRStmt;
     use citadel_irparser::{lexer::Lexer, parser::Parser};
 
-    use crate::experimental::{api::Backend, asm::{util, AsmBackend, TargetX86_64}};
+    use crate::experimental::{
+        api::Backend,
+        asm::{util, AsmBackend, TargetX86_64},
+    };
 
     #[test]
     fn test_asm_compiler() {
@@ -15,8 +18,9 @@ mod tests {
     }
 
     fn gen_ir_stream(path: &PathBuf) -> Vec<IRStmt> {
-        let mut lexer = Lexer::new(path.into()).unwrap();
-        let mut parser = Parser::new(&mut lexer);
+        let file_content = fs::read(path).unwrap();
+        let lexer = Lexer::new(std::str::from_utf8(&file_content).unwrap());
+        let mut parser = Parser::new(&lexer);
         parser.parse_program()
     }
 }

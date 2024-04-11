@@ -1,8 +1,10 @@
 //! Interpreter for the citadel intermediary representation. Currently only
 //! supports the high representation since the LIR is still work in progress.
 
-use std::io;
+use std::{fs, io};
 
+use clap::Parser as _;
+use cli::Args;
 use evaluator::Evaluator;
 
 use citadel_irparser::{lexer::Lexer, parser::Parser};
@@ -13,13 +15,16 @@ mod obj;
 
 mod errors;
 mod util;
+mod cli;
 
 fn main() -> io::Result<()> {
     run()
 }
 
 fn run() -> io::Result<()> {
-    let mut lexer = Lexer::new(util::get_file_by_arg("crates/ciri/tests/main.chir".into()))?;
+    let args = Args::parse();
+    let file_content = fs::read(&args.file)?;
+    let mut lexer = Lexer::new(std::str::from_utf8(&file_content).unwrap());
 
     let mut parser = Parser::new(&mut lexer);
 
