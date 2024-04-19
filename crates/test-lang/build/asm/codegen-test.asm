@@ -5,8 +5,10 @@ call main
 main:
 push rbp
 mov rbp,rsp
-mov [rbp-4],dword 420
-mov [rbp-8],dword 69
-mov rax,[rbp-8]
+mov [rbp-4],dword 9
+mov [rbp-8],dword 0
+mov [rbp-12],dword 100
+mov [rbp-16],dword 1000000
+mov rax,[rbp-12]
 pop rbp
 ret 

@@ -2,8 +2,10 @@
     call %main()
 }
 
-@main() i32 {
-    $x i32 = l{19}
-    $y i32 = l{69}
-    ret x
+@main() void {
+    $x i32 = l{100}
+    $y i32 = l{90}
+    $z i32 = l{12}
+    call %print(l{"hello world"})
+    ret y
 }

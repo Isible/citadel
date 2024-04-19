@@ -1,76 +1,66 @@
 //! List of possible tokens in the language
 
-use std::fmt::{Display, Formatter, Result};
+use logos::Logos;
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Token {
+#[derive(Debug, PartialEq, Clone, Logos)]
+#[logos(skip r#"(?:\/\/[^\n]*|\t|\s|\f|\n)*"#)]
+pub enum Token<'tok> {
+    #[token("let")]
     Let,
+    #[token("fn")]
     Fn,
+    #[token("if")]
     If,
+    #[token("loop")]
     Loop,
+    #[token("return")]
     Return,
+    #[token("use")]
     Use,
+    #[token("type")]
     Type,
 
-    // u8 is the bitwidth of the integer/float
-    IntegerType(u8),
-    FloatType(u8),
+    #[token("int")]
+    Int,
+    #[token("float")]
+    Float,
 
-    Ident(String),
-    Integer(i64),
-    Float(f64),
-    String(String),
-    Boolean(bool),
+    #[regex(r#""(?:\\.|[^\\"])*""#)]
+    LitString(&'tok str),
+    #[regex(r"-?[0-9]+")]
+    LitInt(&'tok str),
+    #[regex("-?[0-9]+\\.[0-9]+")]
+    LitFloat(&'tok str),
+    #[regex(r#"'[^\\']'"#)]
+    LitChar(&'tok str),
+    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*")]
+    Ident(&'tok str),
 
+    #[token("+")]
     Plus,
+    #[token("-")]
     Minus,
+    #[token("/")]
     Divide,
+    #[token("*")]
     Multiply,
+    #[token("=")]
     Assign,
+    #[token(";")]
     Semicolon,
+    #[token("==")]
     Equals,
+    #[token(":")]
     Colon,
+    #[token(",")]
     Comma,
 
+    #[token("(")]
     LParent,
+    #[token(")")]
     RParent,
+    #[token("{")]
     LCurly,
+    #[token("}")]
     RCurly,
-
-    Eof,
-}
-
-impl Display for Token {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.write_str(&match self {
-            Token::Let => "let".into(),
-            Token::Fn => "fn".into(),
-            Token::If => "if".into(),
-            Token::Loop => "loop".into(),
-            Token::Return => "return".into(),
-            Token::Use => "use".into(),
-            Token::Type => "type".into(),
-            Token::Ident(ident) => ident.into(),
-            Token::Integer(int) => int.to_string(),
-            Token::Float(float) => float.to_string(),
-            Token::String(string) => format!("\"{}\"", string),
-            Token::Boolean(boolean) => boolean.to_string(),
-            Token::Plus => "+".into(),
-            Token::Minus => "-".into(),
-            Token::Divide => "/".into(),
-            Token::Multiply => "*".into(),
-            Token::Assign => "=".into(),
-            Token::Semicolon => ";".into(),
-            Token::Equals => "==".into(),
-            Token::Colon => ":".into(),
-            Token::Comma => ",".into(),
-            Token::LParent => "(".into(),
-            Token::RParent => ")".into(),
-            Token::LCurly => "{".into(),
-            Token::RCurly => "}".into(),
-            Token::IntegerType(bitwidth) => format!("i{}", bitwidth),
-            Token::FloatType(bitwidth) => format!("f{}", bitwidth),
-            Token::Eof => "Eof".into(),
-        })
-    }
 }

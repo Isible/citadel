@@ -56,10 +56,17 @@ impl<'l> Parser<'l> {
             Token::Sub => self.parse_arith_op_expr(Operator::Sub),
             Token::Mul => self.parse_arith_op_expr(Operator::Mul),
             Token::Div => self.parse_arith_op_expr(Operator::Div),
-            Token::LitString(str) => {
-                Some(IRExpr::Literal(ir::Literal::String((*str).into())))
+            Token::LitString(str) => Some(IRExpr::Literal(ir::Literal::String((*str).into()))),
+            Token::LitInt(int) => {
+                dbg!(int);
+                Some(IRExpr::Literal(ir::Literal::Int32(
+                    int.parse::<i32>().unwrap(),
+                )))
             }
-            //Token::Ident(ref ident) => IRExpr::Ident(ident.to_string()),
+            Token::LitChar(ch) => Some(IRExpr::Literal(ir::Literal::Char(
+                ch.chars().nth(0).unwrap(),
+            ))),
+            Token::Ident(ident) => Some(IRExpr::Ident(ident.to_string())),
             tok => todo!("cur tok: {tok:?}"),
         }
     }

@@ -149,7 +149,7 @@ impl Compiler {
         match node {
             ast::Literal::Ident(ident) => IRExpr::Ident(ident),
             ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
-            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int64(int)),
+            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(int)),
             ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),
             ast::Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(bool)),
         }

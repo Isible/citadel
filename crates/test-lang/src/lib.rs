@@ -35,7 +35,7 @@ pub fn compile_chir(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::
 
 fn gen_ast(input_file_path: PathBuf) -> io::Result<Vec<Statement>> {
     let input = std::fs::read_to_string(input_file_path)?;
-    let mut lexer = Lexer::new(input);
+    let mut lexer = Lexer::new(&input);
     let mut parser = Parser::new(&mut lexer);
     let ast = parser.parse_program();
     Ok(ast)

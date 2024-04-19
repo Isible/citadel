@@ -30,8 +30,8 @@ pub(crate) fn gen_syscall() -> AsmElement {
     })
 }
 
-pub(crate) fn get_stack_location(pos: i32) -> Operand {
-    Operand::MemAddr(MemAddr::RegisterPos(Register::Rbp, pos))
+pub(crate) fn get_stack_location(pos: isize) -> Operand {
+    Operand::MemAddr(MemAddr::RegisterPos(Register::Rbp, pos as i32))
 }
 
 pub(crate) fn create_stackframe() -> (AsmElement, AsmElement) {

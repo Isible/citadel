@@ -38,7 +38,7 @@ mod tests {
 
         assert_eq!(
             code_gen.as_string(),
-            "'myLabel: {\n    ret l{\"test\"}\n}\n"
+            "'myLabel: {\n    ret l{\"test\"}\n}"
         )
     }
 }

@@ -6,10 +6,10 @@ use crate::experimental::{api::Target, asm::{codegen::CodeGenerator, elements::A
 
 use super::elements::{Directive, DirectiveType, StdFunction};
 
-pub fn compile_program<T: Target>(input: Vec<IRStmt>, _target: T) -> Vec<AsmElement> {
+pub fn compile_program(input: Vec<IRStmt>, _target: impl Target) -> Vec<AsmElement> {
     let mut codegen = CodeGenerator::default();
 
-    gen_code(input, &mut codegen);
+    gen_code(&input, &mut codegen);
 
     let data = codegen.rodata;
     let defined_functions = codegen.defined_functions;
@@ -25,8 +25,8 @@ pub fn compile_program<T: Target>(input: Vec<IRStmt>, _target: T) -> Vec<AsmElem
     out
 }
 
-fn gen_code(input: Vec<IRStmt>, codegen: &mut CodeGenerator) {
-    for stmt in input {
+fn gen_code<'c>(input: &'c Vec<IRStmt>, codegen: &mut CodeGenerator<'c>) {
+    for stmt in input.iter() {
         codegen.gen_stmt(&stmt);
     }
 }

@@ -33,7 +33,7 @@ pub enum Operator {
 pub enum Literal {
     Ident(String),
     String(String),
-    Integer(i64),
+    Integer(i32),
     Float(f64),
     Boolean(bool),
 }

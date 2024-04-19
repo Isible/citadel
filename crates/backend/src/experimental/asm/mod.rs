@@ -8,7 +8,6 @@ pub mod util;
 
 mod tests;
 
-use std::slice;
 
 use citadel_frontend::ir::IRStmt;
 

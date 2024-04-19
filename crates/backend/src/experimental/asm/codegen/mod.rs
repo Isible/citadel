@@ -7,7 +7,7 @@
 
 pub mod util;
 
-use std::collections::HashSet;
+use std::{borrow::Borrow, collections::{HashMap, HashSet}};
 
 use citadel_frontend::ir::{
     self, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
@@ -17,7 +17,7 @@ use crate::experimental::asm::elements::{
     AsmElement, Declaration, Directive, DirectiveType, Literal,
 };
 
-use super::elements::{DataSize, Label, Operand, Register, StdFunction};
+use super::elements::{DataSize, Instruction, Label, Opcode, Operand, Register, StdFunction};
 
 pub const FUNCTIONS_ARG_REGISTERS: [Register; 6] = [
     Register::Rdi,
@@ -29,7 +29,7 @@ pub const FUNCTIONS_ARG_REGISTERS: [Register; 6] = [
 ];
 
 #[derive(Default)]
-pub struct CodeGenerator {
+pub struct CodeGenerator<'c> {
     pub out: Vec<AsmElement>,
 
     // Literals
@@ -39,11 +39,12 @@ pub struct CodeGenerator {
     pub lc_index: usize,
 
     pub defined_functions: HashSet<StdFunction>,
+    pub symbol_table: HashMap<&'c str, isize>,
 
     pub stack_pointer: isize,
 }
 
-impl CodeGenerator {
+impl<'c> CodeGenerator<'c> {
     pub fn create_entry(&mut self) {
         self.out.push(AsmElement::Directive(Directive {
             _type: DirectiveType::Text,
@@ -51,7 +52,7 @@ impl CodeGenerator {
         }));
     }
 
-    pub fn gen_stmt(&mut self, node: &IRStmt) {
+    pub fn gen_stmt(&mut self, node: &'c IRStmt) {
         match node {
             IRStmt::DeclaredFunction(node) => todo!(),
             IRStmt::Function(node) => self.gen_function(node),
@@ -80,12 +81,13 @@ impl CodeGenerator {
         };
         self.out.push(util::gen_mov_ins(
             Operand::Register(Register::Rax),
-            util::get_stack_location(self.stack_pointer as i32),
+            util::get_stack_location(*self.symbol_table.get(ret_val.as_str()).unwrap(),),
         ));
         self.out.push(util::destroy_stackframe());
+        self.out.push(util::gen_ret());
     }
 
-    fn gen_variable(&mut self, node: &VarStmt) {
+    fn gen_variable(&mut self, node: &'c VarStmt) {
         let size = match node.name._type.as_str() {
             "i8" => 1,
             "i16" => 2,
@@ -96,19 +98,21 @@ impl CodeGenerator {
         };
         let val = match &node.val {
             IRExpr::Literal(lit) => match lit {
-                ir::Literal::Int64(val) => *val as i32,
+                ir::Literal::Int32(val) => *val as i32,
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
             _ => todo!("Handle non-literal expressions here"),
         };
         self.out.push(util::gen_mov_ins(
-            util::get_stack_location(self.stack_pointer as i32 - size),
+            util::get_stack_location((self.stack_pointer as i32 - size).try_into().unwrap()),
             Operand::SizedLiteral(Literal::Int(val), DataSize::DWord),
         ));
         self.stack_pointer -= size as isize;
+        self.symbol_table
+            .insert(&node.name.ident, self.stack_pointer);
     }
 
-    fn gen_function(&mut self, node: &FuncStmt) {
+    fn gen_function(&mut self, node: &'c FuncStmt) {
         self.out.push(AsmElement::Label(Label {
             name: node.name.ident.clone(),
         }));
@@ -121,11 +125,20 @@ impl CodeGenerator {
         for stmt in &node.block.stmts {
             self.gen_stmt(stmt);
         }
-
-        if node.name._type == "void" {
-            self.out.push(util::destroy_stackframe());
+        if let Some(elem) = self.out.last() {
+            match elem {
+                AsmElement::Instruction(Instruction {
+                    opcode: Opcode::Ret,
+                    args: _,
+                }) => (),
+                _ => {
+                    if node.name._type == "void" {
+                        self.out.push(util::destroy_stackframe());
+                    }
+                    self.out.push(util::gen_ret());
+                }
+            }
         }
-        self.out.push(util::gen_ret());
     }
 
     fn gen_print(&mut self, node: &CallExpr) {
@@ -149,7 +162,7 @@ impl CodeGenerator {
         self.defined_functions.insert(StdFunction::Print);
     }
 
-    fn gen_label(&mut self, node: &LabelStmt) {
+    fn gen_label(&mut self, node: &'c LabelStmt) {
         match node.name.as_str() {
             "_entry" => {
                 self.create_entry();

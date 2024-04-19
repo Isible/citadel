@@ -93,6 +93,12 @@ pub enum Token<'tok> {
     #[regex(r#"l\{\s*\"([^\"\n]*)\"\s*\}"#)]
     LitString(&'tok str),
 
+    #[regex(r"l\{(\d+)\}")]
+    LitInt(&'tok str),
+
+    #[regex(r"l\{'(.)'\}")]
+    LitChar(&'tok str),
+
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*")]
     Ident(&'tok str),
 }
