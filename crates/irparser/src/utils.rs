@@ -37,5 +37,5 @@ pub fn trim_lit_str<'tok>(str: &'tok str) -> Token<'tok> {
 
 #[inline(always)]
 fn trim_lit(lit: &str) -> &str {
-    &lit[3..lit.len()-2]
+    &lit[2..lit.len()-1]
 }

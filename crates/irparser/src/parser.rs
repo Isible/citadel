@@ -273,6 +273,10 @@ impl<'l> Parser<'l> {
 
     fn parse_return(&mut self) -> Option<IRStmt> {
         self.next_tok();
+        expect_tok!(self.cur_tok(), Some(Token::PercentSign), |tok| panic!(
+            "Expected next token to be a percent sign, received {tok:?} instead"
+        ));
+        self.next_tok();
         let expr = self.parse_expr();
         Some(IRStmt::Return(ReturnStmt { ret_val: expr? }))
     }
@@ -391,6 +395,10 @@ impl<'l> Parser<'l> {
         let mut args = Vec::new();
         self.next_tok();
         loop {
+            expect_tok!(self.cur_tok(), Some(Token::DollarSign), |tok| panic!(
+                "Expected dollar sign, received {tok:?} instead"
+            ));
+            self.next_tok();
             args.push(match self.parse_typed_ident() {
                 Some(ident) => ident,
                 None => return None,
@@ -414,7 +422,7 @@ impl<'l> Parser<'l> {
     fn parse_typed_ident(&mut self) -> Option<IRTypedIdent> {
         let ident = match self.cur_tok() {
             Some(Token::Ident(ident)) => *ident,
-            tok => panic!("Expected ident for the name"),
+            _ => panic!("Expected ident for the name"),
         };
         self.next_tok();
         let _type = match self.cur_tok() {

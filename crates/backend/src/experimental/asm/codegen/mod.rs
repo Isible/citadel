@@ -7,7 +7,7 @@
 
 pub mod util;
 
-use std::{borrow::Borrow, collections::{HashMap, HashSet}};
+use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::ir::{
     self, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
@@ -19,7 +19,7 @@ use crate::experimental::asm::elements::{
 
 use super::elements::{DataSize, Instruction, Label, Opcode, Operand, Register, StdFunction};
 
-pub const FUNCTIONS_ARG_REGISTERS: [Register; 6] = [
+pub const FUNCTION_ARG_REGISTERS: [Register; 6] = [
     Register::Rdi,
     Register::Rsi,
     Register::Rdx,
@@ -67,10 +67,13 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
-    fn gen_call(&mut self, node: &CallExpr) {
+    fn gen_call(&mut self, node: &'c CallExpr) {
         match node.name.as_str() {
             "print" => self.gen_print(node),
-            _ => self.out.push(util::gen_call(&node.name)),
+            _ => {
+                self.gen_call_args(node);
+                self.out.push(util::gen_call(&node.name))
+            }
         }
     }
 
@@ -81,7 +84,18 @@ impl<'c> CodeGenerator<'c> {
         };
         self.out.push(util::gen_mov_ins(
             Operand::Register(Register::Rax),
-            util::get_stack_location(*self.symbol_table.get(ret_val.as_str()).unwrap(),),
+            util::get_stack_location(
+                *self
+                    .symbol_table
+                    .get(ret_val.as_str())
+                    .or_else(|| {
+                        panic!(
+                            "Failed to find variable with the name: {} in the current scope",
+                            ret_val.as_str()
+                        )
+                    })
+                    .unwrap(),
+            ),
         ));
         self.out.push(util::destroy_stackframe());
         self.out.push(util::gen_ret());
@@ -122,6 +136,8 @@ impl<'c> CodeGenerator<'c> {
         self.out.push(stack_frame.0);
         self.out.push(stack_frame.1);
 
+        self.gen_args(node);
+
         for stmt in &node.block.stmts {
             self.gen_stmt(stmt);
         }
@@ -138,6 +154,44 @@ impl<'c> CodeGenerator<'c> {
                     self.out.push(util::gen_ret());
                 }
             }
+        }
+    }
+
+    fn gen_args(&mut self, node: &'c FuncStmt) {
+        for i in 0..node.args.len() {
+            let arg = &node.args[i];
+            let size = match arg._type.as_str() {
+                "i8" => 1,
+                "i16" => 2,
+                "i32" => 4,
+                "i64" => 8,
+                "i128" => 16,
+                typename => todo!("Compilation of type: {} is not implemented yet", typename),
+            };
+            self.out.push(util::gen_mov_ins(
+                util::get_stack_location((self.stack_pointer as i32 - size).try_into().unwrap()),
+                Operand::Register(FUNCTION_ARG_REGISTERS[i]),
+            ));
+            self.stack_pointer -= size as isize;
+            self.symbol_table
+                .insert(&arg.ident, self.stack_pointer);
+        }
+    }
+
+    fn gen_call_args(&mut self, node: &'c CallExpr) {
+        for i in 0..node.args.len() {
+            let arg = &node.args[i];
+            let val = match &arg {
+                IRExpr::Literal(lit) => match lit {
+                    ir::Literal::Int32(val) => *val as i32,
+                    int => todo!("Handle non-i32 literals here: {:?}", int),
+                },
+                _ => todo!("Handle non-literal expressions here"),
+            };
+            self.out.push(util::gen_mov_ins(
+                Operand::Register(FUNCTION_ARG_REGISTERS[i]),
+                Operand::SizedLiteral(Literal::Int(val), DataSize::DWord),
+            ));
         }
     }
 

@@ -1,11 +1,8 @@
 '_entry: {
-    call %main()
+    call %main(l{9})
 }
 
-@main() void {
+@main($y i32) void {
     $x i32 = l{100}
-    $y i32 = l{90}
-    $z i32 = l{12}
-    call %print(l{"hello world"})
-    ret y
+    ret %y
 }

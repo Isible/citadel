@@ -77,7 +77,7 @@ pub enum Literal {
     String(String),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Register {
     // 64 bit
     Rax,
