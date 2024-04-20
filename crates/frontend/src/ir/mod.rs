@@ -15,6 +15,7 @@ pub enum IRStmt {
     Label(LabelStmt),
 
     Return(ReturnStmt),
+    Exit(ExitStmt),
     Break(BreakStmt),
     Jump(JumpStmt),
     Call(CallExpr),
@@ -94,6 +95,11 @@ pub struct LabelStmt {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReturnStmt {
     pub ret_val: IRExpr,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ExitStmt {
+    pub exit_code: IRExpr,
 }
 
 #[derive(Debug, Clone, PartialEq)]

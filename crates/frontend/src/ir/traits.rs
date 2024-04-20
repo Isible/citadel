@@ -110,6 +110,7 @@ impl Display for IRStmt {
             IRStmt::Variable(var) => var.to_string(),
             IRStmt::Label(label) => label.to_string(),
             IRStmt::Return(ret) => ret.to_string(),
+            IRStmt::Exit(exit) => exit.to_string(),
             IRStmt::Break(br) => br.to_string(),
             IRStmt::Jump(jump) => jump.to_string(),
             IRStmt::Call(call) => call.to_string(),
@@ -155,5 +156,11 @@ impl Display for Literal {
 impl Display for Ident {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "%{}", self.0)
+    }
+}
+
+impl Display for ExitStmt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "exit {}", self.exit_code)
     }
 }

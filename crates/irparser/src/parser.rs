@@ -3,7 +3,8 @@
 use std::{collections::HashMap, vec};
 
 use citadel_frontend::ir::{
-    self, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt
+    self, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr,
+    IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt,
 };
 
 use crate::{expect_tok, lexer::Lexer, parser_error, tokens::Token};
@@ -42,6 +43,7 @@ impl<'l> Parser<'l> {
             Token::Decl => self.parse_function_decl(),
             Token::Call => self.parse_call().map(|call| IRStmt::Call(call)),
             Token::Ret => self.parse_return(),
+            Token::Exit => self.parse_exit(),
             Token::Break => self.parse_break(),
             Token::Jump => self.parse_jump(),
             tok => panic!("Cannot parse statement from token: {tok:?}"),
@@ -273,11 +275,17 @@ impl<'l> Parser<'l> {
     fn parse_return(&mut self) -> Option<IRStmt> {
         self.next_tok();
         expect_tok!(self.cur_tok(), Some(Token::PercentSign), |tok| panic!(
-            "Expected next token to be a percent sign, received {tok:?} instead"
+            "Expected token to be a percent sign, received {tok:?} instead"
         ));
         self.next_tok();
         let expr = self.parse_expr();
         Some(IRStmt::Return(ReturnStmt { ret_val: expr? }))
+    }
+
+    fn parse_exit(&mut self) -> Option<IRStmt> {
+        self.next_tok();
+        let code = self.parse_expr()?;
+        Some(IRStmt::Exit(ExitStmt { exit_code: code }))
     }
 
     fn parse_break(&mut self) -> Option<IRStmt> {

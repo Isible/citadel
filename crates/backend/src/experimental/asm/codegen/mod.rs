@@ -7,10 +7,13 @@
 
 pub mod util;
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    process::ExitStatus,
+};
 
 use citadel_frontend::ir::{
-    self, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
+    self, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
 };
 
 use crate::experimental::asm::elements::{
@@ -61,6 +64,7 @@ impl<'c> CodeGenerator<'c> {
             IRStmt::Variable(node) => self.gen_variable(node),
             IRStmt::Label(node) => self.gen_label(node),
             IRStmt::Return(node) => self.gen_return(node),
+            IRStmt::Exit(node) => self.gen_exit(node),
             IRStmt::Break(node) => todo!(),
             IRStmt::Jump(node) => todo!(),
             IRStmt::Call(node) => self.gen_call(node),
@@ -103,6 +107,24 @@ impl<'c> CodeGenerator<'c> {
         self.out.push(util::gen_ret());
     }
 
+    fn gen_exit(&mut self, node: &'c ExitStmt) {
+        self.out.push(util::gen_mov_ins(
+            Operand::Register(Register::Rax),
+            Operand::Literal(Literal::Int(60)),
+        ));
+        self.out.push(util::gen_mov_ins(
+            Operand::Register(Register::Rdi),
+            Operand::Literal(match &node.exit_code {
+                IRExpr::Literal(lit) => match lit {
+                    ir::Literal::Int32(val) => Literal::Int(*val),
+                    int => todo!("Handle non-i32 literals here: {:?}", int),
+                },
+                _ => todo!(),
+            }),
+        ));
+        self.out.push(util::gen_syscall());
+    }
+
     fn gen_variable(&mut self, node: &'c VarStmt) {
         let size = match node.name._type.as_str() {
             "i8" => 1,
@@ -114,7 +136,7 @@ impl<'c> CodeGenerator<'c> {
         };
         let val = match &node.val {
             IRExpr::Literal(lit) => match lit {
-                ir::Literal::Int32(val) => *val as i32,
+                ir::Literal::Int32(val) => *val,
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
             _ => todo!("Handle non-literal expressions here"),

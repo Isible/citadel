@@ -5,7 +5,7 @@ use citadel_frontend::ir::{BlockStmt, IRTypedIdent, Literal};
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Object {
-    Literal(Literal),
+    Value(Literal),
     Ret(Box<Object>),
     Br(String),
     Jmp(String),

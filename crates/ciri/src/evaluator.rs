@@ -1,5 +1,7 @@
 //! The evaluator module is responsible for evaluating/executing the IR nodes (AST).
 
+use std::{f32::consts::E, process};
+
 use citadel_frontend::ir::{
     ArithOpExpr, CallExpr, FuncStmt, IRExpr, IRStmt, LabelStmt, Literal, Operator, VarStmt,
 };
@@ -43,6 +45,10 @@ impl<'a> Evaluator<'a> {
             IRStmt::Variable(var) => self.eval_var(var),
             IRStmt::Label(label) => self.eval_label(label),
             IRStmt::Return(ret) => todo!(),
+            IRStmt::Exit(exit) => process::exit(match self.eval_expr(exit.exit_code) {
+                Object::Value(Literal::Int32(val)) => val,
+                _ => todo!(), 
+            }),
             IRStmt::Break(br) => todo!(),
             IRStmt::Jump(jmp) => todo!(),
             IRStmt::Call(call) => Some(self.eval_call(call)),
@@ -53,7 +59,7 @@ impl<'a> Evaluator<'a> {
     fn eval_expr(&mut self, node: IRExpr) -> Object {
         match node {
             IRExpr::Call(call) => self.eval_call(call),
-            IRExpr::Literal(node) => Object::Literal(node),
+            IRExpr::Literal(node) => Object::Value(node),
             IRExpr::Ident(ident) => self.eval_ident(ident.0),
             IRExpr::ArithOp(op) => self.eval_arith_op(op),
         }
@@ -71,12 +77,12 @@ impl<'a> Evaluator<'a> {
         let left = self.eval_expr(*op.values.0);
         let right = self.eval_expr(*op.values.1);
         let (left, right) = match (left, right) {
-            (Object::Literal(Literal::Int64(left)), Object::Literal(Literal::Int64(right))) => {
+            (Object::Value(Literal::Int64(left)), Object::Value(Literal::Int64(right))) => {
                 (left, right)
             }
             object => panic!("Invalid operands: `{:#?}` and `{:#?}`", object.0, object.1),
         };
-        Object::Literal(Literal::Int64(match op.op {
+        Object::Value(Literal::Int64(match op.op {
             Operator::Add => left + right,
             Operator::Sub => left - right,
             Operator::Mul => left * right,

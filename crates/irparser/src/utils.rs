@@ -21,21 +21,17 @@ macro_rules! parser_error {
     }};
 }
 
+#[inline(always)]
 pub fn trim_lit_char<'tok>(ch: &'tok str) -> Token<'tok> {
-    Token::LitChar(trim_lit(ch))
-}
-
-pub fn trim_lit_int<'tok>(int: &'tok str) -> Token<'tok> {
-    let int = trim_lit(int);
-    Token::LitInt(int)
-}
-
-pub fn trim_lit_str<'tok>(str: &'tok str) -> Token<'tok> {
-    let int = trim_lit(str);
-    Token::LitString(int)
+    Token::LitChar(&ch[2..ch.len() - 1])
 }
 
 #[inline(always)]
-fn trim_lit(lit: &str) -> &str {
-    &lit[2..lit.len()-1]
+pub fn trim_lit_int<'tok>(int: &'tok str) -> Token<'tok> {
+    Token::LitInt(&int[2..int.len() - 1])
+}
+
+#[inline(always)]
+pub fn trim_lit_str<'tok>(str: &'tok str) -> Token<'tok> {
+    Token::LitString(&str[3..str.len() - 2])
 }

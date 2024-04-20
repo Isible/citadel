@@ -49,7 +49,16 @@ impl Display for Label {
 
 impl Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.opcode, self.args.to_string())
+        write!(
+            f,
+            "{}{}",
+            self.opcode,
+            if !self.args.is_empty() {
+                format!(" {}", self.args.to_string())
+            } else {
+                String::new()
+            }
+        )
     }
 }
 
@@ -120,7 +129,7 @@ impl Display for Register {
                 Register::R13 => "r13",
                 Register::R14 => "r14",
                 Register::R15 => "r15",
-                
+
                 Register::Eax => "eax",
                 Register::Ebx => "ebx",
                 Register::Ecx => "ecx",

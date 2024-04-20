@@ -3,9 +3,7 @@
 use citadel_api::frontend::ir::{self, *};
 use clap::builder::Str;
 
-use super::ast::{
-    self, *
-};
+use super::ast::{self, *};
 
 #[derive(Default)]
 pub struct Compiler;
@@ -97,10 +95,10 @@ impl Compiler {
 
     fn compile_call_expr(&self, node: CallExpression) -> IRExpr {
         IRExpr::Call(CallExpr {
-            name: if &node.name == "puts" {
-                "print".into()
-            } else {
-                node.name
+            name: match node.name.as_str() {
+                "puts" => "print".into(),
+                "exit" => todo!(),
+                _ => node.name,
             },
             args: self.compile_args(node.args),
         })
@@ -183,6 +181,7 @@ impl Compiler {
             "int" => "i32",
             "float" => "f32",
             _ => panic!(),
-        }.to_string()
+        }
+        .to_string()
     }
 }

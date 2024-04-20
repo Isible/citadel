@@ -67,6 +67,15 @@ pub enum Token<'tok> {
     /// Return a value
     #[token("ret")]
     Ret,
+    /// Break a loop
+    #[token("br")]
+    Break,
+    /// Jump to a label
+    #[token("jmp")]
+    Jump,
+    /// Exit the program
+    #[token("exit")]
+    Exit,
     // Arithmetic Operations
     /// Addition
     #[token("add")]
@@ -83,12 +92,6 @@ pub enum Token<'tok> {
     /// Modulo operator
     #[token("mod")]
     Mod,
-    /// Break a loop
-    #[token("br")]
-    Break,
-    /// Jump to a label
-    #[token("jmp")]
-    Jump,
 
     #[regex(r#"l\{\s*\"([^\"\n]*)\"\s*\}"#)]
     LitString(&'tok str),
