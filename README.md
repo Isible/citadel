@@ -26,19 +26,21 @@ The mission of this project is to empower more people to try building compilers 
 
 ## Project-structure
 
-- [Api](api) - The api thats exposed to the developer. Has lots of qol features and bundles all 3 ends so the developer doesn't need to interact with these directly.
+- [Api](crates/api) - The api thats exposed to the developer. Has lots of qol features and bundles all 3 ends so the developer doesn't need to interact with these directly.
 
-- [Frontend](frontend) - Frontend for citadel that helps with generating IR from your source code
+- [Frontend](crates/frontend) - Frontend for citadel that helps with generating IR from your source code
 
-- [Middleend](middleend) - Middleend for citadel that optimizes source code and generates multiple more low-level IRs from this depending on the optimization level
+- [Middleend](crates/middleend) - Middleend for citadel that optimizes source code and generates multiple more low-level IRs from this depending on the optimization level
 
-- [Backend](backend) - Backend that compiles IR to machine-code
+- [Backend](crates/backend) - Backend that compiles IR to machine-code
 
-- [Test-lang](test-lang) - Language for testing citadel
+- [Test-lang](crates/test-lang) - Language for testing citadel
 
-- [Ciri](ciri) - an interpreter for citdel intermediary representation
+- [Ciri](crates/ciri) - an interpreter for citdel intermediary representation
 
-- [IrParser](irparser) - a parser for tokenizing and parsing IR into valid IR statements as specified in the frontend. This is also used for ciri
+- [IrParser](crates/irparser) - a parser for tokenizing and parsing IR into valid IR statements as specified in the frontend. This is also used for ciri and the engine
+
+- [Engine](crates/engine) - a simple compiler implementation for compiling IR to a specified backend. Uses IRParser to parse the IR.
 
 ## Tooling
 
