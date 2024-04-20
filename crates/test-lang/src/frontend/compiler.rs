@@ -1,8 +1,10 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
-use citadel_frontend::{api::IRCompiler, ir::{self, *}};
+use citadel_api::frontend::ir::{self, *};
 
-use super::ast::{self, BlockStatement, CallExpression, Expression, FnStatement, InfixOpExpr, LetStatement, ReturnStatement, Statement, TypedIdent};
+use super::ast::{
+    self, *
+};
 
 #[derive(Default)]
 pub struct Compiler;
@@ -10,7 +12,7 @@ pub struct Compiler;
 impl Compiler {
     pub fn compile_program(&self, ast: Vec<Statement>) -> Vec<IRStmt> {
         let mut ir_stream = Vec::new();
-        
+
         ir_stream.push(self.init_program());
 
         for stmt in ast {

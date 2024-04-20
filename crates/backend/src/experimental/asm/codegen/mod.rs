@@ -158,9 +158,8 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_args(&mut self, node: &'c FuncStmt) {
-        for i in 0..node.args.len() {
-            let arg = &node.args[i];
-            let size = match arg._type.as_str() {
+        for (i, expr) in node.args.iter().enumerate() {
+            let size = match expr._type.as_str() {
                 "i8" => 1,
                 "i16" => 2,
                 "i32" => 4,
@@ -174,14 +173,13 @@ impl<'c> CodeGenerator<'c> {
             ));
             self.stack_pointer -= size as isize;
             self.symbol_table
-                .insert(&arg.ident, self.stack_pointer);
+                .insert(&expr.ident, self.stack_pointer);
         }
     }
 
     fn gen_call_args(&mut self, node: &'c CallExpr) {
-        for i in 0..node.args.len() {
-            let arg = &node.args[i];
-            let val = match &arg {
+        for (i, expr) in node.args.iter().enumerate() {
+            let val = match &expr {
                 IRExpr::Literal(lit) => match lit {
                     ir::Literal::Int32(val) => *val as i32,
                     int => todo!("Handle non-i32 literals here: {:?}", int),

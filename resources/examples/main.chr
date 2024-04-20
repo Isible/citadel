@@ -11,7 +11,7 @@ extern print
 }
 
 # `*` means that the value is a pointer
-@myFunc(someArg *i32) i32 {
+@myFunc($someArg *i32) i32 {
     $foo i8 = l{59}
     # `^` to create a pointer
     $bar *i8 = ^foo

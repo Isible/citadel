@@ -4,7 +4,7 @@ mod frontend;
 use std::{fs, io, path::PathBuf};
 
 use citadel_api::compile;
-use citadel_backend::experimental::asm::{AsmBackend, TargetX86_64};
+use citadel_api::backend::experimental::asm::{AsmBackend, TargetX86_64};
 
 use frontend::{ast::Statement, lexer::Lexer, parser::Parser};
 

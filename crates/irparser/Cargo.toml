@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clutils = "0.0.10"
+clutils = "0.0.11"
 citadel-frontend = { path = "../frontend" }
 logos = "0.14.0"
 colored = "2.1.0"

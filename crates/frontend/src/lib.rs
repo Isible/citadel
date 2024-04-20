@@ -11,6 +11,5 @@
 //! For help we recommend looking at our own implementation: [`crate::ir_gen`]
 
 pub mod ir;
-pub mod api;
 mod tests;
 mod util;

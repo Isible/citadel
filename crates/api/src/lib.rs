@@ -1,5 +1,9 @@
 //! Greetings traveler, this is the nonexistent api wrapper for the citadel toolchain
 
+pub use citadel_frontend as frontend;
+pub use citadel_middleend as middleend;
+pub use citadel_backend as backend;
+
 use std::{fs, io, marker::PhantomData, path::PathBuf};
 
 use citadel_backend::experimental::api::{Backend, Target};
@@ -8,8 +12,7 @@ use citadel_backend::experimental::api::{Backend, Target};
 macro_rules! compile {
     ($backend:expr, $ir_stream:expr) => {{
         use citadel_api::Output;
-        use citadel_backend::experimental::api::Backend;
-        use citadel_frontend::api::IRCompiler;
+        use citadel_api::backend::experimental::api::Backend;
 
         Output::new($backend, $backend.generate($ir_stream))
     }};

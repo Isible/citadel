@@ -5,5 +5,5 @@ edition = "2021"
 
 [dependencies]
 citadel-irparser = { path = "../irparser" }
-citadel-backend = { path = "../backend" }
+citadel-api = { path = "../api" }
 clap = { version = "4.5.4", features = ["derive"] }

@@ -95,7 +95,9 @@ impl<'l> Parser<'l> {
             Token::LitFloat(float) => {
                 Some(Expression::Literal(Literal::Float(float.parse().unwrap())))
             }
-            Token::LitString(string) => Some(Expression::Literal(Literal::String((*string).into()))),
+            Token::LitString(string) => {
+                Some(Expression::Literal(Literal::String((*string).into())))
+            }
             //Token::LitBool(boolean) => Some(Expression::Literal(Literal::Boolean(
             //    boolean.parse().unwrap(),
             //))),
@@ -117,7 +119,7 @@ impl<'l> Parser<'l> {
 
     fn parse_let_stmt(&mut self) -> Option<Statement> {
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
-        let name = self.parse_typed_ident();
+        let name = self.parse_typed_ident()?;
         expect_tok!(self.peek_tok(), Some(Token::Assign), |tok| ());
         // skip name and assign
         self.next_tok();
@@ -149,7 +151,7 @@ impl<'l> Parser<'l> {
                 self.next_tok();
                 Vec::new()
             }
-            _ => self.parse_def_args(),
+            _ => self.parse_def_args()?,
         };
 
         expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| ());
@@ -159,11 +161,7 @@ impl<'l> Parser<'l> {
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
         self.next_tok();
 
-        let ret_type = match self.cur_tok()? {
-            Token::Ident(ident) => ident,
-            tok => panic!("{tok:?}"),
-        }
-        .to_string();
+        let ret_type = Self::determine_type(self.cur_tok()?);
 
         expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| ());
         self.next_tok();
@@ -221,10 +219,10 @@ impl<'l> Parser<'l> {
     /// Parses the arguments of a function definition
     ///
     /// cur_token should be beginning of the list, for example `(`
-    fn parse_def_args(&mut self) -> Vec<TypedIdent> {
+    fn parse_def_args(&mut self) -> Option<Vec<TypedIdent>> {
         let mut args = Vec::new();
         loop {
-            args.push(self.parse_typed_ident());
+            args.push(self.parse_typed_ident()?);
             if let Some(Token::Comma) = self.peek_tok() {
                 self.next_tok();
             } else if let Some(Token::RParent) = self.cur_tok() {
@@ -232,18 +230,18 @@ impl<'l> Parser<'l> {
             } else if let Some(Token::RParent) = self.peek_tok() {
                 break;
             } else {
-        expect_tok!(self.peek_tok(), Some(Token::RParent), |tok| ());
+                expect_tok!(self.peek_tok(), Some(Token::RParent), |tok| ());
             }
         }
         self.next_tok();
 
-        args
+        Some(args)
     }
 
     /// cur_token should be the token before the first TypedIdent
     ///
     /// cur_token gets set to the type of the ident
-    fn parse_typed_ident(&mut self) -> TypedIdent {
+    fn parse_typed_ident(&mut self) -> Option<TypedIdent> {
         // go to ident
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
         self.next_tok();
@@ -259,13 +257,9 @@ impl<'l> Parser<'l> {
         self.expect_peek_tok_as_type();
         // go to next ident
         self.next_tok();
-        let _type = match self.cur_tok() {
-            Some(Token::Ident(ident)) => ident,
-            tok => panic!("{tok:?}"),
-        }
-        .to_string();
+        let _type = Self::determine_type(self.cur_tok()?);
 
-        TypedIdent { ident, _type }
+        Some(TypedIdent { ident, _type })
     }
 
     fn parse_call_expr(&mut self, left: Expression) -> Option<CallExpression> {
@@ -341,6 +335,18 @@ impl<'l> Parser<'l> {
             Token::LParent => Precedence::Call,
             _ => Precedence::Lowest,
         }
+    }
+
+    fn determine_type(tok: &Token) -> String {
+        match tok {
+            Token::Ident(ident) => ident,
+            Token::Int => "int",
+            Token::Float => "float",
+            Token::String => "string",
+            Token::Char => "char",
+            tok => panic!("Invalid token for type: {tok:?}"),
+        }
+        .to_string()
     }
 
     #[inline(always)]

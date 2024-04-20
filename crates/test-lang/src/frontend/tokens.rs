@@ -24,6 +24,10 @@ pub enum Token<'tok> {
     Int,
     #[token("float")]
     Float,
+    #[token("char")]
+    Char,
+    #[token("string")]
+    String,
 
     #[regex(r#""(?:\\.|[^\\"])*""#)]
     LitString(&'tok str),
