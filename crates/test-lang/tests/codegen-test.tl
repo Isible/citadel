@@ -1,4 +1,4 @@
-fn main(): int {
+fn main(t: int): int {
     let x: int = 9;
     let y: int = 0;
     let z: int = 100;

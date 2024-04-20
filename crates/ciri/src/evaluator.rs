@@ -54,7 +54,7 @@ impl<'a> Evaluator<'a> {
         match node {
             IRExpr::Call(call) => self.eval_call(call),
             IRExpr::Literal(node) => Object::Literal(node),
-            IRExpr::Ident(ident) => self.eval_ident(ident),
+            IRExpr::Ident(ident) => self.eval_ident(ident.0),
             IRExpr::ArithOp(op) => self.eval_arith_op(op),
         }
     }

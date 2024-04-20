@@ -124,7 +124,7 @@ impl Display for IRExpr {
             IRExpr::Call(call) => call.to_string(),
             IRExpr::Literal(lit) => lit.to_string(),
             IRExpr::ArithOp(op) => op.to_string(),
-            IRExpr::Ident(string) => string.into(),
+            IRExpr::Ident(id) => id.to_string(),
         })
     }
 }
@@ -149,5 +149,11 @@ impl Display for Literal {
                 Literal::Vector(val) => format!("<{}>", val.to_string()),
             }
         )
+    }
+}
+
+impl Display for Ident {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "%{}", self.0)
     }
 }

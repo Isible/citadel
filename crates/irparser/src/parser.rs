@@ -3,8 +3,7 @@
 use std::{collections::HashMap, vec};
 
 use citadel_frontend::ir::{
-    self, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt,
-    IRTypedIdent, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt,
+    self, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt
 };
 
 use crate::{expect_tok, lexer::Lexer, parser_error, tokens::Token};
@@ -66,7 +65,7 @@ impl<'l> Parser<'l> {
             Token::LitChar(ch) => Some(IRExpr::Literal(ir::Literal::Char(
                 ch.chars().nth(0).unwrap(),
             ))),
-            Token::Ident(ident) => Some(IRExpr::Ident(ident.to_string())),
+            Token::Ident(ident) => Some(IRExpr::Ident(Ident(ident.to_string()))),
             tok => todo!("cur tok: {tok:?}"),
         }
     }

@@ -26,7 +26,7 @@ pub enum IRStmt {
 pub enum IRExpr {
     Call(CallExpr),
     Literal(Literal),
-    Ident(String),
+    Ident(Ident),
 
     ArithOp(ArithOpExpr),
 }
@@ -60,6 +60,10 @@ pub enum Operator {
     Mul,
     Div,
 }
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Ident(pub String);
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DeclFuncStmt {

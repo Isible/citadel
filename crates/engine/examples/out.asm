@@ -1,7 +1,11 @@
 section .text
 global _start
 _start:
+mov rdi,dword 1009
 call main
+mov rdi, rax
+mov rax, 60
+syscall
 main:
 push rbp
 mov rbp,rsp

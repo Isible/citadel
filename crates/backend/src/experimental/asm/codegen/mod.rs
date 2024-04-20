@@ -87,11 +87,11 @@ impl<'c> CodeGenerator<'c> {
             util::get_stack_location(
                 *self
                     .symbol_table
-                    .get(ret_val.as_str())
+                    .get(ret_val.0.as_str())
                     .or_else(|| {
                         panic!(
                             "Failed to find variable with the name: {} in the current scope",
-                            ret_val.as_str()
+                            ret_val.0.as_str()
                         )
                     })
                     .unwrap(),

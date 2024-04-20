@@ -1,0 +1,10 @@
+'_entry: {
+    call %main(l{1009})
+}
+@main($t i32) i32 {
+    $x i32 = l{9}
+    $y i32 = l{0}
+    $z i32 = l{100}
+    $u i32 = l{1000000}
+    ret %z
+}

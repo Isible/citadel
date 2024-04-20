@@ -1,6 +1,7 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
 use citadel_api::frontend::ir::{self, *};
+use clap::builder::Str;
 
 use super::ast::{
     self, *
@@ -55,10 +56,7 @@ impl Compiler {
 
     fn compile_let_stmt(&self, node: LetStatement) -> IRStmt {
         IRStmt::Variable(VarStmt {
-            name: IRTypedIdent {
-                ident: node.name.ident,
-                _type: node.name._type,
-            },
+            name: self.compile_typed_ident(node.name),
             is_const: true,
             val: self.compile_expr(node.val),
         })
@@ -149,7 +147,7 @@ impl Compiler {
 
     fn compile_lit(&self, node: ast::Literal) -> IRExpr {
         match node {
-            ast::Literal::Ident(ident) => IRExpr::Ident(ident),
+            ast::Literal::Ident(ident) => IRExpr::Ident(Ident(ident)),
             ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
             ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(int)),
             ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),
@@ -159,7 +157,7 @@ impl Compiler {
 
     fn compile_typed_ident(&self, node: TypedIdent) -> IRTypedIdent {
         IRTypedIdent {
-            _type: node._type,
+            _type: Self::compile_type(node._type),
             ident: node.ident,
         }
     }
@@ -178,5 +176,13 @@ impl Compiler {
             out.push(self.compile_stmt(node))
         }
         BlockStmt { stmts: out }
+    }
+
+    fn compile_type(_type: String) -> String {
+        match _type.as_str() {
+            "int" => "i32",
+            "float" => "f32",
+            _ => panic!(),
+        }.to_string()
     }
 }
