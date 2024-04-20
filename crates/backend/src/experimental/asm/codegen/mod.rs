@@ -48,8 +48,10 @@ impl<'c> CodeGenerator<'c> {
     pub fn create_entry(&mut self) {
         self.out.push(AsmElement::Directive(Directive {
             _type: DirectiveType::Text,
-            content: vec![Declaration::Global("_start".to_string())],
         }));
+        self.out.push(AsmElement::Declaration(Declaration::Global(
+            "_start".to_string(),
+        )))
     }
 
     pub fn gen_stmt(&mut self, node: &'c IRStmt) {
@@ -172,8 +174,7 @@ impl<'c> CodeGenerator<'c> {
                 Operand::Register(FUNCTION_ARG_REGISTERS[i]),
             ));
             self.stack_pointer -= size as isize;
-            self.symbol_table
-                .insert(&expr.ident, self.stack_pointer);
+            self.symbol_table.insert(&expr.ident, self.stack_pointer);
         }
     }
 

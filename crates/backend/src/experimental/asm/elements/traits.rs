@@ -21,6 +21,7 @@ impl Display for AsmElement {
                 AsmElement::Instruction(ins) => ins.to_string(),
                 AsmElement::Directive(dir) => dir.to_string(),
                 AsmElement::Operand(op) => op.to_string(),
+                AsmElement::Declaration(decl) => decl.to_string(),
             }
         )
     }
@@ -56,13 +57,12 @@ impl Display for Directive {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "section .{}\n{}",
+            "section .{}",
             match self._type {
                 DirectiveType::Data => "data",
                 DirectiveType::Rodata => "rodata",
                 DirectiveType::Text => "text",
             },
-            self.content.to_string()
         )
     }
 }

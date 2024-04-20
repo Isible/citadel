@@ -14,7 +14,7 @@ mod tests {
     fn test_asm_compiler() {
         let backend = AsmBackend::new(TargetX86_64);
         let asm_code = backend.generate(gen_ir_stream(&"tests/main.chir".into()));
-        util::compiler_output(asm_code, PathBuf::from("tests/out/out.asm"));
+        util::compiler_output(util::format(asm_code), PathBuf::from("tests/out/out.asm"));
     }
 
     fn gen_ir_stream(path: &PathBuf) -> Vec<IRStmt> {

@@ -14,12 +14,12 @@ pub enum AsmElement {
     Instruction(Instruction),
     Directive(Directive),
     Operand(Operand),
+    Declaration(Declaration),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Directive {
     pub _type: DirectiveType,
-    pub content: Vec<Declaration>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
