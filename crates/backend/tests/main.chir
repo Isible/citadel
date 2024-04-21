@@ -1,11 +1,10 @@
 '_entry: {
-    call %main(l{9})
-    exit l{0}
+    exit call %main(l{9})
 }
 
 @main($y i32) void {
     $x i32 = l{100}
-    $y i32 = l{890}
+    $y i32 = l{0}
     call %print(l{"Hellow orld"})
     ret %y
 }

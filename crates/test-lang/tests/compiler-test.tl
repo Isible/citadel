@@ -1,5 +1,7 @@
-fn main(): i32 {
-    let x: i32 = 69;
-    let y: i32 = 420;
-    return y;
+fn main(): int {
+    let x: int = 9;
+    let y: int = 0;
+    let z: int = 100;
+    let u: int = 1000000;
+    exit(0);
 }

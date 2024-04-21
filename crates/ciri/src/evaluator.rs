@@ -52,7 +52,6 @@ impl<'a> Evaluator<'a> {
             IRStmt::Break(br) => todo!(),
             IRStmt::Jump(jmp) => todo!(),
             IRStmt::Call(call) => Some(self.eval_call(call)),
-            IRStmt::Expression(expr) => Some(self.eval_expr(expr)),
         }
     }
 

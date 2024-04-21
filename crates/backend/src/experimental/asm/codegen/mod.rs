@@ -7,10 +7,7 @@
 
 pub mod util;
 
-use std::{
-    collections::{HashMap, HashSet},
-    process::ExitStatus,
-};
+use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::ir::{
     self, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
@@ -68,8 +65,6 @@ impl<'c> CodeGenerator<'c> {
             IRStmt::Break(node) => todo!(),
             IRStmt::Jump(node) => todo!(),
             IRStmt::Call(node) => self.gen_call(node),
-            IRStmt::Expression(IRExpr::Call(node)) => self.gen_call(node),
-            IRStmt::Expression(node) => todo!("{:?}", node),
         }
     }
 
@@ -80,6 +75,20 @@ impl<'c> CodeGenerator<'c> {
                 self.gen_call_args(node);
                 self.out.push(util::gen_call(&node.name))
             }
+        }
+    }
+
+    fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
+        match &node {
+            IRExpr::Literal(lit) => match lit {
+                ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
+                int => todo!("Handle non-i32 literals here: {:?}", int),
+            },
+            IRExpr::Call(call) => {
+                self.out.push(util::gen_call(call.name.as_str()));
+                Operand::Register(Register::Rax)
+            }
+            _ => todo!(),
         }
     }
 
@@ -108,19 +117,14 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_exit(&mut self, node: &'c ExitStmt) {
+        let expr = self.gen_expr(&node.exit_code);
+        self.out.push(util::gen_mov_ins(
+            Operand::Register(Register::Rdi),
+            expr,
+        ));
         self.out.push(util::gen_mov_ins(
             Operand::Register(Register::Rax),
             Operand::Literal(Literal::Int(60)),
-        ));
-        self.out.push(util::gen_mov_ins(
-            Operand::Register(Register::Rdi),
-            Operand::Literal(match &node.exit_code {
-                IRExpr::Literal(lit) => match lit {
-                    ir::Literal::Int32(val) => Literal::Int(*val),
-                    int => todo!("Handle non-i32 literals here: {:?}", int),
-                },
-                _ => todo!(),
-            }),
         ));
         self.out.push(util::gen_syscall());
     }

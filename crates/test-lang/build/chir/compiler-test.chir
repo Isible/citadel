@@ -2,7 +2,9 @@
     call %main()
 }
 @main() i32 {
-    $x i32 = l{69}
-    $y i32 = l{420}
-    ret y
+    $x i32 = l{9}
+    $y i32 = l{0}
+    $z i32 = l{100}
+    $u i32 = l{1000000}
+    exit l{0}
 }

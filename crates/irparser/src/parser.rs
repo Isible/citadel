@@ -67,9 +67,15 @@ impl<'l> Parser<'l> {
             Token::LitChar(ch) => Some(IRExpr::Literal(ir::Literal::Char(
                 ch.chars().nth(0).unwrap(),
             ))),
+            Token::PercentSign => self.parse_ident(),
             Token::Ident(ident) => Some(IRExpr::Ident(Ident(ident.to_string()))),
             tok => todo!("cur tok: {tok:?}"),
         }
+    }
+
+    fn parse_ident(&mut self) -> Option<IRExpr> {
+        self.next_tok();
+        self.parse_expr()
     }
 
     fn parse_variable(&mut self, is_const: bool) -> Option<IRStmt> {
@@ -273,10 +279,6 @@ impl<'l> Parser<'l> {
     }
 
     fn parse_return(&mut self) -> Option<IRStmt> {
-        self.next_tok();
-        expect_tok!(self.cur_tok(), Some(Token::PercentSign), |tok| panic!(
-            "Expected token to be a percent sign, received {tok:?} instead"
-        ));
         self.next_tok();
         let expr = self.parse_expr();
         Some(IRStmt::Return(ReturnStmt { ret_val: expr? }))

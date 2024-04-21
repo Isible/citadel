@@ -3,17 +3,16 @@ section .rodata
 section .text
     global _start
 _start:
-    mov rdi,dword 9
     call main
+    mov rdi,rax
     mov rax,60
-    mov rdi,0
     syscall
 main:
     push rbp
     mov rbp,rsp
     mov [rbp-4],rdi
     mov [rbp-8],dword 100
-    mov [rbp-12],dword 890
+    mov [rbp-12],dword 0
     mov rsi,LC0
     mov rdx,12
     call print

@@ -114,7 +114,6 @@ impl Display for IRStmt {
             IRStmt::Break(br) => br.to_string(),
             IRStmt::Jump(jump) => jump.to_string(),
             IRStmt::Call(call) => call.to_string(),
-            IRStmt::Expression(expr) => expr.to_string(),
         })
     }
 }

@@ -11,7 +11,7 @@ impl Compiler {
     pub fn compile_program(&self, ast: Vec<Statement>) -> Vec<IRStmt> {
         let mut ir_stream = Vec::new();
 
-        ir_stream.push(self.init_program());
+        ir_stream.push(Self::init_program());
 
         for stmt in ast {
             ir_stream.push(self.compile_stmt(stmt))
@@ -19,14 +19,14 @@ impl Compiler {
         ir_stream
     }
 
-    fn init_program(&self) -> IRStmt {
+    fn init_program() -> IRStmt {
         IRStmt::Label(LabelStmt {
             name: "_entry".into(),
             block: BlockStmt {
-                stmts: vec![IRStmt::Expression(IRExpr::Call(CallExpr {
+                stmts: vec![IRStmt::Call(CallExpr {
                     name: "main".into(),
                     args: Vec::new(),
-                }))],
+                })],
             },
         })
     }
@@ -39,13 +39,17 @@ impl Compiler {
             Statement::Loop(_loop) => todo!(),
             Statement::Block(_block) => todo!(),
             Statement::Return(_ret) => self.compile_ret_stmt(_ret),
-            Statement::Expression(_expr) => IRStmt::Expression(self.compile_expr(_expr)),
+            Statement::Expression(Expression::Call(_call)) => match _call.name.as_str() {
+                "exit" => self.compile_exit_stmt(_call),
+                _ => IRStmt::Call(self.compile_call_expr(_call)),
+            },
+            _ => panic!(),
         }
     }
 
     fn compile_expr(&self, expr: Expression) -> IRExpr {
         match expr {
-            Expression::Call(call) => self.compile_call_expr(call),
+            Expression::Call(call) => IRExpr::Call(self.compile_call_expr(call)),
             Expression::Infix(op) => self.compile_arith_op_expr(op),
             Expression::Literal(lit) => self.compile_lit(lit),
         }
@@ -92,14 +96,23 @@ impl Compiler {
         })
     }
 
-    fn compile_call_expr(&self, node: CallExpression) -> IRExpr {
-        IRExpr::Call(CallExpr {
+    fn compile_call_expr(&self, node: CallExpression) -> CallExpr {
+        CallExpr {
             name: match node.name.as_str() {
                 "puts" => "print".into(),
-                "exit" => todo!(),
                 _ => node.name,
             },
             args: self.compile_args(node.args),
+        }
+    }
+
+    fn compile_exit_stmt(&self, node: CallExpression) -> IRStmt {
+        let expr = node
+            .args
+            .get(0)
+            .unwrap_or_else(|| panic!("Expected exit call to have one argument for the exit code"));
+        IRStmt::Exit(ExitStmt {
+            exit_code: self.compile_expr(expr.clone()),
         })
     }
 

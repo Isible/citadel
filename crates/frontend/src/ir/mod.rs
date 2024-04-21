@@ -19,8 +19,6 @@ pub enum IRStmt {
     Break(BreakStmt),
     Jump(JumpStmt),
     Call(CallExpr),
-
-    Expression(IRExpr),
 }
 
 #[derive(Debug, Clone, PartialEq)]
