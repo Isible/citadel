@@ -13,7 +13,6 @@ mod tests {
     #[test]
     fn test_asm_compiler() {
         let backend = AsmBackend::new(TargetX86_64);
-        dbg!(gen_ir_stream(&"tests/main.chir".into()));
         let asm_code = backend.generate(gen_ir_stream(&"tests/main.chir".into()));
         util::compiler_output(util::format(asm_code), PathBuf::from("tests/out/out.asm"));
     }

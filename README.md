@@ -12,7 +12,7 @@ Citadel is designed to be self-hosted, meaning you do not need to install anythi
 
 ## Mission
 
-The mission of this project is to empower more people to try building compilers and for making rust a better option for building them. Let the compiler wars begin :p
+The mission of this project is to empower more people to build compilers and for making rust a better option for developing them. Let the compiler wars begin :p
 
 ## Setup
 

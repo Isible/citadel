@@ -1,7 +1,6 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
 use citadel_api::frontend::ir::{self, *};
-use clap::builder::Str;
 
 use super::ast::{self, *};
 
