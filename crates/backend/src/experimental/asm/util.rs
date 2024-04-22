@@ -1,4 +1,4 @@
-use std::{collections::{HashSet, VecDeque}, fs::File, io::Write, path::PathBuf};
+use std::{collections::HashSet, fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::IRStmt;
 
@@ -17,8 +17,6 @@ pub fn compile_program(input: Vec<IRStmt>, _target: impl Target) -> Vec<AsmEleme
     let data = codegen.rodata;
     let defined_functions = codegen.defined_functions;
     let mut out = codegen.out;
-
-    dbg!(&defined_functions);
 
     // Add data section
     add_data_section(data, &mut out);

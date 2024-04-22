@@ -17,6 +17,10 @@ pub enum AsmElement {
     Declaration(Declaration),
 }
 
+pub trait Size {
+    fn size(&self) -> u8;
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Directive {
     pub _type: DirectiveType,
@@ -55,12 +59,35 @@ pub enum Operand {
     SizedLiteral(Literal, DataSize),
 }
 
+impl Size for Operand {
+    fn size(&self) -> u8 {
+        match self {
+            Operand::Ident(_) => todo!(),
+            Operand::Register(reg) => reg.size(),
+            Operand::MemAddr(_) => 64,
+            Operand::Literal(lit) => lit.size(),
+            Operand::SizedLiteral(_, _) => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataSize {
     Byte,
     Word,
     DWord,
     QWord,
+}
+
+impl Size for DataSize {
+    fn size(&self) -> u8 {
+        match self {
+            DataSize::Byte => 8,
+            DataSize::Word => 16,
+            DataSize::DWord => 32,
+            DataSize::QWord => 64,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -77,7 +104,17 @@ pub enum Literal {
     String(String),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+impl Size for Literal {
+    fn size(&self) -> u8 {
+        match self {
+            Literal::Int(_) => 32,
+            Literal::Float(_) => 32,
+            Literal::String(_) => todo!(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Register {
     // 64 bit
     Rax,
@@ -118,6 +155,117 @@ pub enum Register {
     R13d,
     R14d,
     R15d,
+
+    // 16 bit
+    Ax,
+    Bx,
+    Cx,
+    Dx,
+
+    Si,
+    Di,
+    Sp,
+    Bp,
+
+    R8w,
+    R9w,
+    R10w,
+    R11w,
+    R12w,
+    R13w,
+    R14w,
+    R15w,
+
+    // 8 bit
+    Al,
+    Bl,
+    Cl,
+    Dl,
+
+    Sil,
+    Dil,
+    Spl,
+    Bpl,
+
+    R8b,
+    R9b,
+    R10b,
+    R11b,
+    R12b,
+    R13b,
+    R14b,
+    R15b,
+}
+
+impl Size for Register {
+    fn size(&self) -> u8 {
+        match self {
+            Register::Rax
+            | Register::Rbx
+            | Register::Rcx
+            | Register::Rdx
+            | Register::Rsi
+            | Register::Rdi
+            | Register::Rsp
+            | Register::Rbp
+            | Register::R8
+            | Register::R9
+            | Register::R10
+            | Register::R11
+            | Register::R12
+            | Register::R13
+            | Register::R14
+            | Register::R15 => 64,
+            Register::Eax
+            | Register::Ebx
+            | Register::Ecx
+            | Register::Edx
+            | Register::Edi
+            | Register::Esi
+            | Register::Ebp
+            | Register::Esp
+            | Register::R8d
+            | Register::R9d
+            | Register::R10d
+            | Register::R11d
+            | Register::R12d
+            | Register::R13d
+            | Register::R14d
+            | Register::R15d => 32,
+            Register::Ax
+            | Register::Bx
+            | Register::Cx
+            | Register::Dx
+            | Register::Si
+            | Register::Di
+            | Register::Sp
+            | Register::Bp
+            | Register::R8w
+            | Register::R9w
+            | Register::R10w
+            | Register::R11w
+            | Register::R12w
+            | Register::R13w
+            | Register::R14w
+            | Register::R15w => 16,
+            Register::Al
+            | Register::Bl
+            | Register::Cl
+            | Register::Dl
+            | Register::Sil
+            | Register::Dil
+            | Register::Spl
+            | Register::Bpl
+            | Register::R8b
+            | Register::R9b
+            | Register::R10b
+            | Register::R11b
+            | Register::R12b
+            | Register::R13b
+            | Register::R14b
+            | Register::R15b => 8,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -180,8 +328,14 @@ impl StdFunction {
                     AsmElement::Label(Label {
                         name: self.name().to_string(),
                     }),
-                    util::gen_mov_ins(Operand::Register(Register::Rax), Operand::Literal(Literal::Int(1))),
-                    util::gen_mov_ins(Operand::Register(Register::Rdi), Operand::Literal(Literal::Int(1))),
+                    util::gen_mov_ins(
+                        Operand::Register(Register::Rax),
+                        Operand::Literal(Literal::Int(1)),
+                    ),
+                    util::gen_mov_ins(
+                        Operand::Register(Register::Rdi),
+                        Operand::Literal(Literal::Int(1)),
+                    ),
                     util::gen_syscall(),
                     util::gen_ret(),
                 ]

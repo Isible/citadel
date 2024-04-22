@@ -1,10 +1,9 @@
 '_entry: {
-    exit call %main(l{9})
+    exit call %main()
 }
-
-@main($y i32) void {
-    $x i32 = l{100}
-    $y i32 = l{0}
-    call %print(l{"Hellow orld"})
-    ret %y
+@main() i8 {
+    ret call %addd(l{2:i32},l{3},l{12})
+}
+@addd($x i8,$y i8,$z i8) i8 {
+    ret add add %x, %y, %z
 }

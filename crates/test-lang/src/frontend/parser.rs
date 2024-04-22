@@ -69,7 +69,6 @@ impl<'l> Parser<'l> {
 
         while !self.peek_is_end() && prec < self.get_precedence(self.peek_tok()?) {
             self.next_tok();
-            // Unwrap here might not be safe. Observe this
             left_expression = self.parse_infix(left_expression?);
         }
 
@@ -116,15 +115,21 @@ impl<'l> Parser<'l> {
     }
 
     fn parse_let_stmt(&mut self) -> Option<Statement> {
-        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| panic!(
+            "Expected peek token to be Ident, received {tok:?} instead"
+        ));
         let name = self.parse_typed_ident()?;
-        expect_tok!(self.peek_tok(), Some(Token::Assign), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Assign), |tok| panic!(
+            "Expected peek token to be ASSIGN, received {tok:?} instead"
+        ));
         // skip name and assign
         self.next_tok();
         self.next_tok();
 
         let val = self.parse_expr(Precedence::Lowest)?;
-        expect_tok!(self.peek_tok(), Some(Token::Semicolon), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Semicolon), |tok| panic!(
+            "Expected peek token to be SEMICOLON, received {tok:?} instead"
+        ));
 
         // expression value and semicolon
         self.next_tok();
@@ -132,7 +137,9 @@ impl<'l> Parser<'l> {
     }
 
     fn parse_fn_stmt(&mut self) -> Option<Statement> {
-        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| panic!(
+            "Expected peek token to be Ident, received {tok:?} instead"
+        ));
         self.next_tok();
 
         let name = match self.cur_tok()? {
@@ -141,7 +148,9 @@ impl<'l> Parser<'l> {
         }
         .to_string();
 
-        expect_tok!(self.peek_tok(), Some(Token::LParent), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::LParent), |tok| panic!(
+            "Expected peek token to be LPARENT, received {tok:?} instead"
+        ));
         self.next_tok();
 
         let args = match self.peek_tok()? {
@@ -152,16 +161,28 @@ impl<'l> Parser<'l> {
             _ => self.parse_def_args()?,
         };
 
-        expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| panic!(
+            "Expected peek token to be COLON, received {tok:?} instead"
+        ));
 
         self.next_tok();
 
-        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
+        expect_tok!(
+            self.peek_tok(),
+            Some(Token::Ident(_))
+                | Some(Token::Int)
+                | Some(Token::String)
+                | Some(Token::Char)
+                | Some(Token::Float),
+            |tok| panic!("Expected peek token to be IDENT, received {tok:?} instead")
+        );
         self.next_tok();
 
         let ret_type = Self::determine_type(self.cur_tok()?);
 
-        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| panic!(
+            "Expected peek token to be LCURLY, received {tok:?} instead"
+        ));
         self.next_tok();
 
         let block = self.parse_block_stmt(Token::RCurly);
@@ -180,7 +201,9 @@ impl<'l> Parser<'l> {
     fn parse_if_stmt(&mut self) -> Option<Statement> {
         self.next_tok();
         let condition = self.parse_expr(Precedence::Lowest)?;
-        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| panic!(
+            "Expected peek token to be LCURLY, received {tok:?} instead"
+        ));
         // go to left curly bracket
         self.next_tok();
         let block = self.parse_block_stmt(Token::RCurly);
@@ -193,8 +216,11 @@ impl<'l> Parser<'l> {
     fn parse_return_stmt(&mut self) -> Option<Statement> {
         self.next_tok();
         let val = self.parse_expr(Precedence::Lowest);
-        expect_tok!(self.peek_tok(), Some(Token::Semicolon), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Semicolon), |tok| panic!(
+            "Expected peek token to be SEMICOLON, received {tok:?} instead"
+        ));
         self.next_tok();
+        dbg!("after ret: {}", self.peek_tok());
         Some(Statement::Return(ReturnStatement { val: val? }))
     }
 
@@ -208,6 +234,7 @@ impl<'l> Parser<'l> {
                 Some(stmt) => stmt,
                 None => break,
             });
+            dbg!(self.peek_tok());
             self.next_tok();
         }
 
@@ -223,12 +250,15 @@ impl<'l> Parser<'l> {
             args.push(self.parse_typed_ident()?);
             if let Some(Token::Comma) = self.peek_tok() {
                 self.next_tok();
+            // FIXME: These else branches are highly
             } else if let Some(Token::RParent) = self.cur_tok() {
                 break;
             } else if let Some(Token::RParent) = self.peek_tok() {
                 break;
             } else {
-                expect_tok!(self.peek_tok(), Some(Token::RParent), |tok| ());
+                expect_tok!(self.peek_tok(), Some(Token::RParent), |tok| panic!(
+                    "Expected peek token to be RPARENT, received {tok:?} instead"
+                ));
             }
         }
         self.next_tok();
@@ -241,7 +271,9 @@ impl<'l> Parser<'l> {
     /// cur_token gets set to the type of the ident
     fn parse_typed_ident(&mut self) -> Option<TypedIdent> {
         // go to ident
-        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| panic!(
+            "Expected peek token to be Ident, received {tok:?} instead"
+        ));
         self.next_tok();
         let ident = match self.cur_tok() {
             Some(Token::Ident(ident)) => ident,
@@ -249,7 +281,9 @@ impl<'l> Parser<'l> {
         }
         .to_string();
         // go to colon
-        expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| ());
+        expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| panic!(
+            "Expected peek token to be COLON, received {tok:?} instead"
+        ));
         self.next_tok();
 
         self.expect_peek_tok_as_type();
@@ -267,10 +301,6 @@ impl<'l> Parser<'l> {
         };
 
         let args = self.parse_call_args()?;
-
-        if let Some(Token::Semicolon) = self.peek_tok() {
-            self.next_tok();
-        }
 
         Some(CallExpression { name, args })
     }

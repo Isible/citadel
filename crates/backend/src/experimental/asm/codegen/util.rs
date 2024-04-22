@@ -30,8 +30,8 @@ pub(crate) fn gen_syscall() -> AsmElement {
     })
 }
 
-pub(crate) fn get_stack_location(pos: isize) -> Operand {
-    Operand::MemAddr(MemAddr::RegisterPos(Register::Rbp, pos as i32))
+pub(crate) fn get_stack_location(pos: i32) -> Operand {
+    Operand::MemAddr(MemAddr::RegisterPos(Register::Rbp, pos))
 }
 
 pub(crate) fn create_stackframe() -> (AsmElement, AsmElement) {
@@ -55,5 +55,15 @@ pub(super) fn string_from_lit(lit: &IRExpr) -> &String {
     match lit {
         IRExpr::Literal(ir::Literal::String(s)) => s,
         _ => panic!("Expected string literal"),
+    }
+}
+
+pub(super) fn arg_regs_by_size(size: u8) -> [Register; 6] {
+    match size {
+        8 => super::FUNCTION_ARG_REGISTERS_8,
+        16 => super::FUNCTION_ARG_REGISTERS_16,
+        32 => super::FUNCTION_ARG_REGISTERS_32,
+        64 => super::FUNCTION_ARG_REGISTERS_64,
+        _ => panic!("Invalid size: {size}")
     }
 }

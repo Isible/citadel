@@ -23,9 +23,11 @@ impl Compiler {
         IRStmt::Label(LabelStmt {
             name: "_entry".into(),
             block: BlockStmt {
-                stmts: vec![IRStmt::Call(CallExpr {
-                    name: "main".into(),
-                    args: Vec::new(),
+                stmts: vec![IRStmt::Exit(ExitStmt {
+                    exit_code: IRExpr::Call(CallExpr {
+                        name: "main".into(),
+                        args: Vec::new(),
+                    }),
                 })],
             },
         })
@@ -40,7 +42,7 @@ impl Compiler {
             Statement::Block(_block) => todo!(),
             Statement::Return(_ret) => self.compile_ret_stmt(_ret),
             Statement::Expression(Expression::Call(_call)) => match _call.name.as_str() {
-                "exit" => self.compile_exit_stmt(_call),
+                "exit" => self.compile_exit_call(_call),
                 _ => IRStmt::Call(self.compile_call_expr(_call)),
             },
             _ => panic!(),
@@ -88,7 +90,7 @@ impl Compiler {
             name: IRTypedIdent {
                 _type: match node.name.as_str() {
                     "main" => "i32".into(),
-                    _ => node.ret_type,
+                    _ => Self::compile_type(node.ret_type),
                 },
                 ident: node.name,
             },
@@ -106,7 +108,7 @@ impl Compiler {
         }
     }
 
-    fn compile_exit_stmt(&self, node: CallExpression) -> IRStmt {
+    fn compile_exit_call(&self, node: CallExpression) -> IRStmt {
         let expr = node
             .args
             .get(0)

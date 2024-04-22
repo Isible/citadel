@@ -1,10 +1,9 @@
 '_entry: {
-    call %main()
+    exit call %main()
 }
 @main() i32 {
-    $x i32 = l{9}
-    $y i32 = l{0}
-    $z i32 = l{100}
-    $u i32 = l{1000000}
-    exit l{0}
+    ret call %addd(l{2},l{3},l{12})
+}
+@addd($x i32,$y i32,$z i32) i32 {
+    ret add add %x, %y, %z
 }

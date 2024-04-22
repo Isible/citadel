@@ -1,5 +1,3 @@
-section .rodata
-    LC0 db "Hellow orld", 10
 section .text
     global _start
 _start:
@@ -10,17 +8,23 @@ _start:
 main:
     push rbp
     mov rbp,rsp
-    mov [rbp-4],rdi
-    mov [rbp-8],dword 100
-    mov [rbp-12],dword 0
-    mov rsi,LC0
-    mov rdx,12
-    call print
-    mov rax,[rbp-12]
+    mov edi,2
+    mov esi,3
+    mov edx,12
+    call addd
+    mov rax,rax
     pop rbp
     ret
-print:
-    mov rax,1
-    mov rdi,1
-    syscall
+addd:
+    push rbp
+    mov rbp,rsp
+    mov [rbp-8],al
+    mov [rbp-16],bl
+    mov [rbp-24],cl
+    mov rax,[rbp-8]
+    add rax,[rbp-16]
+    mov rax,rax
+    add rax,[rbp-24]
+    mov rax,rax
+    pop rbp
     ret

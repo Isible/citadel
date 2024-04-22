@@ -24,8 +24,10 @@ impl VecDisplay for Vec<IRTypedIdent> {
     fn to_string(&self) -> String {
         let mut idents = Vec::new();
         for ident in self {
-            idents.push(format!("${} {}", ident.ident, ident._type));
+            idents.push(format!("${} {},", ident.ident, ident._type));
         }
-        idents.join("")
+        let mut idents = idents.join("");
+        idents.pop();
+        idents
     }
 }

@@ -7,19 +7,49 @@
 
 pub mod util;
 
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    vec,
+};
 
 use citadel_frontend::ir::{
-    self, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
+    self, ArithOpExpr, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
 };
 
 use crate::experimental::asm::elements::{
     AsmElement, Declaration, Directive, DirectiveType, Literal,
 };
 
-use super::elements::{DataSize, Instruction, Label, Opcode, Operand, Register, StdFunction};
+use super::elements::{Instruction, Label, Opcode, Operand, Register, Size, StdFunction};
 
-pub const FUNCTION_ARG_REGISTERS: [Register; 6] = [
+pub const FUNCTION_ARG_REGISTERS_8: [Register; 6] = [
+    Register::Al,
+    Register::Bl,
+    Register::Cl,
+    Register::Dl,
+    Register::R9b,
+    Register::R10b,
+];
+
+pub const FUNCTION_ARG_REGISTERS_16: [Register; 6] = [
+    Register::Ax,
+    Register::Bx,
+    Register::Cx,
+    Register::Dx,
+    Register::R9w,
+    Register::R10w,
+];
+
+pub const FUNCTION_ARG_REGISTERS_32: [Register; 6] = [
+    Register::Edi,
+    Register::Esi,
+    Register::Edx,
+    Register::Ecx,
+    Register::R9d,
+    Register::R10d,
+];
+
+pub const FUNCTION_ARG_REGISTERS_64: [Register; 6] = [
     Register::Rdi,
     Register::Rsi,
     Register::Rdx,
@@ -27,7 +57,7 @@ pub const FUNCTION_ARG_REGISTERS: [Register; 6] = [
     Register::R9,
     Register::R10,
 ];
-
+// TODO: Implement type suffixes for literals in the IR
 #[derive(Default)]
 pub struct CodeGenerator<'c> {
     pub out: Vec<AsmElement>,
@@ -39,9 +69,9 @@ pub struct CodeGenerator<'c> {
     pub lc_index: usize,
 
     pub defined_functions: HashSet<StdFunction>,
-    pub symbol_table: HashMap<&'c str, isize>,
+    pub symbol_table: HashMap<&'c str, i32>,
 
-    pub stack_pointer: isize,
+    pub stack_pointer: i32,
 }
 
 impl<'c> CodeGenerator<'c> {
@@ -68,6 +98,27 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
+    fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
+        match &node {
+            IRExpr::Literal(lit) => match lit {
+                ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
+                int => todo!("Handle non-i32 literals here: {:?}", int),
+            },
+            IRExpr::Call(call) => {
+                self.gen_call(call);
+                let reg = Register::Rax;
+                Operand::Register(reg)
+            }
+            IRExpr::ArithOp(arithop) => self.gen_arith_op(arithop, true),
+            IRExpr::Ident(ident) => util::get_stack_location(
+                *self
+                    .symbol_table
+                    .get(ident.0.as_str())
+                    .unwrap_or_else(|| panic!("Could not find ident with name {ident:?}")),
+            ),
+        }
+    }
+
     fn gen_call(&mut self, node: &'c CallExpr) {
         match node.name.as_str() {
             "print" => self.gen_print(node),
@@ -78,50 +129,45 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
-    fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
-        match &node {
-            IRExpr::Literal(lit) => match lit {
-                ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
-                int => todo!("Handle non-i32 literals here: {:?}", int),
-            },
-            IRExpr::Call(call) => {
-                self.out.push(util::gen_call(call.name.as_str()));
-                Operand::Register(Register::Rax)
-            }
-            _ => todo!(),
+    fn gen_arith_op(&mut self, node: &'c ArithOpExpr, move_to_rax: bool) -> Operand {
+        if move_to_rax {
+            let left_expr = self.gen_expr(&*node.values.0);
+            self.out.push(util::gen_mov_ins(
+                Operand::Register(Register::Rax),
+                left_expr,
+            ))
         }
+        let arith_op = match node.op {
+            ir::Operator::Add => AsmElement::Instruction(Instruction {
+                opcode: Opcode::Add,
+                args: vec![
+                    Operand::Register(Register::Rax),
+                    match &*node.values.1 {
+                        IRExpr::ArithOp(expr) => self.gen_arith_op(expr, false),
+                        expr => self.gen_expr(expr),
+                    },
+                ],
+            }),
+            ir::Operator::Sub => todo!(),
+            ir::Operator::Mul => todo!(),
+            ir::Operator::Div => todo!(),
+        };
+        self.out.push(arith_op);
+        Operand::Register(Register::Rax)
     }
 
-    fn gen_return(&mut self, node: &ReturnStmt) {
-        let ret_val = match &node.ret_val {
-            IRExpr::Ident(ident) => ident.clone(),
-            _ => todo!("Handle non-literal expressions here"),
-        };
-        self.out.push(util::gen_mov_ins(
-            Operand::Register(Register::Rax),
-            util::get_stack_location(
-                *self
-                    .symbol_table
-                    .get(ret_val.0.as_str())
-                    .or_else(|| {
-                        panic!(
-                            "Failed to find variable with the name: {} in the current scope",
-                            ret_val.0.as_str()
-                        )
-                    })
-                    .unwrap(),
-            ),
-        ));
+    fn gen_return(&mut self, node: &'c ReturnStmt) {
+        let val = self.gen_expr(&node.ret_val);
+        self.out
+            .push(util::gen_mov_ins(Operand::Register(Register::Rax), val));
         self.out.push(util::destroy_stackframe());
         self.out.push(util::gen_ret());
     }
 
     fn gen_exit(&mut self, node: &'c ExitStmt) {
         let expr = self.gen_expr(&node.exit_code);
-        self.out.push(util::gen_mov_ins(
-            Operand::Register(Register::Rdi),
-            expr,
-        ));
+        self.out
+            .push(util::gen_mov_ins(Operand::Register(Register::Rdi), expr));
         self.out.push(util::gen_mov_ins(
             Operand::Register(Register::Rax),
             Operand::Literal(Literal::Int(60)),
@@ -138,18 +184,12 @@ impl<'c> CodeGenerator<'c> {
             "i128" => 16,
             typename => todo!("Compilation of type: {} is not implemented yet", typename),
         };
-        let val = match &node.val {
-            IRExpr::Literal(lit) => match lit {
-                ir::Literal::Int32(val) => *val,
-                int => todo!("Handle non-i32 literals here: {:?}", int),
-            },
-            _ => todo!("Handle non-literal expressions here"),
-        };
+        let val = self.gen_expr(&node.val);
         self.out.push(util::gen_mov_ins(
             util::get_stack_location((self.stack_pointer as i32 - size).try_into().unwrap()),
-            Operand::SizedLiteral(Literal::Int(val), DataSize::DWord),
+            val,
         ));
-        self.stack_pointer -= size as isize;
+        self.stack_pointer -= size;
         self.symbol_table
             .insert(&node.name.ident, self.stack_pointer);
     }
@@ -188,34 +228,28 @@ impl<'c> CodeGenerator<'c> {
     fn gen_args(&mut self, node: &'c FuncStmt) {
         for (i, expr) in node.args.iter().enumerate() {
             let size = match expr._type.as_str() {
-                "i8" => 1,
-                "i16" => 2,
-                "i32" => 4,
-                "i64" => 8,
-                "i128" => 16,
+                "i8" => 8,
+                "i16" => 16,
+                "i32" => 32,
+                "i64" => 64,
+                "i128" => 128,
                 typename => todo!("Compilation of type: {} is not implemented yet", typename),
             };
             self.out.push(util::gen_mov_ins(
                 util::get_stack_location((self.stack_pointer as i32 - size).try_into().unwrap()),
-                Operand::Register(FUNCTION_ARG_REGISTERS[i]),
+                Operand::Register(util::arg_regs_by_size(size as u8)[i]),
             ));
-            self.stack_pointer -= size as isize;
+            self.stack_pointer -= size;
             self.symbol_table.insert(&expr.ident, self.stack_pointer);
         }
     }
 
     fn gen_call_args(&mut self, node: &'c CallExpr) {
         for (i, expr) in node.args.iter().enumerate() {
-            let val = match &expr {
-                IRExpr::Literal(lit) => match lit {
-                    ir::Literal::Int32(val) => *val as i32,
-                    int => todo!("Handle non-i32 literals here: {:?}", int),
-                },
-                _ => todo!("Handle non-literal expressions here"),
-            };
+            let val = self.gen_expr(expr);
             self.out.push(util::gen_mov_ins(
-                Operand::Register(FUNCTION_ARG_REGISTERS[i]),
-                Operand::SizedLiteral(Literal::Int(val), DataSize::DWord),
+                Operand::Register(util::arg_regs_by_size(val.size())[i]),
+                val,
             ));
         }
     }

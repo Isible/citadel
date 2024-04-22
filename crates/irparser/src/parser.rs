@@ -359,10 +359,7 @@ impl<'l> Parser<'l> {
         let mut block = Vec::new();
         while self.peek_tok() != Some(&Token::RCurly) {
             self.next_tok();
-            block.push(match self.parse_stmt() {
-                Some(stmt) => stmt,
-                None => return None,
-            });
+            block.push(self.parse_stmt()?);
         }
         self.next_tok();
         Some(BlockStmt { stmts: block })

@@ -17,7 +17,7 @@ macro_rules! parser_error {
     ($($arg:tt)+) => {{
         use colored::Colorize;
 
-        eprintln!("{}: {}", "Parser Error".red(), format_args!($($arg)+))
+        panic!("{}: {}", "Parser Error".red(), format_args!($($arg)+));
     }};
 }
 
