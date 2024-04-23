@@ -34,11 +34,12 @@ impl<'l> Parser<'l> {
         program
     }
 
+    
     pub fn parse_stmt(&mut self) -> Option<IRStmt> {
         match self.cur_tok()? {
             Token::DollarSign => self.parse_variable(true),
             Token::QuestionMark => self.parse_variable(false),
-            Token::At => self.parse_function(),
+            Token::Func => self.parse_function(),
             Token::Apostrophe => self.parse_label(),
             Token::Decl => self.parse_function_decl(),
             Token::Call => self.parse_call().map(|call| IRStmt::Call(call)),

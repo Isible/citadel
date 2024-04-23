@@ -10,12 +10,12 @@ This entry point should then call your main function. However, it can do pretty 
 
 **Example**:
 
-```txt
+```chir
 entry {
     call %main()
 }
 
-@main() i32 {
+func @main() i32 {
     $exit_code i32 = l{0}
     ret exit_code
 }

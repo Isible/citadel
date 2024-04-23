@@ -5,13 +5,13 @@ extern print
     call %main()
 }
 
-@main() i32 {
+func @main() i32 {
     ?bar i8 = l{69}
     call %print(l{"Hello World"})
 }
 
 # `*` means that the value is a pointer
-@myFunc($someArg *i32) i32 {
+func @myFunc($someArg *i32) i32 {
     $foo i8 = l{59}
     # `^` to create a pointer
     $bar *i8 = ^foo

@@ -8,7 +8,7 @@ impl Display for DeclFuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "decl @{}({}) {}",
+            "decl func @{}({}) {}",
             self.name.ident,
             self.args.to_string(),
             self.name._type
@@ -20,7 +20,7 @@ impl Display for FuncStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "@{}({}) {} {{\n{}\n}}",
+            "func @{}({}) {} {{\n{}\n}}",
             self.name.ident,
             self.args.to_string(),
             self.name._type,
@@ -34,7 +34,7 @@ impl Display for VarStmt {
         write!(
             f,
             "{}{} {} = {}",
-            if self.is_const { "$" } else { "?" },
+            if self.is_const { '$' } else { '?' },
             self.name.ident,
             self.name._type,
             self.val

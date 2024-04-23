@@ -3,4 +3,4 @@
 $unitialized i8 = salloc i8
 
 # abstract function defined elsewhere
-decl @test() i32
+decl func @test() i32

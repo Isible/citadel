@@ -58,6 +58,9 @@ pub enum Token<'tok> {
     /// marks a function as declared only meaning it gets initialized in a different module
     #[token("decl")]
     Decl,
+    /// Define a function
+    #[token("func")]
+    Func,
     /// Call a function
     #[token("call")]
     Call,
