@@ -8,8 +8,7 @@
 pub mod util;
 
 use std::{
-    collections::{HashMap, HashSet},
-    vec,
+    collections::{HashMap, HashSet}, f32::consts::E, vec
 };
 
 use citadel_frontend::ir::{
@@ -176,20 +175,13 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_variable(&mut self, node: &'c VarStmt) {
-        let size = match node.name._type.as_str() {
-            "i8" => 1,
-            "i16" => 2,
-            "i32" => 4,
-            "i64" => 8,
-            "i128" => 16,
-            typename => todo!("Compilation of type: {} is not implemented yet", typename),
-        };
+        let size = util::int_size(&node.name._type);
         let val = self.gen_expr(&node.val);
         self.out.push(util::gen_mov_ins(
-            util::get_stack_location((self.stack_pointer as i32 - size).try_into().unwrap()),
+            util::get_stack_location((self.stack_pointer - (size / 8) as i32).try_into().unwrap()),
             val,
         ));
-        self.stack_pointer -= size;
+        self.stack_pointer -= (size / 8) as i32;
         self.symbol_table
             .insert(&node.name.ident, self.stack_pointer);
     }
@@ -227,19 +219,12 @@ impl<'c> CodeGenerator<'c> {
 
     fn gen_args(&mut self, node: &'c FuncStmt) {
         for (i, expr) in node.args.iter().enumerate() {
-            let size = match expr._type.as_str() {
-                "i8" => 8,
-                "i16" => 16,
-                "i32" => 32,
-                "i64" => 64,
-                "i128" => 128,
-                typename => todo!("Compilation of type: {} is not implemented yet", typename),
-            };
+            let size = util::int_size(&expr._type);
             self.out.push(util::gen_mov_ins(
-                util::get_stack_location((self.stack_pointer as i32 - size).try_into().unwrap()),
+                util::get_stack_location((self.stack_pointer - (size / 8) as i32).try_into().unwrap()),
                 Operand::Register(util::arg_regs_by_size(size as u8)[i]),
             ));
-            self.stack_pointer -= size;
+            self.stack_pointer -= (size / 8) as i32;
             self.symbol_table.insert(&expr.ident, self.stack_pointer);
         }
     }

@@ -1,6 +1,8 @@
 use citadel_frontend::ir::{self, IRExpr};
 
-use crate::experimental::asm::elements::{AsmElement, Instruction, MemAddr, Opcode, Operand, Register};
+use crate::experimental::asm::elements::{
+    AsmElement, Instruction, MemAddr, Opcode, Operand, Register,
+};
 
 pub(crate) fn gen_mov_ins(target: Operand, val: Operand) -> AsmElement {
     AsmElement::Instruction(Instruction {
@@ -40,7 +42,10 @@ pub(crate) fn create_stackframe() -> (AsmElement, AsmElement) {
             opcode: Opcode::Push,
             args: vec![Operand::Register(Register::Rbp)],
         }),
-        gen_mov_ins(Operand::Register(Register::Rbp), Operand::Register(Register::Rsp)),
+        gen_mov_ins(
+            Operand::Register(Register::Rbp),
+            Operand::Register(Register::Rsp),
+        ),
     )
 }
 
@@ -64,6 +69,17 @@ pub(super) fn arg_regs_by_size(size: u8) -> [Register; 6] {
         16 => super::FUNCTION_ARG_REGISTERS_16,
         32 => super::FUNCTION_ARG_REGISTERS_32,
         64 => super::FUNCTION_ARG_REGISTERS_64,
-        _ => panic!("Invalid size: {size}")
+        _ => panic!("Invalid size: {size}"),
+    }
+}
+
+pub(super) fn int_size(int: &str) -> u8 {
+    match int {
+        "i8" => 8,
+        "i16" => 16,
+        "i32" => 32,
+        "i64" => 64,
+        "i128" => 128,
+        typename => todo!("Compilation of type: {} is not implemented yet", typename),
     }
 }
