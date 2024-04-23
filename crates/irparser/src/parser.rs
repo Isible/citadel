@@ -124,6 +124,10 @@ impl<'l> Parser<'l> {
     }
 
     fn parse_function(&mut self) -> Option<IRStmt> {
+        expect_tok!(self.peek_tok(), Some(Token::At), |tok| parser_error!(
+            "Expected peek token to be an @, received {tok:?} instead"
+        ));
+        self.next_tok();
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| parser_error!(
             "Expected peek token to be an identifier specifying the name, received {tok:?} instead"
         ));

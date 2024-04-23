@@ -1,7 +1,7 @@
 '_entry: {
     call %main()
 }
-@main() i32 {
+func @main() i32 {
     $x i32 = l{9}
     $y i32 = l{0}
     $z i32 = l{100}
