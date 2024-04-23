@@ -94,6 +94,7 @@ impl<'c> CodeGenerator<'c> {
             IRStmt::Break(node) => todo!(),
             IRStmt::Jump(node) => todo!(),
             IRStmt::Call(node) => self.gen_call(node),
+            _ => panic!("//TODO:")
         }
     }
 

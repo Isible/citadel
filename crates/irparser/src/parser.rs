@@ -1,10 +1,11 @@
 //! Parser for parsing list of tokens into list of actually related AST nodes
 
-use std::{collections::HashMap, vec};
+use std::{collections::HashMap, sync::Arc, vec};
 
 use citadel_frontend::ir::{
     self, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr,
-    IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Operator, ReturnStmt, VarStmt,
+    IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Operator, ReturnStmt, StructStmt, UnionStmt,
+    VarStmt,
 };
 
 use crate::{expect_tok, lexer::Lexer, parser_error, tokens::Token};
@@ -33,7 +34,7 @@ impl<'l> Parser<'l> {
         }
         program
     }
-    
+
     pub fn parse_stmt(&mut self) -> Option<IRStmt> {
         match self.cur_tok()? {
             Token::DollarSign => self.parse_variable(true),
@@ -46,7 +47,12 @@ impl<'l> Parser<'l> {
             Token::Exit => self.parse_exit(),
             Token::Break => self.parse_break(),
             Token::Jump => self.parse_jump(),
-            tok => panic!("Cannot parse statement from token: {tok:?}"),
+            Token::Struct => self.parse_struct(),
+            Token::Union => self.parse_union(),
+            tok => panic!(
+                "Cannot parse statement from token: {tok:?} (peek: {:?})",
+                self.peek_tok()
+            ),
         }
     }
 
@@ -58,11 +64,9 @@ impl<'l> Parser<'l> {
             Token::Mul => self.parse_arith_op_expr(Operator::Mul),
             Token::Div => self.parse_arith_op_expr(Operator::Div),
             Token::LitString(str) => Some(IRExpr::Literal(ir::Literal::String((*str).into()))),
-            Token::LitInt(int) => {
-                Some(IRExpr::Literal(ir::Literal::Int32(
-                    int.parse::<i32>().unwrap(),
-                )))
-            }
+            Token::LitInt(int) => Some(IRExpr::Literal(ir::Literal::Int32(
+                int.parse::<i32>().unwrap(),
+            ))),
             Token::LitChar(ch) => Some(IRExpr::Literal(ir::Literal::Char(
                 ch.chars().nth(0).unwrap(),
             ))),
@@ -119,6 +123,63 @@ impl<'l> Parser<'l> {
         });
         self.symbols.insert(ident.into(), var.clone());
         Some(var)
+    }
+
+    fn parse_struct(&mut self) -> Option<IRStmt> {
+        expect_tok!(self.peek_tok(), Some(Token::At), |tok| parser_error!(
+            "Expected peek token to be an @, received {tok:?} instead"
+        ));
+        self.next_tok();
+        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| parser_error!(
+            "Expected peek token to be an identifier specifying the name, received {tok:?} instead"
+        ));
+        self.next_tok();
+
+        let name = match self.cur_tok() {
+            Some(Token::Ident(ident)) => *ident,
+            _ => unreachable!(),
+        }
+        .to_string();
+
+        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| {
+            parser_error!(
+            "Expected peek token to be a lcurly declaring the block containing the struct fields, received {tok:?} instead"
+        )
+        });
+        self.next_tok();
+
+        let fields = self.parse_arg_list(Token::RCurly)?;
+        dbg!(self.cur_tok());
+
+        Some(IRStmt::Struct(StructStmt { name, fields }))
+    }
+
+    fn parse_union(&mut self) -> Option<IRStmt> {
+        expect_tok!(self.peek_tok(), Some(Token::At), |tok| parser_error!(
+            "Expected peek token to be an @, received {tok:?} instead"
+        ));
+        self.next_tok();
+        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| parser_error!(
+            "Expected peek token to be an identifier specifying the name, received {tok:?} instead"
+        ));
+        self.next_tok();
+
+        let name = match self.cur_tok() {
+            Some(Token::Ident(ident)) => *ident,
+            _ => unreachable!(),
+        }
+        .to_string();
+
+        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| {
+            parser_error!(
+            "Expected peek token to be a lcurly declaring the block containing the struct fields, received {tok:?} instead"
+        )
+        });
+        self.next_tok();
+
+        let variants = self.parse_arg_list(Token::RCurly)?;
+
+        Some(IRStmt::Union(UnionStmt { name, variants }))
     }
 
     fn parse_function(&mut self) -> Option<IRStmt> {
@@ -404,9 +465,15 @@ impl<'l> Parser<'l> {
         let mut args = Vec::new();
         self.next_tok();
         loop {
-            expect_tok!(self.cur_tok(), Some(Token::DollarSign), |tok| panic!(
-                "Expected dollar sign, received {tok:?} instead"
-            ));
+            if self.cur_tok() == Some(&end) {
+                return Some(args);
+            }
+
+            expect_tok!(
+                self.cur_tok(),
+                Some(Token::DollarSign),
+                |tok| parser_error!("Expected dollar sign, received {tok:?} instead")
+            );
             self.next_tok();
             args.push(match self.parse_typed_ident() {
                 Some(ident) => ident,

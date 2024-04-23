@@ -55,6 +55,12 @@ pub enum Token<'tok> {
     RCurly,
 
     // --keywords--
+    /// indicates the definition of a struct
+    #[token("struct")]
+    Struct,
+    /// indicates the defintion of a union
+    #[token("union")]
+    Union,
     /// marks a function as declared only meaning it gets initialized in a different module
     #[token("decl")]
     Decl,

@@ -42,6 +42,28 @@ impl Display for VarStmt {
     }
 }
 
+impl Display for StructStmt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "struct @{} {{\n{}\n}}",
+            self.name,
+            self.fields.to_string()
+        )
+    }
+}
+
+impl Display for UnionStmt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "union @{} {{\n{}\n}}",
+            self.name,
+            self.variants.to_string()
+        )
+    }
+}
+
 impl Display for LabelStmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "'{}: {{\n{}\n}}", self.name, self.block)
@@ -114,6 +136,8 @@ impl Display for IRStmt {
             IRStmt::Break(br) => br.to_string(),
             IRStmt::Jump(jump) => jump.to_string(),
             IRStmt::Call(call) => call.to_string(),
+            IRStmt::Struct(_struct) => _struct.to_string(),
+            IRStmt::Union(union) => union.to_string(),
         })
     }
 }

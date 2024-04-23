@@ -52,6 +52,7 @@ impl<'a> Evaluator<'a> {
             IRStmt::Break(br) => todo!(),
             IRStmt::Jump(jmp) => todo!(),
             IRStmt::Call(call) => Some(self.eval_call(call)),
+            _ => panic!("//TODO:")
         }
     }
 

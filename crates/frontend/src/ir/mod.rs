@@ -19,6 +19,9 @@ pub enum IRStmt {
     Break(BreakStmt),
     Jump(JumpStmt),
     Call(CallExpr),
+
+    Struct(StructStmt),
+    Union(UnionStmt),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -88,6 +91,12 @@ pub struct VarStmt {
 pub struct StructStmt {
     pub name: String,
     pub fields: Vec<IRTypedIdent>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnionStmt {
+    pub name: String,
+    pub variants: Vec<IRTypedIdent>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

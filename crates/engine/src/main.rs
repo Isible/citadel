@@ -22,6 +22,7 @@ fn run() -> io::Result<()> {
     let mut lexer = Lexer::new(std::str::from_utf8(&file_content).unwrap());
     let mut parser = parser::Parser::new(&mut lexer);
     let ir_stream = parser.parse_program();
+    dbg!(&ir_stream);
     let mut path = args.file;
     path.set_extension(".asm");
     compile!(AsmBackend::new(TargetX86_64), ir_stream).to_file(path)?;
