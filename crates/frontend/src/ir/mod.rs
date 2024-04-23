@@ -85,6 +85,12 @@ pub struct VarStmt {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct StructStmt {
+    pub name: String,
+    pub fields: Vec<IRTypedIdent>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct LabelStmt {
     pub name: String,
     pub block: BlockStmt,

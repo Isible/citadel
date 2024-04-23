@@ -33,7 +33,6 @@ impl<'l> Parser<'l> {
         }
         program
     }
-
     
     pub fn parse_stmt(&mut self) -> Option<IRStmt> {
         match self.cur_tok()? {
@@ -60,7 +59,6 @@ impl<'l> Parser<'l> {
             Token::Div => self.parse_arith_op_expr(Operator::Div),
             Token::LitString(str) => Some(IRExpr::Literal(ir::Literal::String((*str).into()))),
             Token::LitInt(int) => {
-                dbg!(int);
                 Some(IRExpr::Literal(ir::Literal::Int32(
                     int.parse::<i32>().unwrap(),
                 )))
