@@ -16,10 +16,10 @@ pub enum EnvObjType<'o> {
     Label,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct EnvObj<'o> {
     pub _type: EnvObjType<'o>,
-    pub val: &'o Object<'o>,
+    pub val: Object<'o>,
 }
 
 #[derive(Debug, Default)]
@@ -28,14 +28,14 @@ pub(crate) struct Environment<'e> {
 }
 
 impl<'e> Environment<'e> {
-    pub(crate) fn get(&self, key: &str) -> Result<EnvObj<'e>, errors::InvalidKeyError<&'e str>> {
+    pub(crate) fn get(&'e self, key: &'e str) -> Result<&'e EnvObj<'e>, errors::InvalidKeyError<&'e str>> {
         match self.def.get(key) {
-            Some(val) => Ok(*val),
+            Some(val) => Ok(val),
             None => todo!(),
         }
     }
 
-    pub(crate) fn set(&mut self, key: &'e str, val: &'e EnvObj) {
-        self.def.insert(key, *val);
+    pub(crate) fn set(&mut self, key: &'e str, val: EnvObj<'e>) {
+        self.def.insert(key, val);
     }
 }

@@ -1,26 +1,25 @@
 //! Interpreter for the citadel intermediary representation. Currently only
 //! supports the high representation since the LIR is still work in progress.
 
-use std::{fs, io};
+//use std::{fs, io};
 
-use clap::Parser as _;
-use cli::Args;
-use evaluator::Evaluator;
+//use clap::Parser as _;
+//use cli::Args;
+//use evaluator::Evaluator;
 
-use citadel_irparser::{lexer::Lexer, parser::Parser};
+//use citadel_irparser::{lexer::Lexer, parser::Parser};
 
-mod env;
-mod evaluator;
-mod obj;
+//mod env;
+//mod evaluator;
+//mod obj;
 
-mod errors;
-mod util;
-mod cli;
+//mod errors;
+//mod util;
+//mod cli;
 
-fn main() -> io::Result<()> {
-    run()
+fn main() {
 }
-
+/*
 fn run() -> io::Result<()> {
     let args = Args::parse();
     let file_content = fs::read(&args.file)?;
@@ -30,7 +29,6 @@ fn run() -> io::Result<()> {
 
     let mut evaluator = Evaluator::new(&mut parser);
 
-    evaluator.eval_program();
-
     Ok(())
 }
+*/

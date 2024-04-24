@@ -12,17 +12,17 @@ use crate::{
     obj::{FuncObj, LabelObj, Object},
 };
 
-pub(crate) struct Evaluator<'a> {
-    pub(crate) parser: &'a mut Parser<'a>,
-    pub(crate) program: Vec<IRStmt>,
-    pub(crate) env: Environment,
+pub(crate) struct Evaluator<'e> {
+    pub(crate) parser: &'e mut Parser<'e>,
+    pub(crate) program: Vec<IRStmt<'e>>,
+    pub(crate) env: Environment<'e>,
 }
 
-impl<'a> Evaluator<'a> {
-    pub(crate) fn new(parser: &'a mut Parser<'a>) -> Self {
+impl<'e> Evaluator<'e> {
+    pub(crate) fn new(parser: &'e mut Parser<'e>) -> Self {
         Self {
-            program: parser.parse_program(),
-            env: Environment::new(),
+            program: parser.parse_program().stream,
+            env: Environment::default(),
             parser,
         }
     }
@@ -38,7 +38,7 @@ impl<'a> Evaluator<'a> {
         }
     }
 
-    pub(crate) fn eval_stmt(&mut self, node: IRStmt) -> Option<Object> {
+    pub(crate) fn eval_stmt(&mut self, node: IRStmt<'e>) -> Option<Object<'e>> {
         match node {
             IRStmt::DeclaredFunction(func) => todo!(),
             IRStmt::Function(func) => self.eval_function(func),
@@ -47,16 +47,16 @@ impl<'a> Evaluator<'a> {
             IRStmt::Return(ret) => todo!(),
             IRStmt::Exit(exit) => process::exit(match self.eval_expr(exit.exit_code) {
                 Object::Value(Literal::Int32(val)) => val,
-                _ => todo!(), 
+                _ => todo!(),
             }),
             IRStmt::Break(br) => todo!(),
             IRStmt::Jump(jmp) => todo!(),
             IRStmt::Call(call) => Some(self.eval_call(call)),
-            _ => panic!("//TODO:")
+            _ => panic!("//TODO:"),
         }
     }
 
-    fn eval_expr(&mut self, node: IRExpr) -> Object {
+    fn eval_expr(&mut self, node: IRExpr<'e>) -> Object<'e> {
         match node {
             IRExpr::Call(call) => self.eval_call(call),
             IRExpr::Literal(node) => Object::Value(node),
@@ -66,15 +66,14 @@ impl<'a> Evaluator<'a> {
         }
     }
 
-    fn eval_ident(&mut self, ident: String) -> Object {
-        let obj = self
-            .env
+    fn eval_ident(&mut self, ident: &'e str) -> Object<'e> {
+        self.env
             .get(&ident)
-            .unwrap_or_else(|_| panic!("Variable: `{}` not found", &ident));
-        obj.val
+            .unwrap_or_else(|_| panic!("Variable: `{}` not found", &ident))
+            .val.clone()
     }
 
-    fn eval_arith_op(&mut self, op: ArithOpExpr) -> Object {
+    fn eval_arith_op(&mut self, op: ArithOpExpr<'e>) -> Object<'e> {
         let left = self.eval_expr(*op.values.0);
         let right = self.eval_expr(*op.values.1);
         let (left, right) = match (left, right) {
@@ -91,31 +90,29 @@ impl<'a> Evaluator<'a> {
         }))
     }
 
-    fn eval_function(&mut self, node: FuncStmt) -> Option<Object> {
+    fn eval_function(&mut self, node: FuncStmt<'e>) -> Option<Object<'e>> {
         let obj = Object::FuncObj(FuncObj {
             args: node.args,
             block: node.block,
         });
         let (name, _type) = (node.name.ident, node.name._type);
         self.env.set(
-            name,
+            *name,
             EnvObj {
-                _type: EnvObjType::Function {
-                    ret_type: _type,
-                },
-                val: obj.clone(),
+                _type: EnvObjType::Function { ret_type: *_type },
+                val: obj,
             },
         );
-        Some(obj)
+        None
     }
 
-    fn eval_var(&mut self, node: VarStmt) -> Option<Object> {
+    fn eval_var(&mut self, node: VarStmt<'e>) -> Option<Object<'e>> {
         let val = self.eval_expr(node.val);
         if val == Object::Void {
             panic!("The value of variable: `{}` is none", &node.name.ident);
         }
         self.env.set(
-            node.name.ident,
+            *node.name.ident,
             EnvObj {
                 _type: EnvObjType::Variable {
                     is_const: node.is_const,
@@ -126,9 +123,9 @@ impl<'a> Evaluator<'a> {
         None
     }
 
-    fn eval_label(&mut self, node: LabelStmt) -> Option<Object> {
+    fn eval_label(&mut self, node: LabelStmt<'e>) -> Option<Object<'e>> {
         self.env.set(
-            node.name,
+            *node.name,
             EnvObj {
                 _type: EnvObjType::Label,
                 val: Object::Label(LabelObj { block: node.block }),
@@ -137,8 +134,8 @@ impl<'a> Evaluator<'a> {
         None
     }
 
-    fn eval_call(&mut self, node: CallExpr) -> Object {
-        match node.name.as_str() {
+    fn eval_call(&mut self, node: CallExpr<'e>) -> Object<'e> {
+        match *node.name {
             // debugging
             "print" => {
                 println!("{:#?}", self.eval_expr(node.args.first().unwrap().clone()));
