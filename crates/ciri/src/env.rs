@@ -5,43 +5,37 @@ use std::collections::HashMap;
 
 use crate::{errors, obj::Object};
 
-#[derive(Debug, Clone)]
-pub enum EnvObjType {
+#[derive(Debug, Clone, Copy)]
+pub enum EnvObjType<'o> {
     Variable {
         is_const: bool,
     },
     Function {
-        ret_type: String,
+        ret_type: &'o str,
     },
     Label,
 }
 
-#[derive(Debug, Clone)]
-pub struct EnvObj {
-    pub _type: EnvObjType,
-    pub val: Object,
+#[derive(Debug, Clone, Copy)]
+pub struct EnvObj<'o> {
+    pub _type: EnvObjType<'o>,
+    pub val: &'o Object<'o>,
 }
 
-#[derive(Debug)]
-pub(crate) struct Environment {
-    pub(crate) def: HashMap<String, EnvObj>,
+#[derive(Debug, Default)]
+pub(crate) struct Environment<'e> {
+    pub(crate) def: HashMap<&'e str, EnvObj<'e>>,
 }
 
-impl Environment {
-    pub(crate) fn new() -> Self {
-        Self {
-            def: HashMap::new(),
-        }
-    }
-
-    pub(crate) fn get(&self, key: &String) -> Result<EnvObj, errors::InvalidKeyError<String>> {
+impl<'e> Environment<'e> {
+    pub(crate) fn get(&self, key: &str) -> Result<EnvObj<'e>, errors::InvalidKeyError<&'e str>> {
         match self.def.get(key) {
-            Some(val) => Ok(val.clone()),
+            Some(val) => Ok(*val),
             None => todo!(),
         }
     }
 
-    pub(crate) fn set(&mut self, key: String, val: EnvObj) {
-        self.def.insert(key, val);
+    pub(crate) fn set(&mut self, key: &'e str, val: &'e EnvObj) {
+        self.def.insert(key, *val);
     }
 }

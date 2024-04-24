@@ -1,0 +1,8 @@
+struct @Vec2 {
+    $x i32,
+    $y i32,
+}
+
+func @main() i32 {
+    $pos Vec2 = struct %Vec2 { l{100:i32}, l{200:i32} }
+}

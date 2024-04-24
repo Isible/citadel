@@ -4,7 +4,7 @@ use std::fmt::Display;
 
 use super::*;
 
-impl Display for DeclFuncStmt {
+impl Display for DeclFuncStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -16,7 +16,7 @@ impl Display for DeclFuncStmt {
     }
 }
 
-impl Display for FuncStmt {
+impl Display for FuncStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -29,7 +29,7 @@ impl Display for FuncStmt {
     }
 }
 
-impl Display for VarStmt {
+impl Display for VarStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -42,7 +42,7 @@ impl Display for VarStmt {
     }
 }
 
-impl Display for StructStmt {
+impl Display for StructStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -53,7 +53,7 @@ impl Display for StructStmt {
     }
 }
 
-impl Display for UnionStmt {
+impl Display for UnionStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -64,31 +64,31 @@ impl Display for UnionStmt {
     }
 }
 
-impl Display for LabelStmt {
+impl Display for LabelStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "'{}: {{\n{}\n}}", self.name, self.block)
     }
 }
 
-impl Display for ReturnStmt {
+impl Display for ReturnStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ret {}", self.ret_val)
     }
 }
 
-impl Display for BreakStmt {
+impl Display for BreakStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "br {}", self.label)
     }
 }
 
-impl Display for JumpStmt {
+impl Display for JumpStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "jmp {}", self.label)
     }
 }
 
-impl Display for BlockStmt {
+impl Display for BlockStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut stmts = Vec::new();
         for stmt in &self.stmts {
@@ -101,13 +101,13 @@ impl Display for BlockStmt {
     }
 }
 
-impl Display for CallExpr {
+impl Display for CallExpr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "call %{}({})", self.name, self.args.to_string())
     }
 }
 
-impl Display for ArithOpExpr {
+impl Display for ArithOpExpr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -124,7 +124,7 @@ impl Display for ArithOpExpr {
     }
 }
 
-impl Display for IRStmt {
+impl Display for IRStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&match self {
             IRStmt::DeclaredFunction(func) => func.to_string(),
@@ -142,18 +142,25 @@ impl Display for IRStmt {
     }
 }
 
-impl Display for IRExpr {
+impl Display for IRExpr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&match self {
             IRExpr::Call(call) => call.to_string(),
             IRExpr::Literal(lit) => lit.to_string(),
             IRExpr::ArithOp(op) => op.to_string(),
             IRExpr::Ident(id) => id.to_string(),
+            IRExpr::StructInit(init) => init.to_string(),
         })
     }
 }
 
-impl Display for Literal {
+impl Display for StructInitExpr<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "struct %{} {{{}}}", self.name, self.values.to_string())
+    }
+}
+
+impl Display for Literal<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -176,13 +183,13 @@ impl Display for Literal {
     }
 }
 
-impl Display for Ident {
+impl Display for Ident<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "%{}", self.0)
     }
 }
 
-impl Display for ExitStmt {
+impl Display for ExitStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "exit {}", self.exit_code)
     }

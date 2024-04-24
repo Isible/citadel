@@ -56,7 +56,7 @@ pub(crate) fn destroy_stackframe() -> AsmElement {
     })
 }
 
-pub(super) fn string_from_lit(lit: &IRExpr) -> &String {
+pub(super) fn string_from_lit<'s>(lit: &'s IRExpr<'s>) -> &'s String {
     match lit {
         IRExpr::Literal(ir::Literal::String(s)) => s,
         _ => panic!("Expected string literal"),

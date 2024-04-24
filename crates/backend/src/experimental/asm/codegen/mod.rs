@@ -12,7 +12,7 @@ use std::{
 };
 
 use citadel_frontend::ir::{
-    self, ArithOpExpr, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, VarStmt,
+    self, ArithOpExpr, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, LabelStmt, ReturnStmt, StructStmt, VarStmt
 };
 
 use crate::experimental::asm::elements::{
@@ -87,6 +87,7 @@ impl<'c> CodeGenerator<'c> {
         match node {
             IRStmt::DeclaredFunction(node) => todo!(),
             IRStmt::Function(node) => self.gen_function(node),
+            IRStmt::Struct(node) => self.gen_struct(node),
             IRStmt::Variable(node) => self.gen_variable(node),
             IRStmt::Label(node) => self.gen_label(node),
             IRStmt::Return(node) => self.gen_return(node),
@@ -113,14 +114,15 @@ impl<'c> CodeGenerator<'c> {
             IRExpr::Ident(ident) => util::get_stack_location(
                 *self
                     .symbol_table
-                    .get(ident.0.as_str())
+                    .get(ident.0)
                     .unwrap_or_else(|| panic!("Could not find ident with name {ident:?}")),
             ),
+            IRExpr::StructInit(_) => todo!(),
         }
     }
 
     fn gen_call(&mut self, node: &'c CallExpr) {
-        match node.name.as_str() {
+        match *node.name {
             "print" => self.gen_print(node),
             _ => {
                 self.gen_call_args(node);
@@ -189,7 +191,7 @@ impl<'c> CodeGenerator<'c> {
 
     fn gen_function(&mut self, node: &'c FuncStmt) {
         self.out.push(AsmElement::Label(Label {
-            name: node.name.ident.clone(),
+            name: node.name.ident.to_string(),
         }));
 
         let stack_frame = util::create_stackframe();
@@ -209,13 +211,17 @@ impl<'c> CodeGenerator<'c> {
                     args: _,
                 }) => (),
                 _ => {
-                    if node.name._type == "void" {
+                    if *node.name._type == "void" {
                         self.out.push(util::destroy_stackframe());
                     }
                     self.out.push(util::gen_ret());
                 }
             }
         }
+    }
+
+    fn gen_struct(&mut self, node: &'c StructStmt) {
+        
     }
 
     fn gen_args(&mut self, node: &'c FuncStmt) {
@@ -262,7 +268,7 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_label(&mut self, node: &'c LabelStmt) {
-        match node.name.as_str() {
+        match *node.name {
             "_entry" => {
                 self.create_entry();
                 self.out.push(AsmElement::Label(Label {
@@ -270,7 +276,7 @@ impl<'c> CodeGenerator<'c> {
                 }))
             }
             _ => self.out.push(AsmElement::Label(Label {
-                name: node.name.clone(),
+                name: node.name.to_string(),
             })),
         }
         for stmt in &node.block.stmts {

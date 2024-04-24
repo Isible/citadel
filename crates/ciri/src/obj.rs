@@ -4,24 +4,24 @@
 use citadel_frontend::ir::{BlockStmt, IRTypedIdent, Literal};
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum Object {
-    Value(Literal),
-    Ret(Box<Object>),
-    Br(String),
-    Jmp(String),
-    FuncObj(FuncObj),
-    Label(LabelObj),
+pub(crate) enum Object<'o> {
+    Value(&'o Literal<'o>),
+    Ret(Box<Object<'o>>),
+    Br(&'o str),
+    Jmp(&'o str),
+    FuncObj(FuncObj<'o>),
+    Label(LabelObj<'o>),
     // debuging
     Void,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) struct FuncObj {
-    pub(crate) args: Vec<IRTypedIdent>,
-    pub(crate) block: BlockStmt,
+pub(crate) struct FuncObj<'o> {
+    pub(crate) args: Vec<IRTypedIdent<'o>>,
+    pub(crate) block: BlockStmt<'o>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct LabelObj {
-    pub(crate) block: BlockStmt,
+pub struct LabelObj<'o> {
+    pub(crate) block: BlockStmt<'o>,
 }

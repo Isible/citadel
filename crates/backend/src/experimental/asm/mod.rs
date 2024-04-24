@@ -9,7 +9,7 @@ pub mod util;
 mod tests;
 
 
-use citadel_frontend::ir::IRStmt;
+use citadel_frontend::ir::{irgen::IRStream, IRStmt};
 
 use crate::experimental::{
     api::{Backend, Target},
@@ -45,7 +45,7 @@ impl<T: Target> Backend for AsmBackend<T> {
         self.target
     }
 
-    fn generate(&self, ir_stream: Vec<IRStmt>) -> Self::Output {
-        util::compile_program(ir_stream, self.target())
+    fn generate(&self, ir_stream: IRStream) -> Self::Output {
+        util::compile_program(ir_stream.stream, self.target())
     }
 }

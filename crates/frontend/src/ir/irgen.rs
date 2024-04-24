@@ -4,30 +4,56 @@
 //! if you don't want to use the provided generator or need
 //! specific capabilities
 
-use crate::ir::IRStmt;
+use std::collections::HashMap;
 
-pub struct IRGenerator {
-    ast: Vec<IRStmt>,
+use crate::{ir::IRStmt, util::CompositeDataType};
+
+use super::{IRTypedIdent, Ident};
+
+#[derive(Default)]
+pub struct IRGenerator<'s> {
+    ir: IRStream<'s>,
 }
 
-impl IRGenerator {
-    pub fn new() -> Self {
-        Self { ast: Vec::new() }
+#[derive(Debug, Default)]
+pub struct IRStream<'s> {
+    pub stream: Vec<IRStmt<'s>>,
+    pub types: HashMap<Ident<'s>, (CompositeDataType, Vec<IRTypedIdent<'s>>)>,
+}
+
+impl<'g> IRGenerator<'g> {
+    pub fn gen_ir(&mut self, node: IRStmt<'g>) {
+        match &node {
+            IRStmt::Struct(node) => {
+                self.ir
+                    .types
+                    .insert(node.name, (CompositeDataType::Struct, node.fields.clone()));
+            }
+            IRStmt::Union(node) => {
+                self.ir
+                    .types
+                    .insert(node.name, (CompositeDataType::Union, node.variants.clone()));
+            }
+            _ => (),
+        }
+        self.ir.stream.push(node);
     }
 
-    pub fn gen_ir(&mut self, node: IRStmt) {
-        self.ast.push(node);
+    pub fn stream_ref(&self) -> &IRStream<'g> {
+        &self.ir
     }
 
-    pub fn get_stream_ref(&self) -> &Vec<IRStmt> {
-        &self.ast
+    pub fn stream(self) -> IRStream<'g> {
+        self.ir
     }
+}
 
-    pub fn get_stream(self) -> Vec<IRStmt> {
-        self.ast
-    }
-
+impl IRStream<'_> {
     pub fn as_string(&self) -> String {
-        self.ast.iter().map(|stmt| stmt.to_string()).collect::<Vec<String>>().join("\n")
+        self.stream
+            .iter()
+            .map(|stmt| stmt.to_string())
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 }

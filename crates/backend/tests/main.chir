@@ -1,9 +1,14 @@
 '_entry: {
     exit call %main()
 }
-@main() i8 {
-    ret call %addd(l{2:i32},l{3},l{12})
+
+func @main() i32 {
+    $pos Vec3 = 
+    ret l{0}
 }
-@addd($x i8,$y i8,$z i8) i8 {
-    ret add add %x, %y, %z
+
+struct @Vec3 {
+    $x i32,
+    $y i32,
+    $z i32,
 }

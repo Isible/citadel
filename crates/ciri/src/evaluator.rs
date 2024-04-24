@@ -62,6 +62,7 @@ impl<'a> Evaluator<'a> {
             IRExpr::Literal(node) => Object::Value(node),
             IRExpr::Ident(ident) => self.eval_ident(ident.0),
             IRExpr::ArithOp(op) => self.eval_arith_op(op),
+            IRExpr::StructInit(_) => todo!(),
         }
     }
 

@@ -4,37 +4,41 @@
 //! It is recommended to use the [IR-Generator](frontend::ir::ir_gen) module for generating the IR
 //! but you can of course also generate the ir yourself
 
+use std::ops::Deref;
+
 pub mod traits;
 pub mod irgen;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum IRStmt {
-    DeclaredFunction(DeclFuncStmt),
-    Function(FuncStmt),
-    Variable(VarStmt),
-    Label(LabelStmt),
+pub enum IRStmt<'ir> {
+    DeclaredFunction(DeclFuncStmt<'ir>),
+    Function(FuncStmt<'ir>),
+    Variable(VarStmt<'ir>),
+    Label(LabelStmt<'ir>),
 
-    Return(ReturnStmt),
-    Exit(ExitStmt),
-    Break(BreakStmt),
-    Jump(JumpStmt),
-    Call(CallExpr),
+    Return(ReturnStmt<'ir>),
+    Exit(ExitStmt<'ir>),
+    Break(BreakStmt<'ir>),
+    Jump(JumpStmt<'ir>),
+    Call(CallExpr<'ir>),
 
-    Struct(StructStmt),
-    Union(UnionStmt),
+    Struct(StructStmt<'ir>),
+    Union(UnionStmt<'ir>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum IRExpr {
-    Call(CallExpr),
-    Literal(Literal),
-    Ident(Ident),
+pub enum IRExpr<'ir> {
+    Call(CallExpr<'ir>),
+    Literal(Literal<'ir>),
+    Ident(Ident<'ir>),
 
-    ArithOp(ArithOpExpr),
+    ArithOp(ArithOpExpr<'ir>),
+
+    StructInit(StructInitExpr<'ir>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Literal {
+pub enum Literal<'ir> {
     String(String),
     // TODO: Make this a byte
     Char(char),
@@ -51,8 +55,8 @@ pub enum Literal {
     Int64(i64),
     Int128(i128),
 
-    Array(usize, Vec<IRExpr>),
-    Vector(Vec<IRExpr>),
+    Array(usize, Vec<IRExpr<'ir>>),
+    Vector(Vec<IRExpr<'ir>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -64,86 +68,100 @@ pub enum Operator {
 }
 
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct Ident(pub String);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Ident<'ir>(pub &'ir str);
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct DeclFuncStmt {
-    pub name: IRTypedIdent,
-    pub args: Vec<IRTypedIdent>,
+impl<'ir> Deref for Ident<'ir> {
+    type Target = &'ir str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FuncStmt {
-    pub name: IRTypedIdent,
-    pub args: Vec<IRTypedIdent>,
-    pub block: BlockStmt,
+pub struct DeclFuncStmt<'ir> {
+    pub name: IRTypedIdent<'ir>,
+    pub args: Vec<IRTypedIdent<'ir>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct VarStmt {
-    pub name: IRTypedIdent,
-    pub val: IRExpr,
+pub struct FuncStmt<'ir> {
+    pub name: IRTypedIdent<'ir>,
+    pub args: Vec<IRTypedIdent<'ir>>,
+    pub block: BlockStmt<'ir>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct VarStmt<'ir> {
+    pub name: IRTypedIdent<'ir>,
+    pub val: IRExpr<'ir>,
     pub is_const: bool,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct StructStmt {
-    pub name: String,
-    pub fields: Vec<IRTypedIdent>,
+pub struct StructStmt<'ir> {
+    pub name: Ident<'ir>,
+    pub fields: Vec<IRTypedIdent<'ir>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct UnionStmt {
-    pub name: String,
-    pub variants: Vec<IRTypedIdent>,
+pub struct UnionStmt<'ir> {
+    pub name: Ident<'ir>,
+    pub variants: Vec<IRTypedIdent<'ir>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct LabelStmt {
-    pub name: String,
-    pub block: BlockStmt,
+pub struct LabelStmt<'ir> {
+    pub name: Ident<'ir>,
+    pub block: BlockStmt<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ReturnStmt {
-    pub ret_val: IRExpr,
+pub struct ReturnStmt<'ir> {
+    pub ret_val: IRExpr<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ExitStmt {
-    pub exit_code: IRExpr,
+pub struct ExitStmt<'ir> {
+    pub exit_code: IRExpr<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct BreakStmt {
-    pub label: String,
+pub struct BreakStmt<'ir> {
+    pub label: Ident<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct JumpStmt {
-    pub label: String,
+pub struct JumpStmt<'ir> {
+    pub label: Ident<'ir>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IRTypedIdent<'ir> {
+    pub ident: Ident<'ir>,
+    pub _type: Ident<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct IRTypedIdent {
-    pub ident: String,
-    pub _type: String,
+pub struct BlockStmt<'ir> {
+    pub stmts: Vec<IRStmt<'ir>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct BlockStmt {
-    pub stmts: Vec<IRStmt>,
+pub struct CallExpr<'ir> {
+    pub name: Ident<'ir>,
+    pub args: Vec<IRExpr<'ir>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct CallExpr {
-    pub name: String,
-    pub args: Vec<IRExpr>,
+pub struct StructInitExpr<'ir> {
+    pub name: Ident<'ir>,
+    pub values: Vec<IRExpr<'ir>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ArithOpExpr {
+pub struct ArithOpExpr<'ir> {
     pub op: Operator,
-    pub values: (Box<IRExpr>, Box<IRExpr>)
+    pub values: (Box<IRExpr<'ir>>, Box<IRExpr<'ir>>)
 }

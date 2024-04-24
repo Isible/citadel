@@ -7,8 +7,8 @@ use super::ast::{self, *};
 #[derive(Default)]
 pub struct Compiler;
 
-impl Compiler {
-    pub fn compile_program(&self, ast: Vec<Statement>) -> Vec<IRStmt> {
+impl<'c> Compiler {
+    pub fn compile_program(&self, ast: &'c Vec<Statement>) -> Vec<IRStmt<'c>> {
         let mut ir_stream = Vec::new();
 
         ir_stream.push(Self::init_program());
@@ -19,13 +19,13 @@ impl Compiler {
         ir_stream
     }
 
-    fn init_program() -> IRStmt {
+    fn init_program() -> IRStmt<'c> {
         IRStmt::Label(LabelStmt {
-            name: "_entry".into(),
+            name: Ident("_entry"),
             block: BlockStmt {
                 stmts: vec![IRStmt::Exit(ExitStmt {
                     exit_code: IRExpr::Call(CallExpr {
-                        name: "main".into(),
+                        name: Ident("main"),
                         args: Vec::new(),
                     }),
                 })],
@@ -33,7 +33,7 @@ impl Compiler {
         })
     }
 
-    fn compile_stmt(&self, stmt: Statement) -> IRStmt {
+    fn compile_stmt(&self, stmt: &'c Statement) -> IRStmt<'c> {
         match stmt {
             Statement::Let(_let) => self.compile_let_stmt(_let),
             Statement::Fn(_fn) => self.compile_fn_stmt(_fn),
@@ -49,7 +49,7 @@ impl Compiler {
         }
     }
 
-    fn compile_expr(&self, expr: Expression) -> IRExpr {
+    fn compile_expr(&self, expr: &'c Expression) -> IRExpr<'c> {
         match expr {
             Expression::Call(call) => IRExpr::Call(self.compile_call_expr(call)),
             Expression::Infix(op) => self.compile_arith_op_expr(op),
@@ -57,24 +57,24 @@ impl Compiler {
         }
     }
 
-    fn compile_let_stmt(&self, node: LetStatement) -> IRStmt {
+    fn compile_let_stmt(&self, node: &'c LetStatement) -> IRStmt<'c> {
         IRStmt::Variable(VarStmt {
-            name: self.compile_typed_ident(node.name),
+            name: self.compile_typed_ident(&node.name),
             is_const: true,
-            val: self.compile_expr(node.val),
+            val: self.compile_expr(&node.val),
         })
     }
 
-    fn compile_ret_stmt(&self, ret: ReturnStatement) -> IRStmt {
+    fn compile_ret_stmt(&self, ret: &'c ReturnStatement) -> IRStmt<'c> {
         IRStmt::Return(ReturnStmt {
-            ret_val: self.compile_expr(ret.val),
+            ret_val: self.compile_expr(&ret.val),
         })
     }
 
-    fn compile_fn_stmt(&self, node: FnStatement) -> IRStmt {
+    fn compile_fn_stmt(&self, node: &'c FnStatement) -> IRStmt<'c> {
         IRStmt::Function(FuncStmt {
             block: {
-                let mut block = self.compile_block_stmt(node.block).stmts;
+                let mut block = self.compile_block_stmt(&node.block).stmts;
                 if node.name.as_str() == "main" {
                     if let Some(last) = block.last() {
                         match last {
@@ -89,41 +89,41 @@ impl Compiler {
             },
             name: IRTypedIdent {
                 _type: match node.name.as_str() {
-                    "main" => "i32".into(),
-                    _ => Self::compile_type(node.ret_type),
+                    "main" => Ident("i32"),
+                    _ => Self::compile_type(&node.ret_type),
                 },
-                ident: node.name,
+                ident: Ident(&node.name),
             },
-            args: self.compile_def_args(node.args),
+            args: self.compile_def_args(&node.args),
         })
     }
 
-    fn compile_call_expr(&self, node: CallExpression) -> CallExpr {
+    fn compile_call_expr(&self, node: &'c CallExpression) -> CallExpr<'c> {
         CallExpr {
             name: match node.name.as_str() {
-                "puts" => "print".into(),
-                _ => node.name,
+                "puts" => Ident("print"),
+                _ => Ident(&node.name),
             },
-            args: self.compile_args(node.args),
+            args: self.compile_args(&node.args),
         }
     }
 
-    fn compile_exit_call(&self, node: CallExpression) -> IRStmt {
+    fn compile_exit_call(&self, node: &'c CallExpression) -> IRStmt<'c> {
         let expr = node
             .args
             .get(0)
             .unwrap_or_else(|| panic!("Expected exit call to have one argument for the exit code"));
         IRStmt::Exit(ExitStmt {
-            exit_code: self.compile_expr(expr.clone()),
+            exit_code: self.compile_expr(expr),
         })
     }
 
-    fn compile_arith_op_expr(&self, node: InfixOpExpr) -> IRExpr {
+    fn compile_arith_op_expr(&self, node: &'c InfixOpExpr) -> IRExpr<'c> {
         match node.operator {
             ast::Operator::Add | ast::Operator::Sub | ast::Operator::Mul | ast::Operator::Div => {
                 IRExpr::ArithOp(ArithOpExpr {
                     op: self.compiler_op(node.operator),
-                    values: self.compile_expr_tuple((*node.sides.0, *node.sides.1)),
+                    values: self.compile_expr_tuple((&*node.sides.0, &*node.sides.1)),
                 })
             }
             ast::Operator::Reassign => todo!(),
@@ -131,7 +131,7 @@ impl Compiler {
         }
     }
 
-    fn compile_expr_tuple(&self, tuple: (Expression, Expression)) -> (Box<IRExpr>, Box<IRExpr>) {
+    fn compile_expr_tuple(&self, tuple: (&'c Expression, &'c Expression)) -> (Box<IRExpr<'c>>, Box<IRExpr<'c>>) {
         (
             Box::new(self.compile_expr(tuple.0)),
             Box::new(self.compile_expr(tuple.1)),
@@ -149,7 +149,7 @@ impl Compiler {
         }
     }
 
-    fn compile_args(&self, args: Vec<Expression>) -> Vec<IRExpr> {
+    fn compile_args(&self, args: &'c Vec<Expression>) -> Vec<IRExpr<'c>> {
         let mut arg_outs = Vec::new();
         for arg in args {
             arg_outs.push(self.compile_expr(arg))
@@ -157,45 +157,44 @@ impl Compiler {
         arg_outs
     }
 
-    fn compile_lit(&self, node: ast::Literal) -> IRExpr {
+    fn compile_lit(&self, node: &'c ast::Literal) -> IRExpr<'c> {
         match node {
-            ast::Literal::Ident(ident) => IRExpr::Ident(Ident(ident)),
-            ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string)),
-            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(int)),
-            ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(float)),
-            ast::Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(bool)),
+            ast::Literal::Ident(ident) => IRExpr::Ident(Ident(&ident)),
+            ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string.to_string())),
+            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(*int)),
+            ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(*float)),
+            ast::Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(*bool)),
         }
     }
 
-    fn compile_typed_ident(&self, node: TypedIdent) -> IRTypedIdent {
+    fn compile_typed_ident(&self, node: &'c TypedIdent) -> IRTypedIdent<'c> {
         IRTypedIdent {
-            _type: Self::compile_type(node._type),
-            ident: node.ident,
+            _type: Self::compile_type(&node._type),
+            ident: Ident(&node.ident),
         }
     }
 
-    fn compile_def_args(&self, node: Vec<TypedIdent>) -> Vec<IRTypedIdent> {
+    fn compile_def_args(&self, node: &'c Vec<TypedIdent>) -> Vec<IRTypedIdent<'c>> {
         let mut out = Vec::new();
         for node in node {
-            out.push(self.compile_typed_ident(node))
+            out.push(self.compile_typed_ident(&node))
         }
         out
     }
 
-    fn compile_block_stmt(&self, node: BlockStatement) -> BlockStmt {
+    fn compile_block_stmt(&self, node: &'c BlockStatement) -> BlockStmt<'c> {
         let mut out = Vec::new();
-        for node in node.stmts {
+        for node in &node.stmts {
             out.push(self.compile_stmt(node))
         }
         BlockStmt { stmts: out }
     }
 
-    fn compile_type(_type: String) -> String {
-        match _type.as_str() {
+    fn compile_type(_type: &str) -> Ident<'c> {
+        Ident(match _type {
             "int" => "i32",
             "float" => "f32",
             _ => panic!(),
-        }
-        .to_string()
+        })
     }
 }

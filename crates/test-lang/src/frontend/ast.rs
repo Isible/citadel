@@ -19,7 +19,7 @@ pub enum Expression {
     Literal(Literal),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Operator {
     Add,
     Sub,

@@ -4,11 +4,17 @@ use crate::ir::{IRExpr, IRTypedIdent};
 
 pub mod errors;
 
+#[derive(Debug)]
+pub enum CompositeDataType {
+    Struct,
+    Union,
+}
+
 pub(crate) trait VecDisplay: Debug {
     fn to_string(&self) -> String;
 }
 
-impl VecDisplay for Vec<IRExpr> {
+impl VecDisplay for Vec<IRExpr<'_>> {
     fn to_string(&self) -> String {
         let mut exprs = Vec::new();
         for expr in self {
@@ -20,7 +26,7 @@ impl VecDisplay for Vec<IRExpr> {
     }
 }
 
-impl VecDisplay for Vec<IRTypedIdent> {
+impl VecDisplay for Vec<IRTypedIdent<'_>> {
     fn to_string(&self) -> String {
         let mut idents = Vec::new();
         for ident in self {
