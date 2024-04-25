@@ -46,6 +46,6 @@ impl<T: Target> Backend for AsmBackend<T> {
     }
 
     fn generate(&self, ir_stream: IRStream) -> Self::Output {
-        util::compile_program(ir_stream.stream, self.target())
+        util::compile_program(ir_stream, self.target())
     }
 }

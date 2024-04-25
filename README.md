@@ -42,12 +42,4 @@ The mission of this project is to empower more people to build compilers and for
 
 - [Engine](crates/engine) - a simple compiler implementation for compiling IR to a specified backend. Uses IRParser to parse the IR.
 
-## Tooling
-
 - [Test-lang](test-lang) For testing, experimenting and providing an example on how to build a compiler with citadel
-
-- [Ciri](ciri) - an interpreter for citadel IR to debug IR code
-
-- [Citadel-fmt] - a formatter for citadel IR and a toolkit for building formatters
-
-- [Citadel-lsp] - a lsp for citadel IR and a toolkit for building lsps

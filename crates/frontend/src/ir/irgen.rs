@@ -10,6 +10,8 @@ use crate::{ir::IRStmt, util::CompositeDataType};
 
 use super::{IRTypedIdent, Ident};
 
+pub type TypeTable<'t> = HashMap<Ident<'t>, (CompositeDataType, Vec<IRTypedIdent<'t>>)>;
+
 #[derive(Default)]
 pub struct IRGenerator<'s> {
     ir: IRStream<'s>,
@@ -18,7 +20,7 @@ pub struct IRGenerator<'s> {
 #[derive(Debug, Default)]
 pub struct IRStream<'s> {
     pub stream: Vec<IRStmt<'s>>,
-    pub types: HashMap<Ident<'s>, (CompositeDataType, Vec<IRTypedIdent<'s>>)>,
+    pub types: TypeTable<'s>,
 }
 
 impl<'g> IRGenerator<'g> {

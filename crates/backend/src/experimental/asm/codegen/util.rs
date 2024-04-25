@@ -73,13 +73,13 @@ pub(super) fn arg_regs_by_size(size: u8) -> [Register; 6] {
     }
 }
 
+/// returns the size of the specified integer in bytes
 pub(super) fn int_size(int: &str) -> u8 {
     match int {
-        "i8" => 8,
-        "i16" => 16,
-        "i32" => 32,
-        "i64" => 64,
-        "i128" => 128,
-        typename => todo!("Compilation of type: {} is not implemented yet", typename),
+        "i8" => 1,
+        "i16" => 2,
+        "i32" => 4,
+        "i64" => 8,
+        _ => unreachable!(),
     }
 }

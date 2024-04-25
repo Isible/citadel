@@ -3,12 +3,20 @@
 }
 
 func @main() i32 {
-    $pos Vec3 = 
+    $x i32 = l{100}
+    $pos Vec3 = struct %Vec3 { l{100}, l{200}, l{300} }
     ret l{0}
 }
 
-struct @Vec3 {
-    $x i32,
-    $y i32,
+union @Vec3 {
+    $x i8,
+    $y Vec4,
     $z i32,
+}
+
+struct @Vec4 {
+    $x i8,
+    $y i8,
+    $z i8,
+    $p i64,
 }
