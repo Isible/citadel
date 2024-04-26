@@ -1,3 +1,4 @@
-# Middleend
+# Middleend [WIP] [lib]
 
-The middleend module for citadel which provides an api for writing your own Intermediary Representation layers and optimizers
+This is the middlend crate. It is the part of the compiler responsible for performing optimizations.
+Like most of the other -end crates in Citadel this is a pure api for building your own optimizers.

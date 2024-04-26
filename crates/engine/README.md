@@ -1,3 +1,4 @@
-# Engine
+# Engine [bin]
 
-The engine can compile IR to a specified target and backend. It uses IRParser to parse the IR
+This is the irparser crate. It is able to compile a file with CHIR-code to a specified target.
+For now this target is set to x86-64 linux assembly
