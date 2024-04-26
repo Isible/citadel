@@ -34,10 +34,6 @@ The mission of this project is to empower more people to build compilers and for
 
 - [Backend](crates/backend) - Backend that compiles IR to machine-code
 
-- [Test-lang](crates/test-lang) - Language for testing citadel
-
-- [Ciri](crates/ciri) - an interpreter for citdel intermediary representation
-
 - [IrParser](crates/irparser) - a parser for tokenizing and parsing IR into valid IR statements as specified in the frontend. This is also used for ciri and the engine
 
 - [Engine](crates/engine) - a simple compiler implementation for compiling IR to a specified backend. Uses IRParser to parse the IR.
