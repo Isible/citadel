@@ -1,8 +1,8 @@
-use std::{fs, io, path::PathBuf};
+use std::{fs, io, str, path::PathBuf};
 
 use citadel_api::backend::experimental::asm::{AsmBackend, TargetX86_64};
 use citadel_api::compile;
-use citadel_irparser::{lexer::Lexer, parser};
+use citadel_irparser::{IRLexer, IRParser};
 use clap::Parser;
 
 #[derive(Parser, Debug)]
@@ -19,8 +19,8 @@ fn main() -> io::Result<()> {
 fn run() -> io::Result<()> {
     let args = Args::parse();
     let file_content = fs::read(&args.file)?;
-    let mut lexer = Lexer::new(std::str::from_utf8(&file_content).unwrap());
-    let mut parser = parser::Parser::new(&mut lexer);
+    let lexer = IRLexer::new(str::from_utf8(&file_content).unwrap());
+    let mut parser = IRParser::new(&lexer);
     let ir_stream = parser.parse_program();
     dbg!(&ir_stream);
     let mut path = args.file;

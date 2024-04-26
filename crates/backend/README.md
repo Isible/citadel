@@ -1,3 +1,4 @@
-# Backend
+# Backend [lib]
 
-The backend module for citadel which provides an api for creating your own backends. The actual backends are in seperate crates to reduce clutter. (Currently contains an experimental x86-64 assembly compiler for testing and learning purposes)
+This is the backend crate. It is the part of the compiler responsible for generating machine code or assembly.
+Like most of the other -end crates in Citadel this is a pure api for implementing your own backends and targets.

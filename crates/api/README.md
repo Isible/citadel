@@ -1,3 +1,3 @@
 # Api
 
-The api module for citadel which provides apis for developers to implement their compilers. This is just a wrapper around the raw frontend, middleend and backend crates
+This is the api crate. It exposes the Citadel internal apis and wraps them at a higher level.
