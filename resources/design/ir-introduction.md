@@ -31,7 +31,7 @@ int main(void) {
 
 #### CIR
 
-```chir
+```chr
 # The main function
 func @main() i32 {
     # l{...} means that the value is a literal

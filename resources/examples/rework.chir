@@ -1,8 +1,0 @@
-entry {
-    $code i32 = call %main()
-    exit %code
-}
-
-func @main() i32 {
-    $myVar i32 = l{900:i32}
-}
