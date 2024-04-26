@@ -35,10 +35,10 @@ mod tests {
         });
         code_gen.gen_ir(binding);
 
-        println!("{}", code_gen.stream_ref().as_string());
+        println!("{}", code_gen.stream_ref().to_string());
 
         assert_eq!(
-            code_gen.stream().as_string(),
+            code_gen.stream().to_string(),
             "'myLabel: {\n    ret l{\"test\"}\n}"
         )
     }

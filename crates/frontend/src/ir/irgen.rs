@@ -4,7 +4,7 @@
 //! if you don't want to use the provided generator or need
 //! specific capabilities
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use crate::{ir::IRStmt, util::CompositeDataType};
 
@@ -50,12 +50,15 @@ impl<'g> IRGenerator<'g> {
     }
 }
 
-impl IRStream<'_> {
-    pub fn as_string(&self) -> String {
-        self.stream
-            .iter()
-            .map(|stmt| stmt.to_string())
-            .collect::<Vec<String>>()
-            .join("\n")
+impl Display for IRStream<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(
+            &self
+                .stream
+                .iter()
+                .map(|stmt| stmt.to_string())
+                .collect::<Vec<String>>()
+                .join("\n"),
+        )
     }
 }

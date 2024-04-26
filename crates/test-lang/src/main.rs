@@ -5,7 +5,7 @@ use std::io;
 use cli::Args;
 
 fn main() -> io::Result<()> {
-    let args = Args::new();
+    let args = Args::default();
 
     if args.chir {
         test_lang::compile_chir(args.input_file_path, args.output_path)

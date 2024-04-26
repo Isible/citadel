@@ -1,6 +1,6 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
-use citadel_api::frontend::ir::{self, *};
+use citadel_api::frontend::ir::{self, irgen::{IRGenerator, IRStream}, *};
 
 use super::ast::{self, *};
 
@@ -8,15 +8,15 @@ use super::ast::{self, *};
 pub struct Compiler;
 
 impl<'c> Compiler {
-    pub fn compile_program(&self, ast: &'c Vec<Statement>) -> Vec<IRStmt<'c>> {
-        let mut ir_stream = Vec::new();
+    pub fn compile_program(&self, ast: &'c Vec<Statement>) -> IRStream<'c> {
+        let mut ir_gen = IRGenerator::default();
 
-        ir_stream.push(Self::init_program());
+        ir_gen.gen_ir(Self::init_program());
 
         for stmt in ast {
-            ir_stream.push(self.compile_stmt(stmt))
+            ir_gen.gen_ir(self.compile_stmt(stmt))
         }
-        ir_stream
+        ir_gen.stream()
     }
 
     fn init_program() -> IRStmt<'c> {

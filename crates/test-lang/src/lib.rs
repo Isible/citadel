@@ -14,7 +14,7 @@ use crate::frontend::compiler::Compiler;
 pub fn compile_asm(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::Result<()> {
     let ast = gen_ast(input_file_path)?;
     let ir_stream = Compiler.compile_program(&ast);
-    let asm = compile!(AsmBackend::new(TargetX86_64), todo!());
+    let asm = compile!(AsmBackend::new(TargetX86_64), ir_stream);
     let buf = util::format(asm.stream);
     fs::write(match out_path {
         Some(path) => path,
@@ -27,7 +27,7 @@ pub fn compile_chir(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::
     let ast = gen_ast(input_file_path)?;
     dbg!(&ast);
     let ir_stream = Compiler.compile_program(&ast);
-    let buf = ir_stream.iter().map(|elem| elem.to_string()).collect::<Vec<String>>().join("\n");
+    let buf = ir_stream.to_string();
     fs::write(match out_path {
         Some(path) => path,
         None => PathBuf::from("out.chir"),

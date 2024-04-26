@@ -146,7 +146,7 @@ impl Display for IRExpr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&match self {
             IRExpr::Call(call) => call.to_string(),
-            IRExpr::Literal(lit) => lit.to_string(),
+            IRExpr::Literal(lit, _type) => format!("l{{{}:{}}}", lit, _type),
             IRExpr::ArithOp(op) => op.to_string(),
             IRExpr::Ident(id) => id.to_string(),
             IRExpr::StructInit(init) => init.to_string(),
@@ -164,7 +164,7 @@ impl Display for Literal<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "l{{{}}}",
+            "{}",
             &match self {
                 Literal::String(string) => format!("\"{}\"", string),
                 Literal::Char(char) => char.to_string(),

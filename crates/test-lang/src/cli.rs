@@ -14,8 +14,8 @@ pub(super) struct Args {
     pub(super) chir: bool,
 }
 
-impl Args {
-    pub(super) fn new() -> Args {
+impl Default for Args {
+    fn default() -> Self {
         Self::parse()
     }
 }
