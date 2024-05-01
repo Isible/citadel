@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::ir::{
-        irgen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, LabelStmt, Literal, ReturnStmt
+        self, irgen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, LabelStmt, Literal, ReturnStmt
     };
 
     #[test]
@@ -29,7 +29,7 @@ mod tests {
             name: Ident("myLabel"),
             block: BlockStmt {
                 stmts: vec![IRStmt::Return(ReturnStmt {
-                    ret_val: IRExpr::Literal(Literal::String("test".into())),
+                    ret_val: IRExpr::Literal(Literal::String("test".into()), ir::Ident("string")),
                 })],
             },
         });

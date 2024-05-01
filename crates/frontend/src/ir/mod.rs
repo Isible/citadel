@@ -29,7 +29,7 @@ pub enum IRStmt<'ir> {
 #[derive(Debug, Clone, PartialEq)]
 pub enum IRExpr<'ir> {
     Call(CallExpr<'ir>),
-    Literal(Literal<'ir>, &'ir str),
+    Literal(Literal<'ir>, Ident<'ir>),
     Ident(Ident<'ir>),
 
     ArithOp(ArithOpExpr<'ir>),

@@ -117,7 +117,7 @@ impl<'c> CodeGenerator<'c> {
 
     fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
         match &node {
-            IRExpr::Literal(node) => match node {
+            IRExpr::Literal(node, _) => match node {
                 ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
