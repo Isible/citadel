@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-citadel-frontend = { path = "../frontend" }
-citadel-middleend = { path = "../middleend" }
-citadel-backend = { path = "../backend" }
+citadel-frontend = { path = "../frontend", version = "*" }
+citadel-middleend = { path = "../middleend", version = "*" }
+citadel-backend = { path = "../backend", version = "*" }
