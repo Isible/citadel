@@ -9,4 +9,4 @@ description = "The middleend/optimizer for the citadel compiler backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-citadel-frontend = { path = "../frontend", version = "*" }
+citadel-frontend = { path = "../frontend", version = "0.0.1" }
