@@ -185,7 +185,7 @@ impl Display for Literal<'_> {
 
 impl Display for Ident<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "%{}", self.0)
+        write!(f, "{}", self.0)
     }
 }
 

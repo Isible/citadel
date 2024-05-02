@@ -1,5 +1,6 @@
-import subprocess
 import sys
+
+from shared import runCmd
 
 # TODO: Add remaining tests
 
@@ -14,12 +15,10 @@ test_cmds = {
 def runTest(selection: str):
     match selection:
         case "all":
-            for i in test_cmds.values():
-                result = subprocess.run(i, shell=True, capture_output=True, text=True)
-                print(result.stdout, end="")
+            for cmd in test_cmds.values():
+                runCmd(cmd)
         case _:
-            result = subprocess.run(test_cmds[selection], shell=True, capture_output=True, text=True)
-            print(result.stdout, end="")
+            runCmd(test_cmds[selection])
 
 
 print("What tests should be ran?")
