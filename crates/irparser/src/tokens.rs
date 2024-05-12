@@ -33,6 +33,9 @@ pub enum Token<'tok> {
     /// . - dot is used for namespaces and methods
     #[token(".")]
     Dot,
+    /// ; - semicolon is used in arrays to seperate type and size
+    #[token(";")]
+    Semicolon,
 
     /// Brackets
     /// ( - left parenthesis

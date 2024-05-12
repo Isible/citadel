@@ -89,8 +89,8 @@ impl<'c> Compiler {
             },
             name: IRTypedIdent {
                 _type: match node.name.as_str() {
-                    "main" => Ident("i32"),
-                    _ => Self::compile_type(&node.ret_type),
+                    "main" => ir::Type::Ident(Ident("i32")),
+                    _ => ir::Type::Ident(Self::compile_type(&node.ret_type)),
                 },
                 ident: Ident(&node.name),
             },
@@ -169,7 +169,7 @@ impl<'c> Compiler {
 
     fn compile_typed_ident(&self, node: &'c TypedIdent) -> IRTypedIdent<'c> {
         IRTypedIdent {
-            _type: Self::compile_type(&node._type),
+            _type: ir::Type::Ident(Self::compile_type(&node._type)),
             ident: Ident(&node.ident),
         }
     }

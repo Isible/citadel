@@ -9,4 +9,3 @@ description = "The frontend of the citadel compiler backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clutils = "0.0.9"

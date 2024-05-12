@@ -12,7 +12,7 @@ mod tests {
         let binding = IRStmt::DeclaredFunction(DeclFuncStmt {
             name: IRTypedIdent {
                 ident: Ident("myFuncName"),
-                _type: Ident("void"),
+                _type: ir::Type::Ident(Ident("void")),
             },
             args: Vec::new(),
         });

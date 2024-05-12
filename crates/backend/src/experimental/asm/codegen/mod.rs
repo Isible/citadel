@@ -12,7 +12,7 @@ use std::collections::{HashMap, HashSet};
 use citadel_frontend::{
     ir::{
         self, irgen::TypeTable, ArithOpExpr, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, Ident,
-        LabelStmt, ReturnStmt, StructInitExpr, VarStmt,
+        LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt,
     },
     util::CompositeDataType,
 };
@@ -119,6 +119,7 @@ impl<'c> CodeGenerator<'c> {
         match &node {
             IRExpr::Literal(node, _) => match node {
                 ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
+                ir::Literal::String(val) => self.gen_string(val),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
             IRExpr::Call(node) => {
@@ -145,6 +146,18 @@ impl<'c> CodeGenerator<'c> {
                 self.out.push(util::gen_call(&node.name))
             }
         }
+    }
+
+    fn gen_string(&mut self, val: &str) -> Operand {
+        let strings = util::split_string(val, 4);
+        dbg!(&strings);
+        for string in strings {
+            let bytes = util::conv_str_to_bytes(string);
+            // TODO: Compile strings efficiently, based on their length
+            self.stack_pointer -= 4;
+            self.gen_mov_ins(util::get_stack_location(self.stack_pointer), todo!());
+        }
+        todo!()
     }
 
     fn gen_arith_op(&mut self, node: &'c ArithOpExpr, move_to_rax: bool) -> Operand {
@@ -225,7 +238,7 @@ impl<'c> CodeGenerator<'c> {
                     args: _,
                 }) => (),
                 _ => {
-                    if *node.name._type == "void" {
+                    if let ir::Type::Ident(Ident("void")) = node.name._type {
                         self.out.push(util::destroy_stackframe());
                     }
                     self.out.push(util::gen_ret());
@@ -235,7 +248,7 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_struct_init(&mut self, node: &'c StructInitExpr) -> Operand {
-        let size = self.size_of(*node.name);
+        let size = self.size_of(&ir::Type::Ident(ir::Ident(*node.name)));
         self.gen_mov_ins(
             util::get_stack_location(self.stack_pointer - size as i32),
             Operand::Literal(Literal::Int(0)),
@@ -244,7 +257,7 @@ impl<'c> CodeGenerator<'c> {
         // TODO: Use type suffixes for this
         for (i, val) in node.values.iter().enumerate() {
             let fields = &self.types.get(&node.name).unwrap().1;
-            let field = fields[i];
+            let field = &fields[i];
             let expr = self.gen_expr(val);
             self.gen_mov_ins(util::get_stack_location(0), expr);
         }
@@ -312,22 +325,39 @@ impl<'c> CodeGenerator<'c> {
     }
 
     /// Returns the size of the type in bytes
-    fn size_of(&self, _type: &'c str) -> u8 {
-        if matches!(_type, "i8" | "i16" | "i32" | "i64") {
-            return util::int_size(_type);
+    fn size_of(&self, _type: &ir::Type<'c>) -> u8 {
+        // The type or array is an integer type/array
+        match _type {
+            Type::Ident(ident @ Ident("i8" | "i16" | "i32" | "i64")) => {
+                return util::int_size(**ident)
+            }
+            Type::Array(Type::Ident(ident @ Ident("i8" | "i16" | "i32" | "i64")), size) => {
+                return util::int_size(**ident) * *size as u8
+            }
+            _ => (),
         }
+
+        let type_name = match _type {
+            Type::Ident(ident) => ident,
+            Type::Array(ident, _) => match ident {
+                Type::Ident(id) => id,
+                Type::Array(id, _) => return self.size_of(*id),
+            },
+        };
 
         let cdt = self
             .types
-            .get(&Ident(_type))
+            .get(type_name)
             .unwrap_or_else(|| panic!("Could not find type with the name {}", _type));
         let mut size = 0;
         match cdt.0 {
+            // Add sizes if cdt is a struct
             CompositeDataType::Struct => {
                 for field in &cdt.1 {
                     size += self.size_of(&field._type);
                 }
             }
+            // Use largest size if cdt is a union
             CompositeDataType::Union => {
                 for variant in &cdt.1 {
                     let size1 = self.size_of(&variant._type);
@@ -337,7 +367,10 @@ impl<'c> CodeGenerator<'c> {
                 }
             }
         }
-        size
+        match _type {
+            Type::Ident(_) => size,
+            Type::Array(_, arr_size) => size * *arr_size as u8,
+        }
     }
 
     fn gen_mov_ins(&mut self, target: Operand, val: Operand) {

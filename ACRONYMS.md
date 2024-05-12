@@ -20,6 +20,12 @@
 
 - val: value
 
+- var: variable
+
+- addr: address
+
+- mem: memory
+
 - IR: Intermediary Representation
 
 - AST: Abstract Syntax Tree
@@ -35,3 +41,5 @@
 - NYI: Not yet implemented
 
 - S2C: Subject to change
+
+- repr: Representation

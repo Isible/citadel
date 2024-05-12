@@ -6,5 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bumpalo = "3.16.0"
 citadel-frontend = { path = "../frontend" }
 logos = "0.14.0"

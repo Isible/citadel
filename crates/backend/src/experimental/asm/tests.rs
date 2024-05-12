@@ -3,6 +3,7 @@ mod tests {
     use std::{fs, path::PathBuf};
 
     
+    use bumpalo::Bump;
     use citadel_irparser::{IRLexer, IRParser};
 
     use crate::experimental::{
@@ -16,7 +17,8 @@ mod tests {
         let path = "tests/main.chir";
         let file_content = fs::read(path).unwrap();
         let lexer = IRLexer::new(std::str::from_utf8(&file_content).unwrap());
-        let mut parser = IRParser::new(&lexer);
+        let arena = Bump::new();
+        let mut parser = IRParser::new(&lexer, &arena);
         let asm_code = backend.generate(parser.parse_program());
         util::compiler_output(util::format(asm_code), PathBuf::from("tests/out/out.asm"));
     }

@@ -1,4 +1,4 @@
-//! This file contains the `Display` trait implementations for the IR structs.
+//! This file contains trait implementations for the IR node and utility structs for the frontend ir representation.
 use crate::util::VecDisplay;
 use std::fmt::Display;
 
@@ -189,8 +189,25 @@ impl Display for Ident<'_> {
     }
 }
 
+impl Display for Type<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Type::Ident(ident) => write!(f, "{ident}"),
+            Type::Array(_type, size) => write!(f, "[{_type}; {size}]"),
+        }
+    }
+}
+
 impl Display for ExitStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "exit {}", self.exit_code)
+    }
+}
+
+impl<'ir> Deref for Ident<'ir> {
+    type Target = &'ir str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }

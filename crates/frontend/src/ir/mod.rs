@@ -38,6 +38,12 @@ pub enum IRExpr<'ir> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Type<'ir> {
+    Ident(Ident<'ir>),
+    Array(&'ir Type<'ir>, usize),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal<'ir> {
     String(String),
     // TODO: Make this a byte
@@ -67,17 +73,9 @@ pub enum Operator {
     Div,
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Ident<'ir>(pub &'ir str);
 
-impl<'ir> Deref for Ident<'ir> {
-    type Target = &'ir str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DeclFuncStmt<'ir> {
@@ -137,10 +135,10 @@ pub struct JumpStmt<'ir> {
     pub label: Ident<'ir>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct IRTypedIdent<'ir> {
     pub ident: Ident<'ir>,
-    pub _type: Ident<'ir>,
+    pub _type: Type<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

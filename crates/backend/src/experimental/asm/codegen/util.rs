@@ -32,6 +32,7 @@ pub(crate) fn gen_syscall() -> AsmElement {
     })
 }
 
+/// Returns the memory adress of the rbp register at pos
 pub(crate) fn get_stack_location(pos: i32) -> Operand {
     Operand::MemAddr(MemAddr::RegisterPos(Register::Rbp, pos))
 }
@@ -56,14 +57,14 @@ pub(crate) fn destroy_stackframe() -> AsmElement {
     })
 }
 
-pub(super) fn string_from_lit<'s>(lit: &'s IRExpr<'s>) -> &'s String {
+pub(crate) fn string_from_lit<'s>(lit: &'s IRExpr<'s>) -> &'s String {
     match lit {
         IRExpr::Literal(ir::Literal::String(s), _) => s,
         _ => panic!("Expected string literal"),
     }
 }
 
-pub(super) fn arg_regs_by_size(size: u8) -> [Register; 6] {
+pub(crate) fn arg_regs_by_size(size: u8) -> [Register; 6] {
     match size {
         8 => super::FUNCTION_ARG_REGISTERS_8,
         16 => super::FUNCTION_ARG_REGISTERS_16,
@@ -82,4 +83,25 @@ pub(super) fn int_size(int: &str) -> u8 {
         "i64" => 8,
         _ => unreachable!(),
     }
+}
+
+pub(super) fn conv_str_to_bytes(string: &str) -> u64 {
+    let mut res = 0;
+    for (i, ch) in string.chars().into_iter().enumerate() {
+        res |= (ch as u64) << (i * 8);
+    }
+    res
+}
+
+pub(super) fn split_string(input: &str, sub_string_len: usize) -> Vec<&str> {
+    let mut result = Vec::new();
+    let mut start = 0;
+
+    while start < input.len() {
+        let end = (start + sub_string_len).min(input.len());
+        result.push(&input[start..end]);
+        start = end;
+    }
+
+    result
 }
