@@ -10,10 +10,18 @@ the name of the variable (myVar)
 
 the type of the var (see: [types](#types)) (i32)
 
-and the value (integer literal l{...})
+```txt
+and the value (i32 l{0:i32})
+                     ^ ^^^
+                     │ │
+                     │ └───────────┐
+                     the value     │
+                                   │
+                        the type of the literal
+```
 
 ```text
-$myVar i32 = l{0}
+$myVar i32 = l{0:i32}
 ```
 
 ### Referencing

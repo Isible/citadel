@@ -8,7 +8,7 @@ The intermediary representation in a compiler is used to break down language sou
 
 By default citadel uses 2 layers of intermediary representation.
 
-### Citadel-highlevel-representation (chr)
+### Citadel-highlevel-representation (chir)
 
 This is the first required layer that the compiler developer need to write a compilers for. Syntactically it is very similar to C but it stores a lot more information. For example:
 
@@ -35,16 +35,12 @@ int main(void) {
 # The main function
 func @main() i32 {
     # l{...} means that the value is a literal
-    $x i8 = l{100}
-    ?myString [char; 11] = l{"Hello World"}
-    ret l{0}
+    $x i8 = l{100:i8}
+    ?myString [i8; 11] = l{"Hello World":[i8; 11]}
+    ret l{0:i32}
 }
 ```
 
-### Citadel-lowlevel-representation (clr)
+### Citadel-lowlevel-representation (clir)
 
 This is the second mandatory layer. Citadel however will automatically compile to it from the first layer. It's syntax looks a lot like assembly tho a bit more readable and simplified. This is supposed to be the last layer. However, as of right now it is not completly designed yet and there are still a lot of problems with it so it might move up one layer. Anyways, here is the comparsion, this time using assembly (program is the same as the one on top)
-
-#### CIR
-
-

@@ -1,5 +1,3 @@
-use crate::tokens::Token;
-
 #[macro_export]
 macro_rules! expect_tok {
     ($tok:expr,$pat:pat,$fail:expr) => {{

@@ -1,6 +1,6 @@
 //! Parser for parsing list of tokens into list of actually related AST nodes
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 use bumpalo::Bump;
 use citadel_frontend::ir::{
