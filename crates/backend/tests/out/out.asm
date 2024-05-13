@@ -1,6 +1,4 @@
-section .text
-    global _start
-_start:
+_entry:
     call main
     mov rdi,rax
     mov rax,60

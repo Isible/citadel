@@ -138,8 +138,13 @@ impl Display for IRStmt<'_> {
             IRStmt::Call(call) => call.to_string(),
             IRStmt::Struct(_struct) => _struct.to_string(),
             IRStmt::Union(union) => union.to_string(),
+            IRStmt::Entry(entry) => return entry_to_string(f, entry),
         })
     }
+}
+
+fn entry_to_string(f: &mut std::fmt::Formatter<'_>, entry: &BlockStmt<'_>) -> std::fmt::Result {
+    write!(f, "entry {{\n {} \n}}", entry)
 }
 
 impl Display for IRExpr<'_> {

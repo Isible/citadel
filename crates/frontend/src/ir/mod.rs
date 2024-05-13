@@ -11,6 +11,9 @@ pub mod irgen;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum IRStmt<'ir> {
+    // TODO: Migrate _entry labels to entry block stmt
+    Entry(BlockStmt<'ir>),
+
     DeclaredFunction(DeclFuncStmt<'ir>),
     Function(FuncStmt<'ir>),
     Variable(VarStmt<'ir>),
@@ -47,7 +50,7 @@ pub enum Type<'ir> {
 pub enum Literal<'ir> {
     String(&'ir str),
     // TODO: Make this a byte
-    Char(char),
+    Char(u8),
 
     Float(f32),
     Double(f64),

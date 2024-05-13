@@ -38,6 +38,7 @@ impl<'p> Parser<'p> {
 
     pub fn parse_stmt(&mut self) -> Option<IRStmt<'p>> {
         match self.cur_tok()? {
+            Token::Entry => self.parse_entry(),
             Token::DollarSign => self.parse_variable(true),
             Token::QuestionMark => self.parse_variable(false),
             Token::Func => self.parse_function(),
@@ -69,6 +70,15 @@ impl<'p> Parser<'p> {
             Token::Struct => self.parse_struct_init(),
             tok => todo!("cur tok: {tok:?}"),
         }
+    }
+
+    fn parse_entry(&mut self) -> Option<IRStmt<'p>> {
+        expect_tok!(self.peek_tok()?, Token::LCurly, |tok| {
+            parser_error!("Expected left curly starting block after entry keyword, received {tok:?} instead");
+        });
+        self.next_tok();
+        let block = self.parse_block()?;
+        Some(IRStmt::Entry(block))
     }
 
     fn parse_ident(&mut self) -> Option<IRExpr<'p>> {
@@ -467,6 +477,7 @@ impl<'p> Parser<'p> {
         Some(Ident(name))
     }
 
+    /// First token is left curly
     fn parse_block(&mut self) -> Option<BlockStmt<'p>> {
         let mut block = Vec::new();
         while self.peek_tok() != Some(&Token::RCurly) {

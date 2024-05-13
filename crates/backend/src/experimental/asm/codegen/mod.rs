@@ -11,8 +11,8 @@ use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::{
     ir::{
-        self, irgen::TypeTable, ArithOpExpr, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, Ident,
-        LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt,
+        self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr,
+        IRStmt, Ident, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt,
     },
     util::CompositeDataType,
 };
@@ -90,19 +90,11 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
-    pub fn create_entry(&mut self) {
-        self.out.push(AsmElement::Directive(Directive {
-            _type: DirectiveType::Text,
-        }));
-        self.out.push(AsmElement::Declaration(Declaration::Global(
-            "_start".to_string(),
-        )))
-    }
-
     pub fn gen_stmt(&mut self, node: &'c IRStmt) {
         match node {
             IRStmt::DeclaredFunction(_) => todo!(),
             IRStmt::Function(node) => self.gen_function(node),
+            IRStmt::Entry(node) => self.gen_entry(node),
             IRStmt::Struct(_) => (),
             IRStmt::Variable(node) => self.gen_variable(node),
             IRStmt::Label(node) => self.gen_label(node),
@@ -138,6 +130,22 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
+    pub fn gen_entry(&mut self, node: &'c BlockStmt<'c>) {
+        // Text directive (entry point)
+        self.out.push(AsmElement::Directive(Directive {
+            _type: DirectiveType::Text,
+        }));
+        self.out.push(AsmElement::Declaration(Declaration::Global(
+            "_start".to_string(),
+        )));
+
+        // _start label
+        self.out.push(AsmElement::Label(Label { name: "_start".to_string() }));
+        for stmt in &node.stmts {
+            self.gen_stmt(stmt);
+        }
+    }
+
     fn gen_call(&mut self, node: &'c CallExpr) {
         match *node.name {
             "print" => self.gen_print(node),
@@ -157,13 +165,19 @@ impl<'c> CodeGenerator<'c> {
         dbg!(&strings);
         // HACK: Implement actual system for always inlineing the last string from the strings vec (returning it as the operand)
         if strings.len() == 1 {
-            return Operand::SizedLiteral(Literal::String(util::conv_str_to_bytes(strings.get(0).unwrap())), util::word_from_int(size as u8));
+            return Operand::SizedLiteral(
+                Literal::String(util::conv_str_to_bytes(strings.get(0).unwrap())),
+                util::word_from_int(size as u8),
+            );
         }
         for string in strings {
             let bytes = util::conv_str_to_bytes(string);
             // TODO: Compile strings efficiently, based on their length
             self.stack_pointer -= size as i32;
-            self.gen_mov_ins(util::get_stack_location(self.stack_pointer), Operand::Literal(Literal::Int(bytes as i32)));
+            self.gen_mov_ins(
+                util::get_stack_location(self.stack_pointer),
+                Operand::Literal(Literal::Int(bytes as i32)),
+            );
         }
         util::get_stack_location(self.stack_pointer)
     }
@@ -316,17 +330,10 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_label(&mut self, node: &'c LabelStmt) {
-        match *node.name {
-            "_entry" => {
-                self.create_entry();
-                self.out.push(AsmElement::Label(Label {
-                    name: "_start".to_string(),
-                }))
-            }
-            _ => self.out.push(AsmElement::Label(Label {
-                name: node.name.to_string(),
-            })),
-        }
+        self.out.push(AsmElement::Label(Label {
+            name: node.name.to_string(),
+        }));
+
         for stmt in &node.block.stmts {
             self.gen_stmt(stmt);
         }

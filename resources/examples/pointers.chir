@@ -1,7 +1,8 @@
-# entry label marks the entry point for any citadel IR
+# entry block marks the entry point for any citadel IR program
+
 extern print
 
-'entry: {
+entry {
     call %main()
 }
 

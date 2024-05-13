@@ -70,6 +70,9 @@ pub enum Token<'tok> {
     /// Define a function
     #[token("func")]
     Func,
+    /// Entry point of the program
+    #[token("entry")]
+    Entry,
     /// Call a function
     #[token("call")]
     Call,

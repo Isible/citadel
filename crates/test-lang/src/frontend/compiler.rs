@@ -30,16 +30,13 @@ impl<'c> Compiler {
     }
 
     fn init_program() -> IRStmt<'c> {
-        IRStmt::Label(LabelStmt {
-            name: Ident("_entry"),
-            block: BlockStmt {
-                stmts: vec![IRStmt::Exit(ExitStmt {
-                    exit_code: IRExpr::Call(CallExpr {
-                        name: Ident("main"),
-                        args: Vec::new(),
-                    }),
-                })],
-            },
+        IRStmt::Entry(BlockStmt {
+            stmts: vec![IRStmt::Exit(ExitStmt {
+                exit_code: IRExpr::Call(CallExpr {
+                    name: Ident("main"),
+                    args: Vec::new(),
+                }),
+            })],
         })
     }
 
