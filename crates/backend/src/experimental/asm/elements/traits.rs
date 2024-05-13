@@ -207,7 +207,7 @@ impl Display for Literal {
             match *self {
                 Literal::Int(int) => int.to_string(),
                 Literal::Float(float) => float.to_string(),
-                Literal::String(ref string) => string.into(),
+                Literal::String(string) => string.to_string(),
             }
         )
     }

@@ -1,9 +1,10 @@
 use citadel_frontend::ir::{self, IRExpr};
 
 use crate::experimental::asm::elements::{
-    AsmElement, Instruction, MemAddr, Opcode, Operand, Register,
+    AsmElement, DataSize, Instruction, MemAddr, Opcode, Operand, Register
 };
 
+#[inline(always)]
 pub(crate) fn gen_mov_ins(target: Operand, val: Operand) -> AsmElement {
     AsmElement::Instruction(Instruction {
         opcode: Opcode::Mov,
@@ -11,6 +12,7 @@ pub(crate) fn gen_mov_ins(target: Operand, val: Operand) -> AsmElement {
     })
 }
 
+#[inline(always)]
 pub(crate) fn gen_call(label_id: &str) -> AsmElement {
     AsmElement::Instruction(Instruction {
         opcode: Opcode::Call,
@@ -18,6 +20,7 @@ pub(crate) fn gen_call(label_id: &str) -> AsmElement {
     })
 }
 
+#[inline(always)]
 pub(crate) fn gen_ret() -> AsmElement {
     AsmElement::Instruction(Instruction {
         opcode: Opcode::Ret,
@@ -25,6 +28,7 @@ pub(crate) fn gen_ret() -> AsmElement {
     })
 }
 
+#[inline(always)]
 pub(crate) fn gen_syscall() -> AsmElement {
     AsmElement::Instruction(Instruction {
         opcode: Opcode::Syscall,
@@ -33,10 +37,12 @@ pub(crate) fn gen_syscall() -> AsmElement {
 }
 
 /// Returns the memory adress of the rbp register at pos
+#[inline(always)]
 pub(crate) fn get_stack_location(pos: i32) -> Operand {
     Operand::MemAddr(MemAddr::RegisterPos(Register::Rbp, pos))
 }
 
+#[inline(always)]
 pub(crate) fn create_stackframe() -> (AsmElement, AsmElement) {
     (
         AsmElement::Instruction(Instruction {
@@ -50,6 +56,7 @@ pub(crate) fn create_stackframe() -> (AsmElement, AsmElement) {
     )
 }
 
+#[inline(always)]
 pub(crate) fn destroy_stackframe() -> AsmElement {
     AsmElement::Instruction(Instruction {
         opcode: Opcode::Pop,
@@ -57,25 +64,29 @@ pub(crate) fn destroy_stackframe() -> AsmElement {
     })
 }
 
-pub(crate) fn string_from_lit<'s>(lit: &'s IRExpr<'s>) -> &'s String {
+#[inline(always)]
+pub(crate) fn string_from_lit<'s>(lit: &'s IRExpr<'s>) -> &'s str {
     match lit {
         IRExpr::Literal(ir::Literal::String(s), _) => s,
         _ => panic!("Expected string literal"),
     }
 }
 
+/// `size` is the size in bytes
+#[inline(always)]
 pub(crate) fn arg_regs_by_size(size: u8) -> [Register; 6] {
     match size {
-        8 => super::FUNCTION_ARG_REGISTERS_8,
-        16 => super::FUNCTION_ARG_REGISTERS_16,
-        32 => super::FUNCTION_ARG_REGISTERS_32,
-        64 => super::FUNCTION_ARG_REGISTERS_64,
+        1 => super::FUNCTION_ARG_REGISTERS_8,
+        2 => super::FUNCTION_ARG_REGISTERS_16,
+        4 => super::FUNCTION_ARG_REGISTERS_32,
+        9 => super::FUNCTION_ARG_REGISTERS_64,
         _ => panic!("Invalid size: {size}"),
     }
 }
 
 /// returns the size of the specified integer in bytes
-pub(super) fn int_size(int: &str) -> u8 {
+#[inline(always)]
+pub(crate) fn int_size(int: &str) -> u8 {
     match int {
         "i8" => 1,
         "i16" => 2,
@@ -85,7 +96,7 @@ pub(super) fn int_size(int: &str) -> u8 {
     }
 }
 
-pub(super) fn conv_str_to_bytes(string: &str) -> u64 {
+pub(crate) fn conv_str_to_bytes(string: &str) -> u64 {
     let mut res = 0;
     for (i, ch) in string.chars().into_iter().enumerate() {
         res |= (ch as u64) << (i * 8);
@@ -93,7 +104,7 @@ pub(super) fn conv_str_to_bytes(string: &str) -> u64 {
     res
 }
 
-pub(super) fn split_string(input: &str, sub_string_len: usize) -> Vec<&str> {
+pub(crate) fn split_string(input: &str, sub_string_len: usize) -> Vec<&str> {
     let mut result = Vec::new();
     let mut start = 0;
 
@@ -104,4 +115,15 @@ pub(super) fn split_string(input: &str, sub_string_len: usize) -> Vec<&str> {
     }
 
     result
+}
+
+#[inline(always)]
+pub(crate) fn word_from_int(size: u8) -> DataSize {
+    match size {
+        1 => DataSize::Byte,
+        2 => DataSize::Word,
+        4 => DataSize::DWord,
+        8 => DataSize::QWord,
+        size => todo!("Sizes over 8 bytes. Size {size} is too large for now")
+    }
 }

@@ -6,7 +6,7 @@
 
 use std::{fmt::{Debug, Display}, io};
 
-use citadel_frontend::ir::{irgen::IRStream, IRStmt};
+use citadel_frontend::ir::irgen::IRStream;
 
 pub trait Target: Debug + Default + Copy + Clone {
     fn name(&self) -> &str;

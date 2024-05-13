@@ -97,11 +97,13 @@ pub enum MemAddr {
     Literal(Literal),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Literal {
     Int(i32),
     Float(f32),
-    String(String),
+    // FIXME: Although this is a u64 we only support 32 bit strings right now
+    /// String, encoded using the little endian method
+    String(u64),
 }
 
 impl Size for Literal {

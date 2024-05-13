@@ -4,11 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use bumpalo::Bump;
 use citadel_frontend::ir::{
-    self,
-    irgen::{IRGenerator, IRStream},
-    ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt,
-    IRTypedIdent, Ident, JumpStmt, LabelStmt, Operator, ReturnStmt, StructInitExpr, StructStmt,
-    Type, UnionStmt, VarStmt,
+    self, irgen::{IRGenerator, IRStream}, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Literal, Operator, ReturnStmt, StructInitExpr, StructStmt, UnionStmt, VarStmt
 };
 
 use crate::{expect_tok, lexer::Lexer, parser_error, tokens::Token};
@@ -18,7 +14,7 @@ pub struct Parser<'p> {
     arena: &'p Bump,
 
     tok_index: usize,
-    pub symbols: HashMap<String, IRStmt<'p>>,
+    pub symbols: HashMap<&'p str, IRStmt<'p>>,
 }
 
 impl<'p> Parser<'p> {
@@ -68,18 +64,7 @@ impl<'p> Parser<'p> {
             Token::Sub => self.parse_arith_op_expr(Operator::Sub),
             Token::Mul => self.parse_arith_op_expr(Operator::Mul),
             Token::Div => self.parse_arith_op_expr(Operator::Div),
-            Token::LitString(str) => Some(IRExpr::Literal(
-                ir::Literal::String((*str).into()),
-                ir::Ident("string"),
-            )),
-            Token::LitInt(int) => Some(IRExpr::Literal(
-                ir::Literal::Int32(int.parse::<i32>().unwrap()),
-                ir::Ident("i32"),
-            )),
-            Token::LitChar(ch) => Some(IRExpr::Literal(
-                ir::Literal::Char(ch.chars().nth(0).unwrap()),
-                ir::Ident("char"),
-            )),
+            Token::Ident("l") if *self.peek_tok()? == Token::LCurly => self.parse_lit(),
             Token::PercentSign => self.parse_ident(),
             Token::Struct => self.parse_struct_init(),
             tok => todo!("cur tok: {tok:?}"),
@@ -118,16 +103,16 @@ impl<'p> Parser<'p> {
 
         self.next_tok();
 
-        let val = self.parse_expr();
+        let val = self.parse_expr()?;
         let var = IRStmt::Variable(VarStmt {
             name: IRTypedIdent {
-                ident: Ident(ident),
-                _type: _type,
+                ident: ir::Ident(ident),
+                _type,
             },
-            val: val?,
+            val,
             is_const,
         });
-        self.symbols.insert(ident.into(), var.clone());
+        self.symbols.insert(ident, var.clone());
         Some(var)
     }
 
@@ -266,7 +251,7 @@ impl<'p> Parser<'p> {
             args: args?,
             block: block?,
         });
-        self.symbols.insert(name.into(), func.clone());
+        self.symbols.insert(name, func.clone());
         Some(func)
     }
 
@@ -333,7 +318,7 @@ impl<'p> Parser<'p> {
             name: Ident(name),
             block: block?,
         });
-        self.symbols.insert(name.into(), label.clone());
+        self.symbols.insert(name, label.clone());
         Some(label)
     }
 
@@ -569,6 +554,31 @@ impl<'p> Parser<'p> {
             ident: Ident(ident),
             _type,
         })
+    }
+
+    fn parse_lit(&mut self) -> Option<IRExpr<'p>> {
+        // `l`
+        self.next_tok();
+        // `{`
+        self.next_tok();
+        let lit = match self.cur_tok()? {
+            Token::LitString(string) => Literal::String(string.trim_matches('"')),
+            Token::LitInt(int) => Literal::Int32(int.parse().unwrap()),
+            Token::LitFloat(float) => Literal::Float(float.parse().unwrap()),
+            Token::LitChar(char) => Literal::Char(char.parse().unwrap()),
+            _ => parser_error!("Expected literal after `l{{`")
+        };
+        expect_tok!(self.peek_tok()?, Token::Colon, |tok| {
+            parser_error!("Expected colon to seperate literal from type suffix, received {tok:?}");
+        });
+        self.next_tok();
+        self.next_tok();
+        let type_ = self.parse_type()?;
+        expect_tok!(self.peek_tok()?, Token::RCurly, |tok| {
+            parser_error!("Expected right curly brackets after type suffix, received {tok:?} instead");
+        });
+        self.next_tok();
+        Some(IRExpr::Literal(lit, type_))
     }
 
     #[inline(always)]

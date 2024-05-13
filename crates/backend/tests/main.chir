@@ -1,3 +1,8 @@
+'_entry: {
+    exit call %main()
+}
+
 func @main() i32 {
-    $test i32 = l{"Ballzmountain deez nuts"}
+    $test [i8; 4] = l{"Ball":[i8; 4]}
+    ret l{0:i32}
 }

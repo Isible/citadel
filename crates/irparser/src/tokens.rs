@@ -105,13 +105,16 @@ pub enum Token<'tok> {
     #[token("mod")]
     Mod,
 
-    #[regex(r#"l\{\s*\"([^\"\n]*)\"\s*\}"#)]
+    #[regex(r#""(?:\\.|[^\\"])*""#)]
     LitString(&'tok str),
 
-    #[regex(r"l\{(\d+)\}")]
+    #[regex(r"-?[0-9]+")]
     LitInt(&'tok str),
 
-    #[regex(r"l\{'(.)'\}")]
+    #[regex("-?[0-9]+\\.[0-9]+")]
+    LitFloat(&'tok str),
+
+    #[regex(r#"'[^\\']'"#)]
     LitChar(&'tok str),
 
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*")]

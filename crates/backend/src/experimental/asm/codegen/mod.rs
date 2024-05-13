@@ -117,9 +117,9 @@ impl<'c> CodeGenerator<'c> {
 
     fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
         match &node {
-            IRExpr::Literal(node, _) => match node {
+            IRExpr::Literal(node, type_) => match node {
                 ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
-                ir::Literal::String(val) => self.gen_string(val),
+                ir::Literal::String(val) => self.gen_string(val, type_),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
             IRExpr::Call(node) => {
@@ -148,16 +148,24 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
-    fn gen_string(&mut self, val: &str) -> Operand {
-        let strings = util::split_string(val, 4);
+    fn gen_string(&mut self, val: &str, type_: &Type<'c>) -> Operand {
+        let size = *match type_ {
+            Type::Ident(_) => todo!(),
+            Type::Array(_, len) => len,
+        };
+        let strings = util::split_string(val, size);
         dbg!(&strings);
+        // HACK: Implement actual system for always inlineing the last string from the strings vec (returning it as the operand)
+        if strings.len() == 1 {
+            return Operand::SizedLiteral(Literal::String(util::conv_str_to_bytes(strings.get(0).unwrap())), util::word_from_int(size as u8));
+        }
         for string in strings {
             let bytes = util::conv_str_to_bytes(string);
             // TODO: Compile strings efficiently, based on their length
-            self.stack_pointer -= 4;
-            self.gen_mov_ins(util::get_stack_location(self.stack_pointer), todo!());
+            self.stack_pointer -= size as i32;
+            self.gen_mov_ins(util::get_stack_location(self.stack_pointer), Operand::Literal(Literal::Int(bytes as i32)));
         }
-        todo!()
+        util::get_stack_location(self.stack_pointer)
     }
 
     fn gen_arith_op(&mut self, node: &'c ArithOpExpr, move_to_rax: bool) -> Operand {

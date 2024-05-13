@@ -80,7 +80,7 @@ impl<'c> Compiler {
                         match last {
                             IRStmt::Return(_) => (),
                             _ => block.push(IRStmt::Return(ReturnStmt {
-                                ret_val: IRExpr::Literal(ir::Literal::Int32(0), ir::Ident("i32")),
+                                ret_val: IRExpr::Literal(ir::Literal::Int32(0), ir::Type::Ident(ir::Ident("i32"))),
                             })),
                         }
                     }
@@ -160,10 +160,10 @@ impl<'c> Compiler {
     fn compile_lit(&self, node: &'c ast::Literal) -> IRExpr<'c> {
         match node {
             ast::Literal::Ident(ident) => IRExpr::Ident(Ident(&ident)),
-            ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string.to_string()), ir::Ident("string")),
-            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(*int), ir::Ident("i32")),
-            ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(*float), ir::Ident("f32")),
-            ast::Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(*bool), ir::Ident("boolean")),
+            ast::Literal::String(string) => IRExpr::Literal(ir::Literal::String(string), ir::Type::Array(&Type::Ident(Ident("i8")), string.len())),
+            ast::Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(*int), ir::Type::Ident(ir::Ident("i32"))),
+            ast::Literal::Float(float) => IRExpr::Literal(ir::Literal::Double(*float), ir::Type::Ident(ir::Ident("f32"))),
+            ast::Literal::Boolean(bool) => IRExpr::Literal(ir::Literal::Bool(*bool), ir::Type::Ident(ir::Ident("i8"))),
         }
     }
 

@@ -8,8 +8,7 @@ pub mod util;
 
 mod tests;
 
-
-use citadel_frontend::ir::{irgen::IRStream, IRStmt};
+use citadel_frontend::ir::irgen::IRStream;
 
 use crate::experimental::{
     api::{Backend, Target},

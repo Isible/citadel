@@ -29,7 +29,7 @@ mod tests {
             name: Ident("myLabel"),
             block: BlockStmt {
                 stmts: vec![IRStmt::Return(ReturnStmt {
-                    ret_val: IRExpr::Literal(Literal::String("test".into()), ir::Ident("string")),
+                    ret_val: IRExpr::Literal(Literal::String("test".into()), ir::Type::Array(&ir::Type::Ident(ir::Ident("i8")), 4)),
                 })],
             },
         });
