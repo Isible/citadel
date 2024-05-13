@@ -1,22 +1,30 @@
 //! Abstract Syntax Tree for the language
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Statement {
-    Let(LetStatement),
-    Fn(FnStatement),
-    If(IfStatement),
-    Loop(LoopStatement),
-    Return(ReturnStatement),
+pub enum Statement<'ast> {
+    Let(LetStatement<'ast>),
+    Fn(FnStatement<'ast>),
+    If(IfStatement<'ast>),
+    Loop(LoopStatement<'ast>),
+    Return(ReturnStatement<'ast>),
     
-    Block(BlockStatement),
-    Expression(Expression),
+    Block(BlockStatement<'ast>),
+    Expression(Expression<'ast>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Expression {
-    Call(CallExpression),
-    Infix(InfixOpExpr),
-    Literal(Literal),
+pub enum Expression<'ast> {
+    Call(CallExpression<'ast>),
+    Infix(InfixOpExpr<'ast>),
+    Literal(Literal<'ast>),
+}
+
+pub type Ident<'ast> = &'ast str;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Type<'ast> {
+    Ident(Ident<'ast>),
+    Array(&'ast Type<'ast>, usize),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -30,64 +38,64 @@ pub enum Operator {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Literal {
-    Ident(String),
-    String(String),
+pub enum Literal<'ast> {
+    Ident(Ident<'ast>),
+    String(&'ast str),
     Integer(i32),
     Float(f64),
     Boolean(bool),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct IfStatement {
-    pub condition: Expression,
-    pub block: BlockStatement,
+pub struct IfStatement<'ast> {
+    pub condition: Expression<'ast>,
+    pub block: BlockStatement<'ast>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct FnStatement {
-    pub name: String,
-    pub args: Vec<TypedIdent>,
-    pub ret_type: String,
-    pub block: BlockStatement,
+pub struct FnStatement<'ast> {
+    pub name: Ident<'ast>,
+    pub args: Vec<TypedIdent<'ast>>,
+    pub ret_type: Type<'ast>,
+    pub block: BlockStatement<'ast>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct LetStatement {
-    pub name: TypedIdent,
-    pub val: Expression,
+pub struct LetStatement<'ast> {
+    pub name: TypedIdent<'ast>,
+    pub val: Expression<'ast>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct BlockStatement {
-    pub stmts: Vec<Statement>
+pub struct BlockStatement<'ast> {
+    pub stmts: Vec<Statement<'ast>>
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct LoopStatement {
-    pub condition: Expression,
-    pub block: BlockStatement,
+pub struct LoopStatement<'ast> {
+    pub condition: Expression<'ast>,
+    pub block: BlockStatement<'ast>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ReturnStatement {
-    pub val: Expression,
+pub struct ReturnStatement<'ast> {
+    pub val: Expression<'ast>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct CallExpression {
-    pub name: String,
-    pub args: Vec<Expression>,
+pub struct CallExpression<'ast> {
+    pub name: Ident<'ast>,
+    pub args: Vec<Expression<'ast>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct InfixOpExpr {
+pub struct InfixOpExpr<'ast> {
     pub operator: Operator,
-    pub sides: (Box<Expression>, Box<Expression>)
+    pub sides: (&'ast Expression<'ast>, &'ast Expression<'ast>)
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct TypedIdent {
-    pub _type: String,
-    pub ident: String,
+pub struct TypedIdent<'ast> {
+    pub _type: Type<'ast>,
+    pub ident: Ident<'ast>,
 }

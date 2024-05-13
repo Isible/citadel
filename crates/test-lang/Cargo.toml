@@ -11,3 +11,4 @@ citadel-api = { path = "../api" }
 clap = { version = "4.5.4", features = ["derive"] }
 logos = "0.14.0"
 colored = "2.1.0"
+bumpalo = "3.16.0"

@@ -1,6 +1,8 @@
 //! Parser module for parsing test-lang tokens into an abstract syntax tree
 
-use crate::expect_tok;
+use bumpalo::Bump;
+
+use crate::{expect_tok, frontend::ast::Type};
 
 use super::{
     ast::{
@@ -11,8 +13,9 @@ use super::{
     tokens::Token,
 };
 
-pub struct Parser<'l> {
-    lexer: &'l Lexer<'l>,
+pub struct Parser<'p> {
+    lexer: &'p Lexer<'p>,
+    arena: &'p Bump,
 
     tok_index: usize,
 }
@@ -31,15 +34,16 @@ pub enum Precedence {
     Call,
 }
 
-impl<'l> Parser<'l> {
-    pub fn new(lexer: &'l Lexer) -> Self {
+impl<'p> Parser<'p> {
+    pub fn new(lexer: &'p Lexer, arena: &'p Bump) -> Self {
         Self {
             lexer,
+            arena,
             tok_index: 0,
         }
     }
 
-    pub fn parse_program(&mut self) -> Vec<Statement> {
+    pub fn parse_program(&mut self) -> Vec<Statement<'p>> {
         let mut program = Vec::new();
         while let Some(stmt) = self.parse_stmt() {
             program.push(stmt);
@@ -49,7 +53,7 @@ impl<'l> Parser<'l> {
     }
 
     // Every parse function needs to set cur_token to the last character in the line
-    pub fn parse_stmt(&mut self) -> Option<Statement> {
+    pub fn parse_stmt(&mut self) -> Option<Statement<'p>> {
         match self.cur_tok()? {
             Token::Let => self.parse_let_stmt(),
             Token::Fn => self.parse_fn_stmt(),
@@ -62,7 +66,7 @@ impl<'l> Parser<'l> {
         }
     }
 
-    fn parse_expr(&mut self, prec: Precedence) -> Option<Expression> {
+    fn parse_expr(&mut self, prec: Precedence) -> Option<Expression<'p>> {
         let prefix = self.parse_prefix();
 
         let mut left_expression = prefix;
@@ -75,7 +79,7 @@ impl<'l> Parser<'l> {
         left_expression
     }
 
-    fn parse_infix(&mut self, left: Expression) -> Option<Expression> {
+    fn parse_infix(&mut self, left: Expression<'p>) -> Option<Expression<'p>> {
         match self.cur_tok()? {
             Token::Equals | Token::Plus | Token::Minus | Token::Multiply | Token::Divide => {
                 self.parse_infix_expr(left)
@@ -86,7 +90,7 @@ impl<'l> Parser<'l> {
         }
     }
 
-    fn parse_prefix(&mut self) -> Option<Expression> {
+    fn parse_prefix(&mut self) -> Option<Expression<'p>> {
         match self.cur_tok()? {
             Token::LitInt(int) => Some(Expression::Literal(Literal::Integer(int.parse().unwrap()))),
             Token::LitFloat(float) => {
@@ -103,18 +107,18 @@ impl<'l> Parser<'l> {
         }
     }
 
-    fn parse_infix_expr(&mut self, left_expr: Expression) -> Option<Expression> {
+    fn parse_infix_expr(&mut self, left_expr: Expression<'p>) -> Option<Expression<'p>> {
         let op = self.cur_tok_to_in_op()?;
         let prec = self.get_precedence(self.cur_tok()?);
         self.next_tok();
-        let right_expr = self.parse_expr(prec);
+        let right_expr = self.parse_expr(prec)?;
         Some(Expression::Infix(InfixOpExpr {
-            sides: (Box::from(left_expr), Box::from(right_expr?)),
+            sides: (self.arena.alloc(left_expr), self.arena.alloc(right_expr)),
             operator: op,
         }))
     }
 
-    fn parse_let_stmt(&mut self) -> Option<Statement> {
+    fn parse_let_stmt(&mut self) -> Option<Statement<'p>> {
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| panic!(
             "Expected peek token to be Ident, received {tok:?} instead"
         ));
@@ -136,17 +140,16 @@ impl<'l> Parser<'l> {
         Some(Statement::Let(LetStatement { name, val }))
     }
 
-    fn parse_fn_stmt(&mut self) -> Option<Statement> {
+    fn parse_fn_stmt(&mut self) -> Option<Statement<'p>> {
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| panic!(
             "Expected peek token to be Ident, received {tok:?} instead"
         ));
         self.next_tok();
 
-        let name = match self.cur_tok()? {
+        let name = *match self.cur_tok()? {
             Token::Ident(ident) => ident,
             tok => panic!("{tok:?}"),
-        }
-        .to_string();
+        };
 
         expect_tok!(self.peek_tok(), Some(Token::LParent), |tok| panic!(
             "Expected peek token to be LPARENT, received {tok:?} instead"
@@ -178,7 +181,7 @@ impl<'l> Parser<'l> {
         );
         self.next_tok();
 
-        let ret_type = Self::determine_type(self.cur_tok()?);
+        let ret_type = self.determine_type(self.cur_tok()?);
 
         expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| panic!(
             "Expected peek token to be LCURLY, received {tok:?} instead"
@@ -193,12 +196,12 @@ impl<'l> Parser<'l> {
         Some(Statement::Fn(FnStatement {
             name,
             args,
-            ret_type,
+            ret_type: Type::Ident(ret_type),
             block,
         }))
     }
 
-    fn parse_if_stmt(&mut self) -> Option<Statement> {
+    fn parse_if_stmt(&mut self) -> Option<Statement<'p>> {
         self.next_tok();
         let condition = self.parse_expr(Precedence::Lowest)?;
         expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| panic!(
@@ -213,7 +216,7 @@ impl<'l> Parser<'l> {
         Some(Statement::If(IfStatement { condition, block }))
     }
 
-    fn parse_return_stmt(&mut self) -> Option<Statement> {
+    fn parse_return_stmt(&mut self) -> Option<Statement<'p>> {
         self.next_tok();
         let val = self.parse_expr(Precedence::Lowest);
         expect_tok!(self.peek_tok(), Some(Token::Semicolon), |tok| panic!(
@@ -226,7 +229,7 @@ impl<'l> Parser<'l> {
 
     /// cur token should be the beginning of the block, for example: `{`
     /// sets cur token to the end token (function argument)
-    fn parse_block_stmt(&mut self, end: Token) -> BlockStatement {
+    fn parse_block_stmt(&mut self, end: Token) -> BlockStatement<'p> {
         let mut block = Vec::new();
         self.next_tok();
         while self.cur_tok() != Some(&end) {
@@ -244,7 +247,7 @@ impl<'l> Parser<'l> {
     /// Parses the arguments of a function definition
     ///
     /// cur_token should be beginning of the list, for example `(`
-    fn parse_def_args(&mut self) -> Option<Vec<TypedIdent>> {
+    fn parse_def_args(&mut self) -> Option<Vec<TypedIdent<'p>>> {
         let mut args = Vec::new();
         loop {
             args.push(self.parse_typed_ident()?);
@@ -269,17 +272,16 @@ impl<'l> Parser<'l> {
     /// cur_token should be the token before the first TypedIdent
     ///
     /// cur_token gets set to the type of the ident
-    fn parse_typed_ident(&mut self) -> Option<TypedIdent> {
+    fn parse_typed_ident(&mut self) -> Option<TypedIdent<'p>> {
         // go to ident
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| panic!(
             "Expected peek token to be Ident, received {tok:?} instead"
         ));
         self.next_tok();
         let ident = match self.cur_tok() {
-            Some(Token::Ident(ident)) => ident,
+            Some(Token::Ident(ident)) => *ident,
             tok => panic!("{tok:?}"),
-        }
-        .to_string();
+        };
         // go to colon
         expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| panic!(
             "Expected peek token to be COLON, received {tok:?} instead"
@@ -289,12 +291,12 @@ impl<'l> Parser<'l> {
         self.expect_peek_tok_as_type();
         // go to next ident
         self.next_tok();
-        let _type = Self::determine_type(self.cur_tok()?);
+        let _type = self.determine_type(self.cur_tok()?);
 
-        Some(TypedIdent { ident, _type })
+        Some(TypedIdent { ident, _type: Type::Ident(_type) })
     }
 
-    fn parse_call_expr(&mut self, left: Expression) -> Option<CallExpression> {
+    fn parse_call_expr(&mut self, left: Expression<'p>) -> Option<CallExpression<'p>> {
         let name = match left {
             Expression::Literal(Literal::Ident(var)) => var,
             _ => panic!("{left:?} is not an ident"),
@@ -306,7 +308,7 @@ impl<'l> Parser<'l> {
     }
 
     // cur token is a Left parenthesis
-    fn parse_call_args(&mut self) -> Option<Vec<Expression>> {
+    fn parse_call_args(&mut self) -> Option<Vec<Expression<'p>>> {
         if let Some(Token::RParent) = self.peek_tok() {
             self.next_tok();
             return None;
@@ -354,7 +356,7 @@ impl<'l> Parser<'l> {
         matches!(self.peek_tok(), Some(Token::Semicolon) | None)
     }
 
-    fn get_precedence(&self, token: &Token) -> Precedence {
+    fn get_precedence(&self, token: &Token<'p>) -> Precedence {
         match token {
             Token::Assign => Precedence::Assign,
             Token::Plus | Token::Minus => Precedence::Sum,
@@ -365,7 +367,7 @@ impl<'l> Parser<'l> {
         }
     }
 
-    fn determine_type(tok: &Token) -> String {
+    fn determine_type(&self, tok: &'p Token<'p>) -> &'p str {
         match tok {
             Token::Ident(ident) => ident,
             Token::Int => "int",
@@ -374,16 +376,15 @@ impl<'l> Parser<'l> {
             Token::Char => "char",
             tok => panic!("Invalid token for type: {tok:?}"),
         }
-        .to_string()
     }
 
     #[inline(always)]
-    fn cur_tok(&self) -> Option<&Token<'l>> {
+    fn cur_tok(&self) -> Option<&'p Token<'p>> {
         self.lexer.tokens.get(self.tok_index)
     }
 
     #[inline(always)]
-    fn peek_tok(&self) -> Option<&Token<'l>> {
+    fn peek_tok(&self) -> Option<&'p Token<'p>> {
         self.lexer.tokens.get(self.tok_index + 1)
     }
 
