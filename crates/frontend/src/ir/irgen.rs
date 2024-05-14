@@ -14,13 +14,16 @@ pub type TypeTable<'t> = HashMap<Ident<'t>, (CompositeDataType, Vec<IRTypedIdent
 
 #[derive(Default)]
 pub struct IRGenerator<'s> {
-    ir: IRStream<'s>,
+    ir: HIRStream<'s>,
 }
 
+/// High-level IR stream that contains the ir stream
+/// as well as a typetable. This is output by the [IRGenerator]
+/// and used as an input for various optimizations.
 #[derive(Debug, Default)]
-pub struct IRStream<'s> {
-    pub stream: Vec<IRStmt<'s>>,
-    pub types: TypeTable<'s>,
+pub struct HIRStream<'hir> {
+    pub stream: Vec<IRStmt<'hir>>,
+    pub types: TypeTable<'hir>,
 }
 
 impl<'g> IRGenerator<'g> {
@@ -41,16 +44,16 @@ impl<'g> IRGenerator<'g> {
         self.ir.stream.push(node);
     }
 
-    pub fn stream_ref(&self) -> &IRStream<'g> {
+    pub fn stream_ref(&self) -> &HIRStream<'g> {
         &self.ir
     }
 
-    pub fn stream(self) -> IRStream<'g> {
+    pub fn stream(self) -> HIRStream<'g> {
         self.ir
     }
 }
 
-impl Display for IRStream<'_> {
+impl Display for HIRStream<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(
             &self

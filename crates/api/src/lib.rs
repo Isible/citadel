@@ -10,11 +10,22 @@ use citadel_backend::experimental::api::{Backend, Target};
 
 #[macro_export]
 macro_rules! compile {
-    ($backend:expr, $ir_stream:expr) => {{
+    ($backend:expr, $clir_stream:expr) => {{
         use citadel_api::Output;
         use citadel_api::backend::experimental::api::Backend;
 
-        Output::new($backend, $backend.generate($ir_stream))
+        Output::new($backend, $backend.generate($clir_stream))
+    }};
+}
+
+#[macro_export]
+macro_rules! optimize {
+    ($stream:expr,$($opt:expr),*) => {{
+        let stream = $stream;
+        $(
+            let stream = $opt.optimize(stream);
+        )*
+        stream
     }};
 }
 

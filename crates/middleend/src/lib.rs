@@ -6,4 +6,4 @@
 //! 
 //! This crate provides an api for writing new optimizers and IR layers
 
-pub mod ir;
+pub mod experimental;

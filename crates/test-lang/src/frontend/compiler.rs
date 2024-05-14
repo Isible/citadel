@@ -2,7 +2,7 @@
 
 use citadel_api::frontend::ir::{
     self,
-    irgen::{IRGenerator, IRStream},
+    irgen::{IRGenerator, HIRStream},
     *,
 };
 
@@ -18,7 +18,7 @@ pub enum CompileCtx<'ctx> {
 }
 
 impl<'c> Compiler {
-    pub fn compile_program(&self, ast: &'c Vec<Statement>) -> IRStream<'c> {
+    pub fn compile_program(&self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
         let mut ir_gen = IRGenerator::default();
 
         ir_gen.gen_ir(Self::init_program());

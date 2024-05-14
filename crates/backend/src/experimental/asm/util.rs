@@ -1,6 +1,6 @@
 use std::{collections::HashSet, fs::File, io::Write, path::PathBuf};
 
-use citadel_frontend::ir::{irgen::IRStream, IRStmt};
+use citadel_frontend::ir::{irgen::HIRStream, IRStmt};
 
 use crate::experimental::{
     api::Target,
@@ -9,7 +9,7 @@ use crate::experimental::{
 
 use super::elements::{Directive, DirectiveType, StdFunction};
 
-pub fn compile_program(input: IRStream, _target: impl Target) -> Vec<AsmElement> {
+pub fn compile_program(input: HIRStream, _target: impl Target) -> Vec<AsmElement> {
     let mut codegen = CodeGenerator::new(input.types);
 
     gen_code(&input.stream, &mut codegen);

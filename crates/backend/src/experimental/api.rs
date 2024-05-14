@@ -6,7 +6,7 @@
 
 use std::{fmt::{Debug, Display}, io};
 
-use citadel_frontend::ir::irgen::IRStream;
+use citadel_frontend::ir::irgen::HIRStream;
 
 pub trait Target: Debug + Default + Copy + Clone {
     fn name(&self) -> &str;
@@ -78,7 +78,7 @@ pub trait Backend: Debug {
     /// Main function of the backend. This will take in a stream
     /// of IRStmts and generate code based on them. The target for
     /// code generation is [`Backend::Target`]
-    fn generate(&self, ir_stream: IRStream) -> Self::Output;
+    fn generate(&self, ir_stream: HIRStream) -> Self::Output;
 
     /// This returns the target of the backend instance.
     /// 

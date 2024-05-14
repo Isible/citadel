@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use bumpalo::Bump;
 use citadel_frontend::ir::{
-    self, irgen::{IRGenerator, IRStream}, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Literal, Operator, ReturnStmt, StructInitExpr, StructStmt, UnionStmt, VarStmt
+    self, irgen::{IRGenerator, HIRStream}, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Literal, Operator, ReturnStmt, StructInitExpr, StructStmt, UnionStmt, VarStmt
 };
 
 use crate::{expect_tok, lexer::Lexer, parser_error, tokens::Token};
@@ -27,7 +27,7 @@ impl<'p> Parser<'p> {
         }
     }
 
-    pub fn parse_program(&mut self) -> IRStream<'p> {
+    pub fn parse_program(&mut self) -> HIRStream<'p> {
         let mut ir_gen = IRGenerator::default();
         while let Some(stmt) = self.parse_stmt() {
             ir_gen.gen_ir(stmt);
