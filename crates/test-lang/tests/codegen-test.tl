@@ -1,5 +1,4 @@
-fn main(): void {
-    if (0 == 0) {
-        puts("Amongus");
-    }
+fn main(): int {
+    let x: int = 8 + 4 * 2;
+    return x;
 }

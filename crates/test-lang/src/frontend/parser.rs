@@ -335,6 +335,8 @@ impl<'p> Parser<'p> {
         match self.peek_tok() {
             Some(Token::Int) => (),
             Some(Token::Float) => (),
+            Some(Token::Char) => (),
+            Some(Token::String) => (),
             Some(Token::Ident(_)) => (),
             tok => panic!("expected a type, got: {tok:?}"),
         }

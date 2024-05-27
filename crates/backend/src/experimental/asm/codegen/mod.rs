@@ -12,13 +12,13 @@ use std::collections::{HashMap, HashSet};
 use citadel_frontend::{
     ir::{
         self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr,
-        IRStmt, Ident, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt,
+        IRStmt, Ident, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt,
     },
     util::CompositeDataType,
 };
 
 use crate::experimental::asm::elements::{
-    AsmElement, Declaration, Directive, DirectiveType, Literal,
+    AsmElement, DataSize, Declaration, Directive, DirectiveType, Literal, SizedLiteral,
 };
 
 use super::elements::{Instruction, Label, Opcode, Operand, Register, Size, StdFunction};
@@ -96,14 +96,14 @@ impl<'c> CodeGenerator<'c> {
             IRStmt::Function(node) => self.gen_function(node),
             IRStmt::Entry(node) => self.gen_entry(node),
             IRStmt::Struct(_) => (),
+            IRStmt::Union(_) => (),
             IRStmt::Variable(node) => self.gen_variable(node),
             IRStmt::Label(node) => self.gen_label(node),
             IRStmt::Return(node) => self.gen_return(node),
             IRStmt::Exit(node) => self.gen_exit(node),
             IRStmt::Break(_) => todo!(),
-            IRStmt::Jump(_) => todo!(),
+            IRStmt::Jump(node) => self.gen_jump(node),
             IRStmt::Call(node) => self.gen_call(node),
-            _ => panic!("//TODO:"),
         }
     }
 
@@ -140,7 +140,9 @@ impl<'c> CodeGenerator<'c> {
         )));
 
         // _start label
-        self.out.push(AsmElement::Label(Label { name: "_start".to_string() }));
+        self.out.push(AsmElement::Label(Label {
+            name: "_start".to_string(),
+        }));
         for stmt in &node.stmts {
             self.gen_stmt(stmt);
         }
@@ -156,40 +158,49 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
+    fn gen_jump(&mut self, node: &'c JumpStmt) {
+        self.out.push(AsmElement::Instruction(Instruction {
+            opcode: Opcode::Jmp,
+            args: vec![Operand::Ident(node.label.to_string())],
+        }))
+    }
+
     fn gen_string(&mut self, val: &str, type_: &Type<'c>) -> Operand {
         let size = *match type_ {
             Type::Ident(_) => todo!(),
             Type::Array(_, len) => len,
         };
-        let strings = util::split_string(val, size);
+        dbg!(size);
+        // TODO: use different splitting techniques based on string length
+        let mut strings = util::split_string(val, 4);
         dbg!(&strings);
-        // HACK: Implement actual system for always inlineing the last string from the strings vec (returning it as the operand)
-        if strings.len() == 1 {
-            return Operand::SizedLiteral(
-                Literal::String(util::conv_str_to_bytes(strings.get(0).unwrap())),
-                util::word_from_int(size as u8),
-            );
-        }
-        for string in strings {
-            let bytes = util::conv_str_to_bytes(string);
-            // TODO: Compile strings efficiently, based on their length
-            self.stack_pointer -= size as i32;
-            self.gen_mov_ins(
-                util::get_stack_location(self.stack_pointer),
-                Operand::Literal(Literal::Int(bytes as i32)),
-            );
-        }
-        util::get_stack_location(self.stack_pointer)
+        dbg!(&size);
+        let last_string = strings.pop().unwrap();
+        self.stack_pointer -= size as i32;
+        Operand::SizedLiteral(SizedLiteral(
+            Literal::Int(util::conv_str_to_bytes(last_string) as i32),
+            DataSize::DWord,
+        ))
     }
 
     fn gen_arith_op(&mut self, node: &'c ArithOpExpr, move_to_rax: bool) -> Operand {
         if move_to_rax {
-            let left_expr = self.gen_expr(&*node.values.0);
+            let left_expr = self.gen_expr(&node.values.0);
             self.gen_mov_ins(Operand::Register(Register::Rax), left_expr)
         }
         let arith_op = match node.op {
-            ir::Operator::Add => AsmElement::Instruction(Instruction {
-                opcode: Opcode::Add,
+            ir::Operator::Add => self.gen_arith_op_ins(Opcode::Add, node),
+            ir::Operator::Sub => self.gen_arith_op_ins(Opcode::Sub, node),
+            ir::Operator::Mul => self.gen_arith_op_ins(Opcode::Mul, node),
+            ir::Operator::Div => self.gen_arith_op_ins(Opcode::Div, node),
+        };
+        self.out.push(arith_op);
+        Operand::Register(Register::Rax)
+    }
+
+    fn gen_arith_op_ins(&mut self, opcode: Opcode, node: &'c ArithOpExpr) -> AsmElement {
+        AsmElement::Instruction(Instruction {
+                opcode,
                 args: vec![
                     Operand::Register(Register::Rax),
                     match &*node.values.1 {
@@ -197,14 +208,7 @@ impl<'c> CodeGenerator<'c> {
                         expr => self.gen_expr(expr),
                     },
                 ],
-            }),
-            ir::Operator::Sub => todo!(),
-            ir::Operator::Mul => todo!(),
-            ir::Operator::Div => todo!(),
-        };
-        self.out.push(arith_op);
-        Operand::Register(Register::Rax)
-    }
+            })}
 
     fn gen_return(&mut self, node: &'c ReturnStmt) {
         let val = self.gen_expr(&node.ret_val);
@@ -230,9 +234,10 @@ impl<'c> CodeGenerator<'c> {
         dbg!(size);
         let val = self.gen_expr(&node.val);
         self.gen_mov_ins(
-            util::get_stack_location((self.stack_pointer - size as i32).try_into().unwrap()),
+            util::get_stack_location(self.stack_pointer - (size as i32)),
             val,
         );
+        // FIXME: Size is double when generating a string variable for example since that increments the size as well
         self.stack_pointer -= size as i32;
         self.symbol_table
             .insert(&node.name.ident, self.stack_pointer);
@@ -290,8 +295,8 @@ impl<'c> CodeGenerator<'c> {
         for (i, expr) in node.args.iter().enumerate() {
             let size = self.size_of(&expr._type);
             self.gen_mov_ins(
-                util::get_stack_location((self.stack_pointer - size as i32).try_into().unwrap()),
-                Operand::Register(util::arg_regs_by_size(size as u8)[i]),
+                util::get_stack_location(self.stack_pointer - size as i32),
+                Operand::Register(util::arg_regs_by_size(size)[i]),
             );
             self.stack_pointer -= size as i32;
             self.symbol_table.insert(&expr.ident, self.stack_pointer);
@@ -356,7 +361,7 @@ impl<'c> CodeGenerator<'c> {
             Type::Ident(ident) => ident,
             Type::Array(ident, _) => match ident {
                 Type::Ident(id) => id,
-                Type::Array(id, _) => return self.size_of(*id),
+                Type::Array(id, _) => return self.size_of(id),
             },
         };
 

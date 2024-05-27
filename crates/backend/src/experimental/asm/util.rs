@@ -26,9 +26,9 @@ pub fn compile_program(input: HIRStream, _target: impl Target) -> Vec<AsmElement
     out
 }
 
-fn gen_code<'c>(input: &'c Vec<IRStmt<'c>>, codegen: &mut CodeGenerator<'c>) {
+fn gen_code<'c>(input: &'c [IRStmt<'c>], codegen: &mut CodeGenerator<'c>) {
     for stmt in input.iter() {
-        codegen.gen_stmt(&stmt);
+        codegen.gen_stmt(stmt);
     }
 }
 

@@ -1,4 +1,6 @@
-_entry:
+section .text
+    global _start
+_start:
     call main
     mov rdi,rax
     mov rax,60
@@ -6,7 +8,10 @@ _entry:
 main:
     push rbp
     mov rbp,rsp
-    mov [rbp-4],dword 1819042114
-    mov rax,0
+    mov rax,90
+    add rax,20
+    add rax,rax
+    mov [rbp-4],rax
+    mov rax,[rbp-4]
     pop rbp
     ret

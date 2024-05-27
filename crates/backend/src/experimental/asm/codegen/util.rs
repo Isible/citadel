@@ -79,7 +79,7 @@ pub(crate) fn arg_regs_by_size(size: u8) -> [Register; 6] {
         1 => super::FUNCTION_ARG_REGISTERS_8,
         2 => super::FUNCTION_ARG_REGISTERS_16,
         4 => super::FUNCTION_ARG_REGISTERS_32,
-        9 => super::FUNCTION_ARG_REGISTERS_64,
+        8 => super::FUNCTION_ARG_REGISTERS_64,
         _ => panic!("Invalid size: {size}"),
     }
 }
@@ -98,7 +98,7 @@ pub(crate) fn int_size(int: &str) -> u8 {
 
 pub(crate) fn conv_str_to_bytes(string: &str) -> u64 {
     let mut res = 0;
-    for (i, ch) in string.chars().into_iter().enumerate() {
+    for (i, ch) in string.chars().enumerate() {
         res |= (ch as u64) << (i * 8);
     }
     res
@@ -117,13 +117,14 @@ pub(crate) fn split_string(input: &str, sub_string_len: usize) -> Vec<&str> {
     result
 }
 
+// size from word can be obtained by calling word.size()
 #[inline(always)]
-pub(crate) fn word_from_int(size: u8) -> DataSize {
+pub(crate) fn word_from_size(size: u8) -> DataSize {
     match size {
         1 => DataSize::Byte,
         2 => DataSize::Word,
         4 => DataSize::DWord,
         8 => DataSize::QWord,
-        size => todo!("Sizes over 8 bytes. Size {size} is too large for now")
+        size => panic!("Size {size:?} is not valid for word. Valid sizes are: 1, 2, 4, 8 bytes")
     }
 }

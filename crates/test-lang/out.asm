@@ -8,10 +8,4 @@ _start:
 main:
     push rbp
     mov rbp,rsp
-    mov rax,8
-    mul rax,2
-    add rax,rax
-    mov [rbp-4],rax
-    mov rax,[rbp-4]
-    pop rbp
     ret
