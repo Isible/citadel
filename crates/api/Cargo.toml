@@ -9,6 +9,6 @@ description = "The api for the citadel compiler backend"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-citadel-frontend = { path = "../frontend", version = "0.0.10" }
-citadel-middleend = { path = "../middleend", version = "0.0.10" }
-citadel-backend = { path = "../backend", version = "0.0.10" }
+citadel-frontend = { path = "../frontend", version = "0.0.11" }
+citadel-middleend = { path = "../middleend", version = "0.0.11" }
+citadel-backend = { path = "../backend", version = "0.0.11" }
