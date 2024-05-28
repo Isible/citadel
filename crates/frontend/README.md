@@ -2,7 +2,7 @@
 
 This is the frontend crate. It is the part of the compiler responsible for generating an intermediary representation.
 Like most of the other -end crates in Citadel this is a pure api for providing the high-level intermediary representation
-and utilities for generating it.
+and utilities for generating it. <https://github.com/Isible/citadel/tree/main/crates/frontend>
 
 ## Using the frontend
 
