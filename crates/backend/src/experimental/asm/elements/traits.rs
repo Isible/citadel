@@ -211,9 +211,12 @@ impl Display for Literal {
             f,
             "{}",
             match *self {
-                Literal::Int(int) => int.to_string(),
-                Literal::Float(float) => float.to_string(),
-                Literal::String(string) => string.to_string(),
+                Literal::Int8(int) => int.to_string(),
+                Literal::Int16(int) => int.to_string(),
+                Literal::Int32(int) => int.to_string(),
+                Literal::Int64(int) => int.to_string(),
+                Literal::Float32(float) => float.to_string(),
+                Literal::Float64(float) => float.to_string(),
             }
         )
     }

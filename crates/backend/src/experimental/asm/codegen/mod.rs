@@ -18,10 +18,10 @@ use citadel_frontend::{
 };
 
 use crate::experimental::asm::elements::{
-    AsmElement, DataSize, Declaration, Directive, DirectiveType, Literal, SizedLiteral,
+    AsmElement, Declaration, Directive, DirectiveType, Literal, SizedLiteral,
 };
 
-use super::elements::{Instruction, Label, Opcode, Operand, Register, Size, StdFunction};
+use super::elements::{DataSize, Instruction, Label, Opcode, Operand, Register, Size, StdFunction};
 
 pub const FUNCTION_ARG_REGISTERS_8: [Register; 6] = [
     Register::Al,
@@ -78,7 +78,6 @@ pub struct CodeGenerator<'c> {
 
 impl<'c> CodeGenerator<'c> {
     pub fn new(types: TypeTable<'c>) -> Self {
-        dbg!(&types);
         Self {
             rodata: Vec::default(),
             defined_functions: HashSet::default(),
@@ -110,7 +109,7 @@ impl<'c> CodeGenerator<'c> {
     fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
         match &node {
             IRExpr::Literal(node, type_) => match node {
-                ir::Literal::Int32(val) => Operand::Literal(Literal::Int(*val)),
+                ir::Literal::Int32(val) => Operand::Literal(Literal::Int32(*val)),
                 ir::Literal::String(val) => self.gen_string(val, type_),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
@@ -172,14 +171,14 @@ impl<'c> CodeGenerator<'c> {
         };
         dbg!(size);
         // TODO: use different splitting techniques based on string length
-        let mut strings = util::split_string(val, 4);
+        let mut strings = util::split_string(val, 8);
         dbg!(&strings);
         dbg!(&size);
         let last_string = strings.pop().unwrap();
         self.stack_pointer -= size as i32;
         Operand::SizedLiteral(SizedLiteral(
-            Literal::Int(util::conv_str_to_bytes(last_string) as i32),
-            DataSize::DWord,
+            Literal::Int32(util::conv_str_to_bytes(last_string) as i32),
+            util::word_from_size(size as u8),
         ))
     }
 
@@ -200,15 +199,16 @@ impl<'c> CodeGenerator<'c> {
 
     fn gen_arith_op_ins(&mut self, opcode: Opcode, node: &'c ArithOpExpr) -> AsmElement {
         AsmElement::Instruction(Instruction {
-                opcode,
-                args: vec![
-                    Operand::Register(Register::Rax),
-                    match &*node.values.1 {
-                        IRExpr::ArithOp(expr) => self.gen_arith_op(expr, false),
-                        expr => self.gen_expr(expr),
-                    },
-                ],
-            })}
+            opcode,
+            args: vec![
+                Operand::Register(Register::Rax),
+                match &*node.values.1 {
+                    IRExpr::ArithOp(expr) => self.gen_arith_op(expr, false),
+                    expr => self.gen_expr(expr),
+                },
+            ],
+        })
+    }
 
     fn gen_return(&mut self, node: &'c ReturnStmt) {
         let val = self.gen_expr(&node.ret_val);
@@ -224,21 +224,31 @@ impl<'c> CodeGenerator<'c> {
             .push(util::gen_mov_ins(Operand::Register(Register::Rdi), expr));
         self.gen_mov_ins(
             Operand::Register(Register::Rax),
-            Operand::Literal(Literal::Int(60)),
+            Operand::Literal(Literal::Int32(60)),
         );
         self.out.push(util::gen_syscall());
     }
 
     fn gen_variable(&mut self, node: &'c VarStmt) {
         let size = self.size_of(&node.name._type);
-        dbg!(size);
-        let val = self.gen_expr(&node.val);
-        self.gen_mov_ins(
-            util::get_stack_location(self.stack_pointer - (size as i32)),
-            val,
-        );
-        // FIXME: Size is double when generating a string variable for example since that increments the size as well
-        self.stack_pointer -= size as i32;
+        let mut val = self.gen_expr(&node.val);
+        // FIXME: This is a hack to ensure that the size does not get changed for arrays
+        if let Type::Ident(_) = node.name._type {
+            self.stack_pointer -= size as i32
+        }
+
+        if let Operand::Literal(lit) = val {
+            val = Operand::SizedLiteral(util::literal_to_sized_literal(lit)
+                .expect("Failed to convert literal to sized literal, most likely caused due to usage of float which are not supported yet"))
+        };
+
+        if let Operand::SizedLiteral(SizedLiteral(lit, DataSize::QWord)) = val {
+            self.gen_mov_ins(Operand::Register(Register::Rax), Operand::Literal(lit));
+            val = Operand::Register(Register::Rax);
+        }
+
+        self.gen_mov_ins(util::get_stack_location(self.stack_pointer), val);
+
         self.symbol_table
             .insert(&node.name.ident, self.stack_pointer);
     }
@@ -258,6 +268,7 @@ impl<'c> CodeGenerator<'c> {
         for stmt in &node.block.stmts {
             self.gen_stmt(stmt);
         }
+
         if let Some(elem) = self.out.last() {
             match elem {
                 AsmElement::Instruction(Instruction {
@@ -278,13 +289,13 @@ impl<'c> CodeGenerator<'c> {
         let size = self.size_of(&ir::Type::Ident(ir::Ident(*node.name)));
         self.gen_mov_ins(
             util::get_stack_location(self.stack_pointer - size as i32),
-            Operand::Literal(Literal::Int(0)),
+            Operand::Literal(Literal::Int32(0)),
         );
         self.stack_pointer -= size as i32;
         // TODO: Use type suffixes for this
         for (i, val) in node.values.iter().enumerate() {
             let fields = &self.types.get(&node.name).unwrap().1;
-            let field = &fields[i];
+            let _field = &fields[i];
             let expr = self.gen_expr(val);
             self.gen_mov_ins(util::get_stack_location(0), expr);
         }
@@ -322,7 +333,7 @@ impl<'c> CodeGenerator<'c> {
         );
         self.gen_mov_ins(
             Operand::Register(Register::Rdx),
-            Operand::Literal(Literal::Int((arg.len() + 1) as i32)),
+            Operand::Literal(Literal::Int32((arg.len() + 1) as i32)),
         );
         self.out.push(util::gen_call("print"));
         self.rodata.push(Declaration::DefineBytes(

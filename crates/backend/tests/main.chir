@@ -3,6 +3,6 @@ entry {
 }
 
 func @main() i32 {
-    $test i32 = add l{90:i32}, add l{30:i32}, l{20:i32}
+    $test [i8; 8] = l{"helloooo":[i8; 8]}
     ret %test
 }

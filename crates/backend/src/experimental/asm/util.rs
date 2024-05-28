@@ -41,7 +41,7 @@ fn add_data_section(data: Vec<super::elements::Declaration>, out: &mut Vec<AsmEl
             }),
         );
         for (i, decl) in data.into_iter().enumerate() {
-            out.insert(i+1, AsmElement::Declaration(decl));
+            out.insert(i + 1, AsmElement::Declaration(decl));
         }
     }
 }

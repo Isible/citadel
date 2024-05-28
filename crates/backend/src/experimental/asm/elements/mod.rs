@@ -80,11 +80,13 @@ pub enum MemAddr {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Literal {
-    Int(i32),
-    Float(f32),
-    // FIXME: Although this is a u64 we only support 32 bit strings right now
-    /// String, encoded using the little endian method
-    String(u64),
+    Int8(i8),
+    Int16(i16),
+    Int32(i32),
+    Int64(i64),
+
+    Float32(f32),
+    Float64(f64),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -232,11 +234,11 @@ impl StdFunction {
                     }),
                     util::gen_mov_ins(
                         Operand::Register(Register::Rax),
-                        Operand::Literal(Literal::Int(1)),
+                        Operand::Literal(Literal::Int32(1)),
                     ),
                     util::gen_mov_ins(
                         Operand::Register(Register::Rdi),
-                        Operand::Literal(Literal::Int(1)),
+                        Operand::Literal(Literal::Int32(1)),
                     ),
                     util::gen_syscall(),
                     util::gen_ret(),

@@ -2,7 +2,6 @@
 mod tests {
     use std::{fs, path::PathBuf};
 
-    
     use bumpalo::Bump;
     use citadel_irparser::{IRLexer, IRParser};
 

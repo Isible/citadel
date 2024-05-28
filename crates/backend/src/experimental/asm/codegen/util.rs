@@ -1,7 +1,7 @@
 use citadel_frontend::ir::{self, IRExpr};
 
 use crate::experimental::asm::elements::{
-    AsmElement, DataSize, Instruction, MemAddr, Opcode, Operand, Register
+    AsmElement, DataSize, Instruction, Literal, MemAddr, Opcode, Operand, Register, SizedLiteral,
 };
 
 #[inline(always)]
@@ -125,6 +125,20 @@ pub(crate) fn word_from_size(size: u8) -> DataSize {
         2 => DataSize::Word,
         4 => DataSize::DWord,
         8 => DataSize::QWord,
-        size => panic!("Size {size:?} is not valid for word. Valid sizes are: 1, 2, 4, 8 bytes")
+        size => panic!("Size {size:?} is not valid for word. Valid sizes are: 1, 2, 4, 8 bytes"),
     }
+}
+
+#[inline(always)]
+pub(crate) fn literal_to_sized_literal(literal: Literal) -> Option<SizedLiteral> {
+    Some(SizedLiteral(
+        literal,
+        match literal {
+            Literal::Int8(_) => DataSize::Byte,
+            Literal::Int16(_) => DataSize::Word,
+            Literal::Int32(_) => DataSize::DWord,
+            Literal::Int64(_) => DataSize::QWord,
+            Literal::Float32(_) | Literal::Float64(_) => return None,
+        },
+    ))
 }
