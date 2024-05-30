@@ -177,7 +177,7 @@ impl<'c> CodeGenerator<'c> {
         let last_string = strings.pop().unwrap();
         self.stack_pointer -= size as i32;
         Operand::SizedLiteral(SizedLiteral(
-            Literal::Int32(util::conv_str_to_bytes(last_string) as i32),
+            Literal::Int64(util::conv_str_to_bytes(last_string) as i64),
             util::word_from_size(size as u8),
         ))
     }
@@ -232,7 +232,7 @@ impl<'c> CodeGenerator<'c> {
     fn gen_variable(&mut self, node: &'c VarStmt) {
         let size = self.size_of(&node.name._type);
         let mut val = self.gen_expr(&node.val);
-        // FIXME: This is a hack to ensure that the size does not get changed for arrays
+        // FIXME: This is a hack to ensure that the size does not get decremented for arrays
         if let Type::Ident(_) = node.name._type {
             self.stack_pointer -= size as i32
         }
