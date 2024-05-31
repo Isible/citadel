@@ -6,7 +6,7 @@ pub mod traits;
 
 // TODO: Rewrite to support simple codegen
 
-use crate::experimental::asm::codegen::util;
+use super::codegen::CodeGenerator;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AsmElement {
@@ -30,7 +30,7 @@ pub struct Directive {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Declaration {
     Global(String),
-    DefineBytes(String, String, u8),
+    DefineBytes(String, Literal, Option<u8>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -76,6 +76,7 @@ pub enum MemAddr {
     Register(Register),
     RegisterPos(Register, i32),
     Literal(Literal),
+    Ident(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -219,37 +220,69 @@ pub enum Opcode {
     Inc,
 }
 
+pub trait BuiltinFunction {
+    fn generate(&self, codegen: &mut CodeGenerator);
+
+    fn name(&self) -> &str;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum StdFunction {
     Print,
 }
 
-impl StdFunction {
-    pub fn generate(&self) -> Vec<AsmElement> {
+impl BuiltinFunction for StdFunction {
+    fn generate(&self, codegen: &mut CodeGenerator) {
         match self {
-            Self::Print => {
-                vec![
-                    AsmElement::Label(Label {
-                        name: self.name().to_string(),
-                    }),
-                    util::gen_mov_ins(
-                        Operand::Register(Register::Rax),
-                        Operand::Literal(Literal::Int32(1)),
-                    ),
-                    util::gen_mov_ins(
-                        Operand::Register(Register::Rdi),
-                        Operand::Literal(Literal::Int32(1)),
-                    ),
-                    util::gen_syscall(),
-                    util::gen_ret(),
-                ]
-            }
+            Self::Print => builtins::generate_print(codegen),
         }
     }
 
-    pub fn name(&self) -> &str {
+    fn name(&self) -> &str {
         match self {
             Self::Print => "print",
         }
+    }
+}
+
+pub(super) mod builtins {
+    use crate::experimental::asm::codegen::{util, CodeGenerator};
+
+    use super::{AsmElement, Declaration, Label, Literal, MemAddr, Operand, Register};
+
+    pub fn generate_print(codegen: &mut CodeGenerator) {
+        let out = &mut codegen.out;
+
+        codegen.data.push(Declaration::DefineBytes(
+            "msg".into(),
+            Literal::Int8(8),
+            None,
+        ));
+
+        let instructions = vec![
+            AsmElement::Label(Label {
+                name: "print".to_string(),
+            }),
+            util::gen_mov_ins(
+                Operand::MemAddr(MemAddr::Ident("msg".to_string())),
+                Operand::Register(Register::Rsi),
+            ),
+            util::gen_mov_ins(
+                Operand::Register(Register::Rsi),
+                Operand::Ident("msg".to_string())
+            ),
+            util::gen_mov_ins(
+                Operand::Register(Register::Rax),
+                Operand::Literal(Literal::Int32(1)),
+            ),
+            util::gen_mov_ins(
+                Operand::Register(Register::Rdi),
+                Operand::Literal(Literal::Int32(1)),
+            ),
+            util::gen_syscall(),
+            util::gen_ret(),
+        ];
+
+        out.extend(instructions);
     }
 }

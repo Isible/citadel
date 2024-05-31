@@ -1,6 +1,6 @@
 //! Trait implementations for asm elements, mainly the Display trait
 
-use std::fmt::Display;
+use std::fmt::{format, Display};
 
 use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
 
@@ -35,7 +35,10 @@ impl Display for Declaration {
             match self {
                 Declaration::Global(ident) => format!("global {}", ident),
                 Declaration::DefineBytes(ident, lit, terminator) =>
-                    format!("{} db \"{}\", {:?}", ident, lit, terminator),
+                    format!("{} db {}{}", ident, lit, match terminator {
+                        Some(terminator) => format!(", {}", terminator),
+                        None => String::new()
+                    }),
             }
         )
     }
@@ -199,7 +202,12 @@ impl Display for MemAddr {
             match self {
                 MemAddr::Register(reg) => reg.to_string(),
                 MemAddr::Literal(lit) => lit.to_string(),
-                MemAddr::RegisterPos(reg, pos) => format!("{}{}", reg, pos),
+                MemAddr::RegisterPos(reg, pos) => format!("{}{}", reg, if *pos != 0 {
+                    pos.to_string()
+                } else {
+                    String::new()
+                }),
+                MemAddr::Ident(ident) => ident.to_string(),
             }
         )
     }

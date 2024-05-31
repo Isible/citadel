@@ -1,5 +1,5 @@
 section .data
-    msg db 9
+    msg db 8
 section .text
     global _start
 _start:
@@ -10,15 +10,18 @@ _start:
 main:
     push rbp
     mov rbp,rsp
-    mov rax,8029759184975979880
+    mov rax,751942187145258344
     mov [rbp-8],rax
-    mov [msg], rax
-    mov [msg+8], byte 0xA
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, msg
-    mov rdx, 9
-    syscall
-    mov rax,[rbp-8]
+    mov rsi,[rbp-8]
+    mov rdx,8
+    call print
+    mov rax,0
     pop rbp
+    ret
+print:
+    mov [msg],rsi
+    mov rsi,msg
+    mov rax,1
+    mov rdi,1
+    syscall
     ret

@@ -60,6 +60,7 @@ pub const FUNCTION_ARG_REGISTERS_64: [Register; 6] = [
 ];
 
 // TODO: Implement type suffixes for literals in the IR
+#[derive(Default)]
 pub struct CodeGenerator<'c> {
     pub out: Vec<AsmElement>,
     pub types: TypeTable<'c>,
@@ -67,6 +68,7 @@ pub struct CodeGenerator<'c> {
     // Literals
     /// Read only data section
     pub rodata: Vec<Declaration>,
+    pub data: Vec<Declaration>,
     /// Literal constant index
     pub lc_index: usize,
 
@@ -79,13 +81,8 @@ pub struct CodeGenerator<'c> {
 impl<'c> CodeGenerator<'c> {
     pub fn new(types: TypeTable<'c>) -> Self {
         Self {
-            rodata: Vec::default(),
-            defined_functions: HashSet::default(),
-            symbol_table: HashMap::default(),
-            out: Vec::default(),
-            lc_index: 0,
-            stack_pointer: 0,
             types,
+            ..Default::default()
         }
     }
 
@@ -324,24 +321,18 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
-    fn gen_print(&mut self, node: &CallExpr) {
-        let arg: String = util::string_from_lit(&node.args[0]).into();
+    fn gen_print(&mut self, node: &'c CallExpr) {
+        let arg = self.gen_expr(node.args.first().expect("Print function neeeds at least one argument"));
         dbg!(&arg);
         self.gen_mov_ins(
             Operand::Register(Register::Rsi),
-            Operand::Ident(format!("LC{}", self.lc_index)),
+            arg,
         );
         self.gen_mov_ins(
             Operand::Register(Register::Rdx),
-            Operand::Literal(Literal::Int32((arg.len() + 1) as i32)),
+            Operand::Literal(Literal::Int8(8)),
         );
         self.out.push(util::gen_call("print"));
-        self.rodata.push(Declaration::DefineBytes(
-            format!("LC{}", self.lc_index),
-            arg,
-            0xa,
-        ));
-        self.lc_index += 1;
         self.defined_functions.insert(StdFunction::Print);
     }
 

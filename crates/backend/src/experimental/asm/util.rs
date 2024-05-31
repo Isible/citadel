@@ -1,27 +1,28 @@
-use std::{collections::HashSet, fs::File, io::Write, path::PathBuf};
+use std::{fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::{irgen::HIRStream, IRStmt};
 
 use crate::experimental::{
     api::Target,
-    asm::{codegen::CodeGenerator, elements::AsmElement},
+    asm::{codegen::CodeGenerator, elements::{AsmElement, BuiltinFunction}},
 };
 
-use super::elements::{Directive, DirectiveType, StdFunction};
+use super::elements::{Directive, DirectiveType};
 
 pub fn compile_program(input: HIRStream, _target: impl Target) -> Vec<AsmElement> {
     let mut codegen = CodeGenerator::new(input.types);
 
     gen_code(&input.stream, &mut codegen);
 
-    let data = codegen.rodata;
-    let defined_functions = codegen.defined_functions;
+    gen_defined_functions(&mut codegen);
+
+    let rodata = codegen.rodata;
+    let data = codegen.data;
     let mut out = codegen.out;
 
-    // Add data section
-    add_data_section(data, &mut out);
-
-    gen_defined_functions(defined_functions, &mut out);
+    // Add data sections
+    add_data_section(rodata, DirectiveType::Rodata, &mut out);
+    add_data_section(data, DirectiveType::Data, &mut out);
 
     out
 }
@@ -32,12 +33,13 @@ fn gen_code<'c>(input: &'c [IRStmt<'c>], codegen: &mut CodeGenerator<'c>) {
     }
 }
 
-fn add_data_section(data: Vec<super::elements::Declaration>, out: &mut Vec<AsmElement>) {
+// TODO: Optimize insertion at front
+fn add_data_section(data: Vec<super::elements::Declaration>, _type: DirectiveType, out: &mut Vec<AsmElement>) {
     if !data.is_empty() {
         out.insert(
             0,
             AsmElement::Directive(Directive {
-                _type: DirectiveType::Rodata,
+                _type,
             }),
         );
         for (i, decl) in data.into_iter().enumerate() {
@@ -46,10 +48,10 @@ fn add_data_section(data: Vec<super::elements::Declaration>, out: &mut Vec<AsmEl
     }
 }
 
-fn gen_defined_functions(defined_functions: HashSet<StdFunction>, out: &mut Vec<AsmElement>) {
-    for func in defined_functions {
+fn gen_defined_functions(codegen: &mut CodeGenerator) {
+    for func in codegen.defined_functions.clone() {
         dbg!("Generating function");
-        out.extend(func.generate());
+        func.generate(codegen);
     }
 }
 
