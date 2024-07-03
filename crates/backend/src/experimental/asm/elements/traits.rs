@@ -1,6 +1,6 @@
 //! Trait implementations for asm elements, mainly the Display trait
 
-use std::fmt::{format, Display};
+use std::fmt::Display;
 
 use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
 

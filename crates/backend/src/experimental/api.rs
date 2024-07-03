@@ -73,10 +73,8 @@ pub trait Target: Debug + Default + Copy + Clone {
 /// TODO: Trait methods
 pub trait Backend {
     type Target: self::Target;
-    // TODO: Inline element type into Output type once RFC 2289
-    // (https://github.com/rust-lang/rust/issues/52662) is stabelized
-    type Element: Display;
-    type Output: IntoIterator<Item = Self::Element>;
+    
+    type Output: IntoIterator<Item: Display>;
 
     /// Main function of the backend. This will take in a stream
     /// of IRStmts and generate code based on them. The target for

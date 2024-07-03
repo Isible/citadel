@@ -1,5 +1,3 @@
-use citadel_frontend::ir::{self, IRExpr};
-
 use crate::experimental::asm::elements::{
     AsmElement, DataSize, Instruction, Literal, MemAddr, Opcode, Operand, Register, SizedLiteral,
 };
@@ -62,14 +60,6 @@ pub(crate) fn destroy_stackframe() -> AsmElement {
         opcode: Opcode::Pop,
         args: vec![Operand::Register(Register::Rbp)],
     })
-}
-
-#[inline(always)]
-pub(crate) fn string_from_lit<'s>(lit: &'s IRExpr<'s>) -> &'s str {
-    match lit {
-        IRExpr::Literal(ir::Literal::String(s), _) => s,
-        _ => panic!("Expected string literal"),
-    }
 }
 
 /// `size` is the size in bytes

@@ -36,7 +36,6 @@ impl<T: Target> AsmBackend<T> {
 }
 
 impl<T: Target> Backend for AsmBackend<T> {
-    type Element = AsmElement;
     type Output = Vec<AsmElement>;
     type Target = T;
 

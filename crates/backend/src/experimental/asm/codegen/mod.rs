@@ -59,7 +59,6 @@ pub const FUNCTION_ARG_REGISTERS_64: [Register; 6] = [
     Register::R10,
 ];
 
-// TODO: Implement type suffixes for literals in the IR
 #[derive(Default)]
 pub struct CodeGenerator<'c> {
     pub out: Vec<AsmElement>,

@@ -253,7 +253,7 @@ impl<'p> Parser<'p> {
             args.push(self.parse_typed_ident()?);
             if let Some(Token::Comma) = self.peek_tok() {
                 self.next_tok();
-            // FIXME: These else branches are highly
+            // FIXME: These else branches are highly sus
             } else if let Some(Token::RParent) = self.cur_tok() {
                 break;
             } else if let Some(Token::RParent) = self.peek_tok() {

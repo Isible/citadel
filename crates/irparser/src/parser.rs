@@ -287,7 +287,6 @@ impl<'p> Parser<'p> {
         self.next_tok();
         let args = self.parse_arg_list(Token::RParent);
         self.next_tok();
-        // TODO: dbg!(self.cur_tok());
         expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| parser_error!(
             "Expected peek token to be an identifier specifying the type, received {tok:?} instead"
         ));
