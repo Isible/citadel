@@ -3,7 +3,7 @@ entry {
 }
 
 func @main() i32 {
-    $test [i8; 8] = l{"hellooo\n":[i8; 8]}
+    $test [i8; 8] = l{"hell":[i8; 8]}
     call %print(%test)
     ret l{0:i32}
 }
