@@ -2,7 +2,7 @@
 
 use citadel_api::frontend::ir::{
     self,
-    irgen::{IRGenerator, HIRStream},
+    irgen::{HIRStream, IRGenerator},
     *,
 };
 
@@ -108,7 +108,7 @@ impl<'c> Compiler {
                     "main" => ir::Type::Ident(Ident("i32")),
                     _ => ir::Type::Ident(Self::compile_type(&node.ret_type)),
                 },
-                ident: Ident(&node.name),
+                ident: Ident(node.name),
             },
             args: self.compile_def_args(&node.args),
         })
@@ -122,7 +122,7 @@ impl<'c> Compiler {
         CallExpr {
             name: match node.name {
                 "puts" => Ident("print"),
-                _ => Ident(&node.name),
+                _ => Ident(node.name),
             },
             args: self.compile_args(&node.args),
         }
@@ -135,7 +135,7 @@ impl<'c> Compiler {
     ) -> IRStmt<'c> {
         let expr = node
             .args
-            .get(0)
+            .first()
             .unwrap_or_else(|| panic!("Expected exit call to have one argument for the exit code"));
         IRStmt::Exit(ExitStmt {
             exit_code: self.compile_expr(expr, ctx),
@@ -151,7 +151,7 @@ impl<'c> Compiler {
             ast::Operator::Add | ast::Operator::Sub | ast::Operator::Mul | ast::Operator::Div => {
                 IRExpr::ArithOp(ArithOpExpr {
                     op: self.compile_op(node.operator),
-                    values: self.compile_expr_tuple((&*node.sides.0, &*node.sides.1), ctx),
+                    values: self.compile_expr_tuple((node.sides.0, node.sides.1), ctx),
                 })
             }
             ast::Operator::Reassign => todo!(),
@@ -191,7 +191,7 @@ impl<'c> Compiler {
 
     fn compile_lit(&self, node: &'c ast::Literal, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
         match node {
-            ast::Literal::Ident(ident) => IRExpr::Ident(Ident(&ident)),
+            ast::Literal::Ident(ident) => IRExpr::Ident(Ident(ident)),
             ast::Literal::String(string) => IRExpr::Literal(
                 ir::Literal::String(string),
                 ir::Type::Array(&ir::Type::Ident(Ident("i8")), string.len()),
@@ -212,14 +212,14 @@ impl<'c> Compiler {
     fn compile_typed_ident(&self, node: &'c TypedIdent<'c>) -> IRTypedIdent<'c> {
         IRTypedIdent {
             _type: ir::Type::Ident(Self::compile_type(&node._type)),
-            ident: Ident(&node.ident),
+            ident: Ident(node.ident),
         }
     }
 
     fn compile_def_args(&self, node: &'c Vec<TypedIdent<'c>>) -> Vec<IRTypedIdent<'c>> {
         let mut out = Vec::new();
         for node in node {
-            out.push(self.compile_typed_ident(&node))
+            out.push(self.compile_typed_ident(node))
         }
         out
     }

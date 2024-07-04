@@ -48,7 +48,7 @@ where
         Self {
             backend,
             stream,
-            phantom: PhantomData::default(),
+            phantom: PhantomData,
         }
     }
 

@@ -244,7 +244,7 @@ impl BuiltinFunction for StdFunction {
 }
 
 pub(super) mod builtins {
-    use crate::asm::codegen::{util, CodeGenerator};
+    use crate::asm::{codegen::CodeGenerator, utils::codegen as cutils};
 
     use super::{AsmElement, Declaration, Label, Literal, MemAddr, Operand, Register};
 
@@ -261,24 +261,24 @@ pub(super) mod builtins {
             AsmElement::Label(Label {
                 name: "print".to_string(),
             }),
-            util::gen_mov_ins(
+            cutils::gen_mov_ins(
                 Operand::MemAddr(MemAddr::Ident("msg".to_string())),
                 Operand::Register(Register::Rsi),
             ),
-            util::gen_mov_ins(
+            cutils::gen_mov_ins(
                 Operand::Register(Register::Rsi),
-                Operand::Ident("msg".to_string())
+                Operand::Ident("msg".to_string()),
             ),
-            util::gen_mov_ins(
+            cutils::gen_mov_ins(
                 Operand::Register(Register::Rax),
                 Operand::Literal(Literal::Int32(1)),
             ),
-            util::gen_mov_ins(
+            cutils::gen_mov_ins(
                 Operand::Register(Register::Rdi),
                 Operand::Literal(Literal::Int32(1)),
             ),
-            util::gen_syscall(),
-            util::gen_ret(),
+            cutils::gen_syscall(),
+            cutils::gen_ret(),
         ];
 
         out.extend(instructions);

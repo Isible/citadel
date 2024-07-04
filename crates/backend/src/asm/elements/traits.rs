@@ -5,7 +5,7 @@ use std::fmt::Display;
 use crate::asm::{elements::{
     AsmElement, Declaration, Directive, DirectiveType, Instruction, Label, Literal, MemAddr, Opcode, Operand,
     Register,
-}, util};
+}, utils};
 
 use super::{DataSize, Size, SizedLiteral};
 
@@ -55,7 +55,7 @@ impl Display for Instruction {
             "{}{}",
             self.opcode,
             if !self.args.is_empty() {
-                format!(" {}", util::op_vec_to_string(&self.args))
+                format!(" {}", utils::op_vec_to_string(&self.args))
             } else {
                 String::new()
             }

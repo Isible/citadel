@@ -17,11 +17,13 @@ use citadel_frontend::{
     util::CompositeDataType,
 };
 
-use crate::asm::elements::{
-    AsmElement, Declaration, Directive, DirectiveType, Literal, SizedLiteral,
+use crate::asm::{
+    elements::{
+        AsmElement, DataSize, Declaration, Directive, DirectiveType, Instruction, Label, Literal,
+        Opcode, Operand, Register, Size, SizedLiteral, StdFunction,
+    },
+    utils::codegen as cutils,
 };
-
-use super::elements::{DataSize, Instruction, Label, Opcode, Operand, Register, Size, StdFunction};
 
 pub const FUNCTION_ARG_REGISTERS_8: [Register; 6] = [
     Register::Al,
@@ -115,7 +117,7 @@ impl<'c> CodeGenerator<'c> {
                 Operand::Register(reg)
             }
             IRExpr::ArithOp(node) => self.gen_arith_op(node, true),
-            IRExpr::Ident(node) => util::get_stack_location(
+            IRExpr::Ident(node) => cutils::get_stack_location(
                 *self
                     .symbol_table
                     .get(node.0)
@@ -148,7 +150,7 @@ impl<'c> CodeGenerator<'c> {
             "print" => self.gen_print(node),
             _ => {
                 self.gen_call_args(node);
-                self.out.push(util::gen_call(&node.name))
+                self.out.push(cutils::gen_call(&node.name))
             }
         }
     }
@@ -167,14 +169,14 @@ impl<'c> CodeGenerator<'c> {
         };
         dbg!(size);
         // TODO: use different splitting techniques based on string length
-        let mut strings = util::split_string(val, 8);
+        let mut strings = cutils::split_string(val, 8);
         dbg!(&strings);
         dbg!(&size);
         let last_string = strings.pop().unwrap();
         self.stack_pointer -= size as i32;
         Operand::SizedLiteral(SizedLiteral(
-            Literal::Int64(util::conv_str_to_bytes(last_string) as i64),
-            util::word_from_size(size as u8),
+            Literal::Int64(cutils::conv_str_to_bytes(last_string) as i64),
+            cutils::word_from_size(size as u8),
         ))
     }
 
@@ -209,20 +211,20 @@ impl<'c> CodeGenerator<'c> {
     fn gen_return(&mut self, node: &'c ReturnStmt) {
         let val = self.gen_expr(&node.ret_val);
         self.out
-            .push(util::gen_mov_ins(Operand::Register(Register::Rax), val));
-        self.out.push(util::destroy_stackframe());
-        self.out.push(util::gen_ret());
+            .push(cutils::gen_mov_ins(Operand::Register(Register::Rax), val));
+        self.out.push(cutils::destroy_stackframe());
+        self.out.push(cutils::gen_ret());
     }
 
     fn gen_exit(&mut self, node: &'c ExitStmt) {
         let expr = self.gen_expr(&node.exit_code);
         self.out
-            .push(util::gen_mov_ins(Operand::Register(Register::Rdi), expr));
+            .push(cutils::gen_mov_ins(Operand::Register(Register::Rdi), expr));
         self.gen_mov_ins(
             Operand::Register(Register::Rax),
             Operand::Literal(Literal::Int32(60)),
         );
-        self.out.push(util::gen_syscall());
+        self.out.push(cutils::gen_syscall());
     }
 
     fn gen_variable(&mut self, node: &'c VarStmt) {
@@ -234,7 +236,7 @@ impl<'c> CodeGenerator<'c> {
         }
 
         if let Operand::Literal(lit) = val {
-            val = Operand::SizedLiteral(util::literal_to_sized_literal(lit)
+            val = Operand::SizedLiteral(cutils::literal_to_sized_literal(lit)
                 .expect("Failed to convert literal to sized literal, most likely caused due to usage of float which are not supported yet"))
         };
 
@@ -243,7 +245,7 @@ impl<'c> CodeGenerator<'c> {
             val = Operand::Register(Register::Rax);
         }
 
-        self.gen_mov_ins(util::get_stack_location(self.stack_pointer), val);
+        self.gen_mov_ins(cutils::get_stack_location(self.stack_pointer), val);
 
         self.symbol_table
             .insert(&node.name.ident, self.stack_pointer);
@@ -254,7 +256,7 @@ impl<'c> CodeGenerator<'c> {
             name: node.name.ident.to_string(),
         }));
 
-        let stack_frame = util::create_stackframe();
+        let stack_frame = cutils::create_stackframe();
 
         self.out.push(stack_frame.0);
         self.out.push(stack_frame.1);
@@ -273,9 +275,9 @@ impl<'c> CodeGenerator<'c> {
                 }) => (),
                 _ => {
                     if let ir::Type::Ident(Ident("void")) = node.name._type {
-                        self.out.push(util::destroy_stackframe());
+                        self.out.push(cutils::destroy_stackframe());
                     }
-                    self.out.push(util::gen_ret());
+                    self.out.push(cutils::gen_ret());
                 }
             }
         }
@@ -284,7 +286,7 @@ impl<'c> CodeGenerator<'c> {
     fn gen_struct_init(&mut self, node: &'c StructInitExpr) -> Operand {
         let size = self.size_of(&ir::Type::Ident(ir::Ident(*node.name)));
         self.gen_mov_ins(
-            util::get_stack_location(self.stack_pointer - size as i32),
+            cutils::get_stack_location(self.stack_pointer - size as i32),
             Operand::Literal(Literal::Int32(0)),
         );
         self.stack_pointer -= size as i32;
@@ -293,7 +295,7 @@ impl<'c> CodeGenerator<'c> {
             let fields = &self.types.get(&node.name).unwrap().1;
             let _field = &fields[i];
             let expr = self.gen_expr(val);
-            self.gen_mov_ins(util::get_stack_location(0), expr);
+            self.gen_mov_ins(cutils::get_stack_location(0), expr);
         }
         todo!()
     }
@@ -302,8 +304,8 @@ impl<'c> CodeGenerator<'c> {
         for (i, expr) in node.args.iter().enumerate() {
             let size = self.size_of(&expr._type);
             self.gen_mov_ins(
-                util::get_stack_location(self.stack_pointer - size as i32),
-                Operand::Register(util::arg_regs_by_size(size)[i]),
+                cutils::get_stack_location(self.stack_pointer - size as i32),
+                Operand::Register(cutils::arg_regs_by_size(size)[i]),
             );
             self.stack_pointer -= size as i32;
             self.symbol_table.insert(&expr.ident, self.stack_pointer);
@@ -314,24 +316,25 @@ impl<'c> CodeGenerator<'c> {
         for (i, expr) in node.args.iter().enumerate() {
             let val = self.gen_expr(expr);
             self.gen_mov_ins(
-                Operand::Register(util::arg_regs_by_size(val.size())[i]),
+                Operand::Register(cutils::arg_regs_by_size(val.size())[i]),
                 val,
             );
         }
     }
 
     fn gen_print(&mut self, node: &'c CallExpr) {
-        let arg = self.gen_expr(node.args.first().expect("Print function neeeds at least one argument"));
-        dbg!(&arg);
-        self.gen_mov_ins(
-            Operand::Register(Register::Rsi),
-            arg,
+        let arg = self.gen_expr(
+            node.args
+                .first()
+                .expect("Print function neeeds at least one argument"),
         );
+        dbg!(&arg);
+        self.gen_mov_ins(Operand::Register(Register::Rsi), arg);
         self.gen_mov_ins(
             Operand::Register(Register::Rdx),
             Operand::Literal(Literal::Int8(8)),
         );
-        self.out.push(util::gen_call("print"));
+        self.out.push(cutils::gen_call("print"));
         self.defined_functions.insert(StdFunction::Print);
     }
 
@@ -350,10 +353,10 @@ impl<'c> CodeGenerator<'c> {
         // The type or array is an integer type/array
         match _type {
             Type::Ident(ident @ Ident("i8" | "i16" | "i32" | "i64")) => {
-                return util::int_size(**ident)
+                return cutils::int_size(**ident)
             }
             Type::Array(Type::Ident(ident @ Ident("i8" | "i16" | "i32" | "i64")), size) => {
-                return util::int_size(**ident) * *size as u8
+                return cutils::int_size(**ident) * *size as u8
             }
             _ => (),
         }
@@ -396,7 +399,7 @@ impl<'c> CodeGenerator<'c> {
 
     fn gen_mov_ins(&mut self, target: Operand, val: Operand) {
         if target != val {
-            self.out.push(util::gen_mov_ins(target, val))
+            self.out.push(cutils::gen_mov_ins(target, val))
         }
     }
 }

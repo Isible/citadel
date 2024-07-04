@@ -1,3 +1,5 @@
+pub mod codegen;
+
 use std::{fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::{irgen::HIRStream, IRStmt};
@@ -78,7 +80,7 @@ pub fn format(asm: Vec<AsmElement>) -> String {
     out
 }
 
-pub fn op_vec_to_string(vec: &Vec<Operand>) -> String {
+pub fn op_vec_to_string(vec: &[Operand]) -> String {
     let str: String = vec
         .iter()
         .map(|op| {

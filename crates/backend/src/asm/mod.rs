@@ -4,7 +4,7 @@
 
 pub mod codegen;
 pub mod elements;
-pub mod util;
+pub mod utils;
 
 use citadel_frontend::ir::irgen::HIRStream;
 
@@ -42,6 +42,6 @@ impl<T: Target> Backend for AsmBackend<T> {
     }
 
     fn generate(&self, ir_stream: HIRStream) -> Self::Output {
-        util::compile_program(ir_stream, self.target())
+        utils::compile_program(ir_stream, self.target())
     }
 }
