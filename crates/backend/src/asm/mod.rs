@@ -4,13 +4,11 @@
 
 pub mod codegen;
 pub mod elements;
-pub mod util;
-
-mod tests;
+pub mod utils;
 
 use citadel_frontend::ir::irgen::HIRStream;
 
-use crate::experimental::{
+use crate::{
     api::{Backend, Target},
     asm::elements::AsmElement,
 };
@@ -44,6 +42,6 @@ impl<T: Target> Backend for AsmBackend<T> {
     }
 
     fn generate(&self, ir_stream: HIRStream) -> Self::Output {
-        util::compile_program(ir_stream, self.target())
+        utils::compile_program(ir_stream, self.target())
     }
 }

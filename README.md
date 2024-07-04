@@ -16,7 +16,7 @@ The mission of this project is to empower more people to build compilers and for
 
 ## Setup
 
-1. Install [Rust](https://www.rust-lang.org/) and **(Optional)** [Python](https://www.python.org/) minimum py-version: 3.12
+1. Install [Rust](https://www.rust-lang.org/), [Citadel-Dev-Tools](https://github.com/Thepigcat76/citadel-dev-tools) and **(Optional)** [Python](https://www.python.org/) minimum py-version: 3.12
 
 2. [Clone the repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
 

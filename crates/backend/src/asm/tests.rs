@@ -19,6 +19,6 @@ mod tests {
         let arena = Bump::new();
         let mut parser = IRParser::new(&lexer, &arena);
         let asm_code = backend.generate(parser.parse_program());
-        util::compiler_output(util::format(asm_code), PathBuf::from("tests/out/out.asm"));
+        util::compiler_output(util::format(asm_code), PathBuf::from("build/asm/out.asm"));
     }
 }

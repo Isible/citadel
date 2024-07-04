@@ -1,5 +1,9 @@
-use crate::experimental::asm::elements::{
-    AsmElement, DataSize, Instruction, Literal, MemAddr, Opcode, Operand, Register, SizedLiteral,
+use crate::asm::{
+    self,
+    elements::{
+        AsmElement, DataSize, Instruction, Literal, MemAddr, Opcode, Operand, Register,
+        SizedLiteral,
+    },
 };
 
 #[inline(always)]
@@ -66,10 +70,10 @@ pub(crate) fn destroy_stackframe() -> AsmElement {
 #[inline(always)]
 pub(crate) fn arg_regs_by_size(size: u8) -> [Register; 6] {
     match size {
-        1 => super::FUNCTION_ARG_REGISTERS_8,
-        2 => super::FUNCTION_ARG_REGISTERS_16,
-        4 => super::FUNCTION_ARG_REGISTERS_32,
-        8 => super::FUNCTION_ARG_REGISTERS_64,
+        1 => asm::codegen::FUNCTION_ARG_REGISTERS_8,
+        2 => asm::codegen::FUNCTION_ARG_REGISTERS_16,
+        4 => asm::codegen::FUNCTION_ARG_REGISTERS_32,
+        8 => asm::codegen::FUNCTION_ARG_REGISTERS_64,
         _ => panic!("Invalid size: {size}"),
     }
 }

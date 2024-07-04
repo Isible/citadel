@@ -13,10 +13,7 @@ impl<'l> Lexer<'l> {
     pub fn new(input: &'l str) -> Self {
         let mut tokens = Vec::new();
         for token in Token::lexer(input) {
-            tokens.push(match token {
-                Ok(val) => val,
-                Err(_) => panic!(),
-            })
+            tokens.push(token.unwrap())
         }
         Self { input, tokens }
     }

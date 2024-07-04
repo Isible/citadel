@@ -97,12 +97,12 @@ impl<'p> Parser<'p> {
                 Some(Expression::Literal(Literal::Float(float.parse().unwrap())))
             }
             Token::LitString(string) => {
-                Some(Expression::Literal(Literal::String((*string).into())))
+                Some(Expression::Literal(Literal::String(string)))
             }
             //Token::LitBool(boolean) => Some(Expression::Literal(Literal::Boolean(
             //    boolean.parse().unwrap(),
             //))),
-            Token::Ident(ident) => Some(Expression::Literal(Literal::Ident((*ident).into()))),
+            Token::Ident(ident) => Some(Expression::Literal(Literal::Ident(ident))),
             _ => panic!("No prefix parse found for: {:?}", self.cur_tok()),
         }
     }

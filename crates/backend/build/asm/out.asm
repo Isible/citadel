@@ -10,7 +10,7 @@ _start:
 main:
     push rbp
     mov rbp,rsp
-    mov rax,751942187145258344
+    mov rax,1819043176
     mov [rbp-8],rax
     mov rsi,[rbp-8]
     mov rdx,8

@@ -1,7 +1,7 @@
 use std::{env, fs, io, path::PathBuf, str};
 
 use bumpalo::Bump;
-use citadel_api::{backend::experimental::asm::{AsmBackend, TargetX86_64}, compile};
+use citadel_api::{backend::asm::{AsmBackend, TargetX86_64}, compile};
 use citadel_irparser::{IRLexer, IRParser};
 
 fn main() -> io::Result<()> {
