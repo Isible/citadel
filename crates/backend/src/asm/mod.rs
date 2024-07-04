@@ -6,11 +6,9 @@ pub mod codegen;
 pub mod elements;
 pub mod util;
 
-mod tests;
-
 use citadel_frontend::ir::irgen::HIRStream;
 
-use crate::experimental::{
+use crate::{
     api::{Backend, Target},
     asm::elements::AsmElement,
 };

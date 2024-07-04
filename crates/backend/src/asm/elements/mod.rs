@@ -4,8 +4,6 @@
 
 pub mod traits;
 
-// TODO: Rewrite to support simple codegen
-
 use super::codegen::CodeGenerator;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -246,7 +244,7 @@ impl BuiltinFunction for StdFunction {
 }
 
 pub(super) mod builtins {
-    use crate::experimental::asm::codegen::{util, CodeGenerator};
+    use crate::asm::codegen::{util, CodeGenerator};
 
     use super::{AsmElement, Declaration, Label, Literal, MemAddr, Operand, Register};
 

@@ -2,12 +2,15 @@ use std::{fs::File, io::Write, path::PathBuf};
 
 use citadel_frontend::ir::{irgen::HIRStream, IRStmt};
 
-use crate::experimental::{
+use crate::{
     api::Target,
-    asm::{codegen::CodeGenerator, elements::{AsmElement, BuiltinFunction}},
+    asm::{
+        codegen::CodeGenerator,
+        elements::{AsmElement, BuiltinFunction},
+    },
 };
 
-use super::elements::{Directive, DirectiveType};
+use super::elements::{Declaration, Directive, DirectiveType, Operand};
 
 pub fn compile_program(input: HIRStream, _target: impl Target) -> Vec<AsmElement> {
     let mut codegen = CodeGenerator::new(input.types);
@@ -34,14 +37,9 @@ fn gen_code<'c>(input: &'c [IRStmt<'c>], codegen: &mut CodeGenerator<'c>) {
 }
 
 // TODO: Optimize insertion at front
-fn add_data_section(data: Vec<super::elements::Declaration>, _type: DirectiveType, out: &mut Vec<AsmElement>) {
+fn add_data_section(data: Vec<Declaration>, _type: DirectiveType, out: &mut Vec<AsmElement>) {
     if !data.is_empty() {
-        out.insert(
-            0,
-            AsmElement::Directive(Directive {
-                _type,
-            }),
-        );
+        out.insert(0, AsmElement::Directive(Directive { _type }));
         for (i, decl) in data.into_iter().enumerate() {
             out.insert(i + 1, AsmElement::Declaration(decl));
         }
@@ -79,3 +77,33 @@ pub fn format(asm: Vec<AsmElement>) -> String {
     }
     out
 }
+
+pub fn op_vec_to_string(vec: &Vec<Operand>) -> String {
+    let str: String = vec
+        .iter()
+        .map(|op| {
+            let mut str = op.to_string();
+            str.push(',');
+            str
+        })
+        .collect();
+    if !vec.is_empty() {
+        (&str[..str.len() - 1]).into()
+    } else {
+        String::new()
+    }
+}
+
+/*
+pub fn decl_vec_to_string(vec: &Vec<Declaration>) -> String {
+    let str: String = vec
+        .iter()
+        .map(|decl| {
+            let mut str = decl.to_string();
+            str.push('\n');
+            str
+        })
+        .collect();
+    (&str[..str.len() - 1]).into()
+}
+*/

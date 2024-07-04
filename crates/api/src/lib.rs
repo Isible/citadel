@@ -6,13 +6,13 @@ pub use citadel_backend as backend;
 
 use std::{fs, io, marker::PhantomData, path::PathBuf};
 
-use citadel_backend::experimental::api::{Backend, Target};
+use citadel_backend::api::{Backend, Target};
 
 #[macro_export]
 macro_rules! compile {
     ($backend:expr, $clir_stream:expr) => {{
         use citadel_api::Output;
-        use citadel_api::backend::experimental::api::Backend;
+        use citadel_api::backend::api::Backend;
 
         Output::new($backend, $backend.generate($clir_stream))
     }};

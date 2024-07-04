@@ -17,7 +17,7 @@ use citadel_frontend::{
     util::CompositeDataType,
 };
 
-use crate::experimental::asm::elements::{
+use crate::asm::elements::{
     AsmElement, Declaration, Directive, DirectiveType, Literal, SizedLiteral,
 };
 

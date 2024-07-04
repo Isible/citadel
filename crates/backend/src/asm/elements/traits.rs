@@ -2,12 +2,10 @@
 
 use std::fmt::Display;
 
-use crate::{experimental::asm::elements::DirectiveType, util::VecDisplay};
-
-use crate::experimental::asm::elements::{
-    AsmElement, Declaration, Directive, Instruction, Label, Literal, MemAddr, Opcode, Operand,
+use crate::asm::{elements::{
+    AsmElement, Declaration, Directive, DirectiveType, Instruction, Label, Literal, MemAddr, Opcode, Operand,
     Register,
-};
+}, util};
 
 use super::{DataSize, Size, SizedLiteral};
 
@@ -57,7 +55,7 @@ impl Display for Instruction {
             "{}{}",
             self.opcode,
             if !self.args.is_empty() {
-                format!(" {}", self.args.to_string())
+                format!(" {}", util::op_vec_to_string(&self.args))
             } else {
                 String::new()
             }
