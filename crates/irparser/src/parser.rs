@@ -4,7 +4,11 @@ use std::collections::HashMap;
 
 use bumpalo::Bump;
 use citadel_frontend::ir::{
-    self, irgen::{IRGenerator, HIRStream}, ArithOpExpr, BlockStmt, BreakStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, JumpStmt, LabelStmt, Literal, Operator, ReturnStmt, StructInitExpr, StructStmt, UnionStmt, VarStmt
+    self,
+    irgen::{HIRStream, IRGenerator},
+    ArithOpExpr, BlockStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt,
+    IRTypedIdent, Ident, JumpStmt, LabelStmt, Literal, Operator, ReturnStmt, StructInitExpr,
+    StructStmt, UnionStmt, VarStmt,
 };
 
 use crate::{expect_tok, lexer::Lexer, parser_error, tokens::Token};
@@ -47,7 +51,6 @@ impl<'p> Parser<'p> {
             Token::Call => self.parse_call().map(|call| IRStmt::Call(call)),
             Token::Ret => self.parse_return(),
             Token::Exit => self.parse_exit(),
-            Token::Break => self.parse_break(),
             Token::Jump => self.parse_jump(),
             Token::Struct => self.parse_struct(),
             Token::Union => self.parse_union(),
@@ -74,7 +77,9 @@ impl<'p> Parser<'p> {
 
     fn parse_entry(&mut self) -> Option<IRStmt<'p>> {
         expect_tok!(self.peek_tok()?, Token::LCurly, |tok| {
-            parser_error!("Expected left curly starting block after entry keyword, received {tok:?} instead");
+            parser_error!(
+                "Expected left curly starting block after entry keyword, received {tok:?} instead"
+            );
         });
         self.next_tok();
         let block = self.parse_block()?;
@@ -316,19 +321,9 @@ impl<'p> Parser<'p> {
             "Expected peek token to be a colon, received {tok:?} instead"
         ));
         self.next_tok();
-        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| {
-            parser_error!(
-            "Expected peek token to be a left curly bracket, declaring the label block, received {tok:?} instead"
-        )
-        });
-        self.next_tok();
-        let block = self.parse_block();
-        let label = IRStmt::Label(LabelStmt {
-            name: Ident(name),
-            block: block?,
-        });
-        self.symbols.insert(name, label.clone());
-        Some(label)
+        let label = LabelStmt { name: Ident(name) };
+        self.symbols.insert(name, IRStmt::Label(label));
+        Some(IRStmt::Label(label))
     }
 
     fn parse_call(&mut self) -> Option<CallExpr<'p>> {
@@ -415,23 +410,6 @@ impl<'p> Parser<'p> {
         Some(IRStmt::Exit(ExitStmt { exit_code: code }))
     }
 
-    fn parse_break(&mut self) -> Option<IRStmt<'p>> {
-        expect_tok!(
-            self.peek_tok(),
-            Some(Token::Apostrophe),
-            |tok| parser_error!(
-                "Expected peek token to be an apostrophe, received {tok:?} instead"
-            )
-        );
-        self.next_tok();
-        expect_tok!(self.peek_tok(), Some(Token::Ident(_)), |tok| parser_error!(
-            "Expected peek token to be an ident specifying the label name, received {tok:?} instead"
-        ));
-        self.next_tok();
-        let label = self.parse_label_ref();
-        Some(IRStmt::Break(BreakStmt { label: label? }))
-    }
-
     fn parse_jump(&mut self) -> Option<IRStmt<'p>> {
         expect_tok!(
             self.peek_tok(),
@@ -445,8 +423,11 @@ impl<'p> Parser<'p> {
             "Expected peek token to be an ident specifying the label name, received {tok:?} instead"
         ));
         self.next_tok();
-        let label = self.parse_label_ref();
-        Some(IRStmt::Jump(JumpStmt { label: label? }))
+        let label = match self.cur_tok()? {
+            Token::Ident(id) => id,
+            _ => unreachable!()
+        };
+        Some(IRStmt::Jump(JumpStmt { label: ir::Ident(label) }))
     }
 
     fn parse_arith_op_expr(&mut self, op: Operator) -> Option<IRExpr<'p>> {
@@ -576,7 +557,7 @@ impl<'p> Parser<'p> {
             Token::LitInt(int) => Literal::Int32(int.parse().unwrap()),
             Token::LitFloat(float) => Literal::Float(float.parse().unwrap()),
             Token::LitChar(char) => Literal::Char(char.parse().unwrap()),
-            _ => parser_error!("Expected literal after `l{{`")
+            _ => parser_error!("Expected literal after `l{{`"),
         };
         expect_tok!(self.peek_tok()?, Token::Colon, |tok| {
             parser_error!("Expected colon to seperate literal from type suffix, received {tok:?}");
@@ -585,7 +566,9 @@ impl<'p> Parser<'p> {
         self.next_tok();
         let type_ = self.parse_type()?;
         expect_tok!(self.peek_tok()?, Token::RCurly, |tok| {
-            parser_error!("Expected right curly brackets after type suffix, received {tok:?} instead");
+            parser_error!(
+                "Expected right curly brackets after type suffix, received {tok:?} instead"
+            );
         });
         self.next_tok();
         Some(IRExpr::Literal(lit, type_))

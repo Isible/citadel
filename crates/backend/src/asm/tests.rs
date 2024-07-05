@@ -5,9 +5,9 @@ mod tests {
     use bumpalo::Bump;
     use citadel_irparser::{IRLexer, IRParser};
 
-    use crate::experimental::{
+    use crate::{
         api::Backend,
-        asm::{util, AsmBackend, TargetX86_64},
+        asm::{utils, AsmBackend, TargetX86_64},
     };
 
     #[test]
@@ -18,7 +18,9 @@ mod tests {
         let lexer = IRLexer::new(std::str::from_utf8(&file_content).unwrap());
         let arena = Bump::new();
         let mut parser = IRParser::new(&lexer, &arena);
-        let asm_code = backend.generate(parser.parse_program());
-        util::compiler_output(util::format(asm_code), PathBuf::from("build/asm/out.asm"));
+        let ir_stream = parser.parse_program();
+        dbg!(&ir_stream);
+        let asm_code = backend.generate(ir_stream);
+        utils::compiler_output(utils::format(asm_code.as_slice()), PathBuf::from("build/asm/out.asm"));
     }
 }

@@ -79,6 +79,7 @@ pub(crate) fn arg_regs_by_size(size: u8) -> [Register; 6] {
 }
 
 /// returns the size of the specified integer in bytes
+// TODO: Think about using 4 byte alignment
 #[inline(always)]
 pub(crate) fn int_size(int: &str) -> u8 {
     match int {

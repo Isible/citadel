@@ -5,8 +5,6 @@
 //! Generally this is only serves as a helper for the actual Backend#compile
 //! function.
 
-pub mod util;
-
 use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::{
@@ -98,7 +96,6 @@ impl<'c> CodeGenerator<'c> {
             IRStmt::Label(node) => self.gen_label(node),
             IRStmt::Return(node) => self.gen_return(node),
             IRStmt::Exit(node) => self.gen_exit(node),
-            IRStmt::Break(_) => todo!(),
             IRStmt::Jump(node) => self.gen_jump(node),
             IRStmt::Call(node) => self.gen_call(node),
         }
@@ -167,11 +164,8 @@ impl<'c> CodeGenerator<'c> {
             Type::Ident(_) => todo!(),
             Type::Array(_, len) => len,
         };
-        dbg!(size);
         // TODO: use different splitting techniques based on string length
         let mut strings = cutils::split_string(val, 8);
-        dbg!(&strings);
-        dbg!(&size);
         let last_string = strings.pop().unwrap();
         self.stack_pointer -= size as i32;
         Operand::SizedLiteral(SizedLiteral(
@@ -328,7 +322,6 @@ impl<'c> CodeGenerator<'c> {
                 .first()
                 .expect("Print function neeeds at least one argument"),
         );
-        dbg!(&arg);
         self.gen_mov_ins(Operand::Register(Register::Rsi), arg);
         self.gen_mov_ins(
             Operand::Register(Register::Rdx),
@@ -342,10 +335,6 @@ impl<'c> CodeGenerator<'c> {
         self.out.push(AsmElement::Label(Label {
             name: node.name.to_string(),
         }));
-
-        for stmt in &node.block.stmts {
-            self.gen_stmt(stmt);
-        }
     }
 
     /// Returns the size of the type in bytes

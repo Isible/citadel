@@ -5,6 +5,9 @@
 pub mod codegen;
 pub mod elements;
 pub mod utils;
+mod tests;
+
+use std::process::Output;
 
 use citadel_frontend::ir::irgen::HIRStream;
 
@@ -43,5 +46,9 @@ impl<T: Target> Backend for AsmBackend<T> {
 
     fn generate(&self, ir_stream: HIRStream) -> Self::Output {
         utils::compile_program(ir_stream, self.target())
+    }
+
+    fn format(&self, output: &Self::Output) -> Option<String> {
+        Some(utils::format(output.as_slice()))
     }
 }

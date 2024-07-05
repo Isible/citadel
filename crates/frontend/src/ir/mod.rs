@@ -20,7 +20,6 @@ pub enum IRStmt<'ir> {
 
     Return(ReturnStmt<'ir>),
     Exit(ExitStmt<'ir>),
-    Break(BreakStmt<'ir>),
     Jump(JumpStmt<'ir>),
     Call(CallExpr<'ir>),
 
@@ -110,10 +109,9 @@ pub struct UnionStmt<'ir> {
     pub variants: Vec<IRTypedIdent<'ir>>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LabelStmt<'ir> {
     pub name: Ident<'ir>,
-    pub block: BlockStmt<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -124,11 +122,6 @@ pub struct ReturnStmt<'ir> {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ExitStmt<'ir> {
     pub exit_code: IRExpr<'ir>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct BreakStmt<'ir> {
-    pub label: Ident<'ir>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

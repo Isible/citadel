@@ -5,12 +5,13 @@
 //! stabelized.
 
 use std::{
-    fmt::{Debug, Display},
+    fmt::Debug,
     io,
 };
 
 use citadel_frontend::ir::irgen::HIRStream;
 
+// TODO: Remove these trait bounds?
 pub trait Target: Debug + Default + Copy + Clone {
     fn name(&self) -> &str;
 }
@@ -74,7 +75,7 @@ pub trait Target: Debug + Default + Copy + Clone {
 pub trait Backend {
     type Target: self::Target;
     
-    type Output: IntoIterator<Item: Display>;
+    type Output: IntoIterator<Item: ToString>;
 
     /// Main function of the backend. This will take in a stream
     /// of IRStmts and generate code based on them. The target for
@@ -101,7 +102,18 @@ pub trait Backend {
     /// the citadel apis. In that case you should
     /// return Some(...) and the result of whether
     /// file creation was successful
-    fn to_file(&self) -> Option<io::Result<()>> {
+    fn to_file(&self, _output: &Self::Output) -> Option<io::Result<()>> {
+        None
+    }
+
+    /// This is for formatting outputted code.
+    /// By default your backend does not support
+    /// code formatting and thus it returns None.
+    /// 
+    /// If you do want your code to be formatable,
+    /// you need to return Some(...) and the outputted
+    /// and formatted string
+    fn format(&self, _output: &Self::Output) -> Option<String> {
         None
     }
 }

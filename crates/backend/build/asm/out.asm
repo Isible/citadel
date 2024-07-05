@@ -10,13 +10,13 @@ _start:
 main:
     push rbp
     mov rbp,rsp
+_entry:
     mov rax,1819043176
     mov [rbp-8],rax
     mov rsi,[rbp-8]
     mov rdx,8
     call print
-    mov rax,0
-    pop rbp
+    jmp _entry
     ret
 print:
     mov [msg],rsi

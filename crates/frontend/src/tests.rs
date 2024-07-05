@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::ir::{
-        self, irgen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident, LabelStmt, Literal, ReturnStmt
+        self, irgen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident,
+        LabelStmt, Literal, ReturnStmt,
     };
 
     #[test]
@@ -25,15 +26,21 @@ mod tests {
     fn test_ir_to_string() {
         let mut code_gen = IRGenerator::default();
 
-        let binding = IRStmt::Label(LabelStmt {
-            name: Ident("myLabel"),
-            block: BlockStmt {
-                stmts: vec![IRStmt::Return(ReturnStmt {
-                    ret_val: IRExpr::Literal(Literal::String("test".into()), ir::Type::Array(&ir::Type::Ident(ir::Ident("i8")), 4)),
-                })],
-            },
-        });
-        code_gen.gen_ir(binding);
+        let ir_stream = [
+            IRStmt::Label(LabelStmt {
+                name: Ident("myLabel"),
+            }),
+            IRStmt::Return(ReturnStmt {
+                ret_val: IRExpr::Literal(
+                    Literal::String("test".into()),
+                    ir::Type::Array(&ir::Type::Ident(ir::Ident("i8")), 4),
+                ),
+            }),
+        ];
+
+        for ir_stmt in ir_stream {
+            code_gen.gen_ir(ir_stmt);
+        }
 
         println!("{}", code_gen.stream_ref().to_string());
 

@@ -50,7 +50,6 @@ fn add_data_section(data: Vec<Declaration>, _type: DirectiveType, out: &mut Vec<
 
 fn gen_defined_functions(codegen: &mut CodeGenerator) {
     for func in codegen.defined_functions.clone() {
-        dbg!("Generating function");
         func.generate(codegen);
     }
 }
@@ -67,9 +66,9 @@ pub fn compiler_output(asm: String, location: PathBuf) {
         .expect("Failed to write to file");
 }
 
-pub fn format(asm: Vec<AsmElement>) -> String {
+pub fn format(asm: &[AsmElement]) -> String{
     let mut out = String::new();
-    for elem in asm {
+    for elem in asm{
         match elem {
             AsmElement::Directive(_) | AsmElement::Label(_) => (),
             _ => out.push_str("    "),

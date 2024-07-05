@@ -66,19 +66,13 @@ impl Display for UnionStmt<'_> {
 
 impl Display for LabelStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "'{}: {{\n{}\n}}", self.name, self.block)
+        write!(f, "'{}:", self.name)
     }
 }
 
 impl Display for ReturnStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "ret {}", self.ret_val)
-    }
-}
-
-impl Display for BreakStmt<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "br {}", self.label)
     }
 }
 
@@ -133,7 +127,6 @@ impl Display for IRStmt<'_> {
             IRStmt::Label(label) => label.to_string(),
             IRStmt::Return(ret) => ret.to_string(),
             IRStmt::Exit(exit) => exit.to_string(),
-            IRStmt::Break(br) => br.to_string(),
             IRStmt::Jump(jump) => jump.to_string(),
             IRStmt::Call(call) => call.to_string(),
             IRStmt::Struct(_struct) => _struct.to_string(),

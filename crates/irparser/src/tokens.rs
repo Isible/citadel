@@ -82,9 +82,6 @@ pub enum Token<'tok> {
     /// Return a value
     #[token("ret")]
     Ret,
-    /// Break a loop
-    #[token("br")]
-    Break,
     /// Jump to a label
     #[token("jmp")]
     Jump,
