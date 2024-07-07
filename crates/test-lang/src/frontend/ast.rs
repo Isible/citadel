@@ -73,7 +73,7 @@ pub struct BlockStatement<'ast> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoopStatement<'ast> {
-    pub condition: Expression<'ast>,
+    pub condition: Option<Expression<'ast>>,
     pub block: BlockStatement<'ast>,
 }
 

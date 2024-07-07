@@ -1,5 +1,6 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 
+use bumpalo::Bump;
 use citadel_api::frontend::ir::{
     self,
     irgen::{HIRStream, IRGenerator},
@@ -9,7 +10,11 @@ use citadel_api::frontend::ir::{
 use super::ast::{self, *};
 
 #[derive(Default)]
-pub struct Compiler;
+pub struct Compiler {
+    pub arena: Bump,
+
+    label_index: usize,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CompileCtx<'ctx> {
@@ -18,7 +23,7 @@ pub enum CompileCtx<'ctx> {
 }
 
 impl<'c> Compiler {
-    pub fn compile_program(&self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
+    pub fn compile_program(&'c self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
         let mut ir_gen = IRGenerator::default();
 
         ir_gen.gen_ir(Self::init_program());
@@ -40,12 +45,12 @@ impl<'c> Compiler {
         })
     }
 
-    fn compile_stmt(&self, stmt: &'c Statement<'c>, ctx: Option<CompileCtx<'c>>) -> IRStmt<'c> {
+    fn compile_stmt(&'c self, stmt: &'c Statement<'c>, ctx: Option<CompileCtx<'c>>) -> IRStmt<'c> {
         match stmt {
             Statement::Let(node) => self.compile_let_stmt(node),
             Statement::Fn(node) => self.compile_fn_stmt(node),
             Statement::If(node) => todo!(),
-            Statement::Loop(node) => todo!(),
+            Statement::Loop(node) => self.compile_loop_stmt(node),
             Statement::Block(node) => todo!(),
             Statement::Return(node) => self.compile_ret_stmt(node, ctx),
             Statement::Expression(Expression::Call(node)) => match node.name {
@@ -64,7 +69,7 @@ impl<'c> Compiler {
         }
     }
 
-    fn compile_let_stmt(&self, node: &'c LetStatement<'c>) -> IRStmt<'c> {
+    fn compile_let_stmt(&'c self, node: &'c LetStatement<'c>) -> IRStmt<'c> {
         IRStmt::Variable(VarStmt {
             name: self.compile_typed_ident(&node.name),
             is_const: true,
@@ -82,7 +87,7 @@ impl<'c> Compiler {
         })
     }
 
-    fn compile_fn_stmt(&self, node: &'c FnStatement) -> IRStmt<'c> {
+    fn compile_fn_stmt(&'c self, node: &'c FnStatement) -> IRStmt<'c> {
         IRStmt::Function(FuncStmt {
             block: {
                 let mut block = self
@@ -106,12 +111,16 @@ impl<'c> Compiler {
             name: IRTypedIdent {
                 _type: match node.name {
                     "main" => ir::Type::Ident(Ident("i32")),
-                    _ => ir::Type::Ident(Self::compile_type(&node.ret_type)),
+                    _ => self.compile_type(&node.ret_type),
                 },
                 ident: Ident(node.name),
             },
             args: self.compile_def_args(&node.args),
         })
+    }
+
+    fn compile_loop_stmt(&'c self, node: &'c LoopStatement) -> IRStmt<'c> {
+        IRStmt::Label(LabelStmt { name: Ident(&format!("L{}", self.label_index)) });
     }
 
     fn compile_call_expr(
@@ -209,14 +218,14 @@ impl<'c> Compiler {
         }
     }
 
-    fn compile_typed_ident(&self, node: &'c TypedIdent<'c>) -> IRTypedIdent<'c> {
+    fn compile_typed_ident(&'c self, node: &'c TypedIdent<'c>) -> IRTypedIdent<'c> {
         IRTypedIdent {
-            _type: ir::Type::Ident(Self::compile_type(&node._type)),
+            _type: self.compile_type(&node._type),
             ident: Ident(node.ident),
         }
     }
 
-    fn compile_def_args(&self, node: &'c Vec<TypedIdent<'c>>) -> Vec<IRTypedIdent<'c>> {
+    fn compile_def_args(&'c self, node: &'c Vec<TypedIdent<'c>>) -> Vec<IRTypedIdent<'c>> {
         let mut out = Vec::new();
         for node in node {
             out.push(self.compile_typed_ident(node))
@@ -225,7 +234,7 @@ impl<'c> Compiler {
     }
 
     fn compile_block_stmt(
-        &self,
+        &'c self,
         node: &'c BlockStatement<'c>,
         ctx: Option<CompileCtx<'c>>,
     ) -> BlockStmt<'c> {
@@ -236,14 +245,18 @@ impl<'c> Compiler {
         BlockStmt { stmts: out }
     }
 
-    fn compile_type(_type: &'c ast::Type<'c>) -> ir::Ident<'c> {
-        ir::Ident(match _type {
+    fn compile_type(&'c self, _type: &'c ast::Type<'c>) -> ir::Type<'c> {
+        match _type {
             ast::Type::Ident(ident) => match *ident {
-                "int" => "i32",
-                "float" => "f32",
-                _ => panic!(),
+                "int" => ir::Type::Ident(ir::Ident("i32")),
+                "float" => ir::Type::Ident(ir::Ident("f32")),
+                "string" => ir::Type::Array(&ir::Type::Ident(Ident("i8")), 8),
+                id => panic!("{id}"),
             },
-            ast::Type::Array(_, _) => todo!(),
-        })
+            ast::Type::Array(_type, len) => {
+                let _type = self.arena.alloc(self.compile_type(_type));
+                ir::Type::Array(_type, *len)
+            }
+        }
     }
 }

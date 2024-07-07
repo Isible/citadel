@@ -2,7 +2,7 @@
 
 use bumpalo::Bump;
 
-use crate::{expect_tok, frontend::ast::Type};
+use crate::{expect_tok, frontend::ast::{LoopStatement, Type}};
 
 use super::{
     ast::{
@@ -46,6 +46,7 @@ impl<'p> Parser<'p> {
     pub fn parse_program(&mut self) -> Vec<Statement<'p>> {
         let mut program = Vec::new();
         while let Some(stmt) = self.parse_stmt() {
+            dbg!(&stmt);
             program.push(stmt);
             self.next_tok();
         }
@@ -59,7 +60,7 @@ impl<'p> Parser<'p> {
             Token::Fn => self.parse_fn_stmt(),
             Token::If => self.parse_if_stmt(),
             Token::Use => todo!(),
-            Token::Loop => todo!(),
+            Token::Loop => self.parse_loop_stmt(),
             Token::Return => self.parse_return_stmt(),
             Token::LCurly => Some(Statement::Block(self.parse_block_stmt(Token::RCurly))),
             _ => Some(Statement::Expression(self.parse_expr(Precedence::Lowest)?)),
@@ -214,6 +215,20 @@ impl<'p> Parser<'p> {
         self.next_tok();
 
         Some(Statement::If(IfStatement { condition, block }))
+    }
+
+    fn parse_loop_stmt(&mut self) -> Option<Statement<'p>> {
+        expect_tok!(self.peek_tok(), Some(Token::LCurly), |tok| panic!(
+            "Expected peek token to be LCURLY, received {tok:?} instead"
+        ));
+        self.next_tok();
+        let block = self.parse_block_stmt(Token::RCurly);
+
+        self.next_tok();
+        Some(Statement::Loop(LoopStatement {
+            condition: None,
+            block,
+        }))
     }
 
     fn parse_return_stmt(&mut self) -> Option<Statement<'p>> {

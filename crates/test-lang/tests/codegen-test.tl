@@ -1,4 +1,6 @@
 fn main(): int {
     let x: string = "Hellowo";
-    puts(x);
+    loop {
+        puts(x)
+    }
 }

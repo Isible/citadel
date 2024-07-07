@@ -38,7 +38,7 @@ pub enum IRExpr<'ir> {
     StructInit(StructInitExpr<'ir>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Type<'ir> {
     Ident(Ident<'ir>),
     Array(&'ir Type<'ir>, usize),
