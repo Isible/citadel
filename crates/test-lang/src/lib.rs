@@ -17,9 +17,9 @@ pub fn compile_asm(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::R
     let arena = Bump::new();
     let mut parser = Parser::new(&lexer, &arena);
     let ast = parser.parse_program();
-    let mut compiler = Compiler { arena: Bump::new() };
-    let ir_stream = compiler.compile_program(&ast);
-    let asm = compile!(AsmBackend::new(TargetX86_64), ir_stream);
+    let mut compiler = Compiler::default();
+    compiler.compile_program(ast);
+    let asm = compile!(AsmBackend::new(TargetX86_64), compiler.out.stream());
     asm.to_file(match out_path {
         Some(path) => path,
         None => PathBuf::from("out.asm"),
@@ -34,9 +34,9 @@ pub fn compile_chir(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::
     let mut parser = Parser::new(&lexer, &arena);
     let ast = parser.parse_program();
     dbg!(&ast);
-    let mut compiler = Compiler { arena: Bump::new() };
-    let ir_stream = compiler.compile_program(&ast);
-    let buf = ir_stream.to_string();
+    let mut compiler = Compiler::default();
+    compiler.compile_program(ast);
+    let buf = compiler.out.stream().to_string();
     fs::write(
         match out_path {
             Some(path) => path,

@@ -2,7 +2,10 @@
 
 use bumpalo::Bump;
 
-use crate::{expect_tok, frontend::ast::{LoopStatement, Type}};
+use crate::{
+    expect_tok,
+    frontend::ast::{Ident, LoopStatement, Type},
+};
 
 use super::{
     ast::{
@@ -97,13 +100,11 @@ impl<'p> Parser<'p> {
             Token::LitFloat(float) => {
                 Some(Expression::Literal(Literal::Float(float.parse().unwrap())))
             }
-            Token::LitString(string) => {
-                Some(Expression::Literal(Literal::String(string)))
-            }
+            Token::LitString(string) => Some(Expression::Literal(Literal::String(string))),
             //Token::LitBool(boolean) => Some(Expression::Literal(Literal::Boolean(
             //    boolean.parse().unwrap(),
             //))),
-            Token::Ident(ident) => Some(Expression::Literal(Literal::Ident(ident))),
+            Token::Ident(ident) => Some(Expression::Literal(Literal::Ident(Ident::Slice(ident)))),
             _ => panic!("No prefix parse found for: {:?}", self.cur_tok()),
         }
     }
@@ -147,10 +148,10 @@ impl<'p> Parser<'p> {
         ));
         self.next_tok();
 
-        let name = *match self.cur_tok()? {
+        let name = Ident::Slice(*match self.cur_tok()? {
             Token::Ident(ident) => ident,
             tok => panic!("{tok:?}"),
-        };
+        });
 
         expect_tok!(self.peek_tok(), Some(Token::LParent), |tok| panic!(
             "Expected peek token to be LPARENT, received {tok:?} instead"
@@ -197,7 +198,7 @@ impl<'p> Parser<'p> {
         Some(Statement::Fn(FnStatement {
             name,
             args,
-            ret_type: Type::Ident(ret_type),
+            ret_type: Type::Ident(Ident::Slice(ret_type)),
             block,
         }))
     }
@@ -293,10 +294,10 @@ impl<'p> Parser<'p> {
             "Expected peek token to be Ident, received {tok:?} instead"
         ));
         self.next_tok();
-        let ident = match self.cur_tok() {
+        let ident = Ident::Slice(match self.cur_tok() {
             Some(Token::Ident(ident)) => *ident,
             tok => panic!("{tok:?}"),
-        };
+        });
         // go to colon
         expect_tok!(self.peek_tok(), Some(Token::Colon), |tok| panic!(
             "Expected peek token to be COLON, received {tok:?} instead"
@@ -308,7 +309,10 @@ impl<'p> Parser<'p> {
         self.next_tok();
         let _type = self.determine_type(self.cur_tok()?);
 
-        Some(TypedIdent { ident, _type: Type::Ident(_type) })
+        Some(TypedIdent {
+            ident,
+            _type: Type::Ident(Ident::Slice(_type)),
+        })
     }
 
     fn parse_call_expr(&mut self, left: Expression<'p>) -> Option<CallExpression<'p>> {

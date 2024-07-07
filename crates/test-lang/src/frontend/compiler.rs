@@ -10,8 +10,9 @@ use citadel_api::frontend::ir::{
 use super::ast::{self, *};
 
 #[derive(Default)]
-pub struct Compiler {
+pub struct Compiler<'c> {
     pub arena: Bump,
+    pub out: IRGenerator<'c>,
 
     label_index: usize,
 }
@@ -22,19 +23,53 @@ pub enum CompileCtx<'ctx> {
     VarType(&'ctx ast::Type<'ctx>),
 }
 
-impl<'c> Compiler {
-    pub fn compile_program(&'c self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
-        let mut ir_gen = IRGenerator::default();
-
-        ir_gen.gen_ir(Self::init_program());
-
-        for stmt in ast {
-            ir_gen.gen_ir(self.compile_stmt(stmt, None))
+impl<'c> Compiler<'c> {
+    pub fn compile_program(&mut self, ast: Vec<Statement<'c>>) {
+        for node in ast {
+            self.compile_stmt(node);
         }
-        ir_gen.stream()
     }
 
-    fn init_program() -> IRStmt<'c> {
+    fn compile_stmt(&mut self, node: Statement<'c>) {
+        match node {
+            Statement::Let(node) => self.compile_let_stmt(node),
+            Statement::Fn(_) => todo!(),
+            Statement::If(_) => todo!(),
+            Statement::Loop(_) => todo!(),
+            Statement::Return(_) => todo!(),
+            Statement::Block(_) => todo!(),
+            Statement::Expression(_) => todo!(),
+        }
+    }
+
+    fn compile_let_stmt(&mut self, node: LetStatement<'c>) {
+        let stmt = IRStmt::Variable(VarStmt {
+            name: IRTypedIdent {
+                ident: ir::Ident(match node.name.ident {
+                    ast::Ident::Slice(s) => s,
+                    ast::Ident::Owned(_) => todo!(),
+                }),
+                _type: ir::Type::Ident(Ident("i32"))
+            },
+            val: IRExpr::Literal(ir::Literal::Int32(1), ir::Type::Ident(Ident("i32"))),
+            is_const: true,
+        });
+        self.out.gen_ir(stmt);
+    }
+    
+    /*
+    pub fn compile_program(&'c mut self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
+        self.out.gen_ir(Self::init_program());
+
+        for stmt in ast {
+            self.compile_stmt(stmt, None)
+        }
+        self.out.stream()
+    }
+    */
+
+    /*
+    fn init_program() {
         IRStmt::Entry(BlockStmt {
             stmts: vec![IRStmt::Exit(ExitStmt {
                 exit_code: IRExpr::Call(CallExpr {
@@ -42,10 +77,10 @@ impl<'c> Compiler {
                     args: Vec::new(),
                 }),
             })],
-        })
+        });
     }
 
-    fn compile_stmt(&'c self, stmt: &'c Statement<'c>, ctx: Option<CompileCtx<'c>>) -> IRStmt<'c> {
+    fn compile_stmt(&'c mut self, stmt: &'c Statement<'c>, ctx: Option<CompileCtx<'c>>) {
         match stmt {
             Statement::Let(node) => self.compile_let_stmt(node),
             Statement::Fn(node) => self.compile_fn_stmt(node),
@@ -54,14 +89,14 @@ impl<'c> Compiler {
             Statement::Block(node) => todo!(),
             Statement::Return(node) => self.compile_ret_stmt(node, ctx),
             Statement::Expression(Expression::Call(node)) => match node.name {
-                "exit" => self.compile_exit_call(node, ctx),
-                _ => IRStmt::Call(self.compile_call_expr(node, ctx)),
+                ast::Ident::Slice("exit") => self.compile_exit_call(node, ctx),
+                _ => {IRStmt::Call(self.compile_call_expr(node, ctx));},
             },
             _ => panic!(),
         }
     }
 
-    fn compile_expr(&self, expr: &'c Expression<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
+    fn compile_expr(&'c mut self, expr: &'c Expression<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
         match expr {
             Expression::Call(call) => IRExpr::Call(self.compile_call_expr(call, ctx)),
             Expression::Infix(op) => self.compile_arith_op_expr(op, ctx),
@@ -69,31 +104,31 @@ impl<'c> Compiler {
         }
     }
 
-    fn compile_let_stmt(&'c self, node: &'c LetStatement<'c>) -> IRStmt<'c> {
+    fn compile_let_stmt(&'c mut self, node: &'c LetStatement<'c>) {
         IRStmt::Variable(VarStmt {
             name: self.compile_typed_ident(&node.name),
             is_const: true,
             val: self.compile_expr(&node.val, Some(CompileCtx::VarType(&node.name._type))),
-        })
+        });
     }
 
     fn compile_ret_stmt(
-        &self,
+        &'c mut self,
         ret: &'c ReturnStatement,
         ctx: Option<CompileCtx<'c>>,
-    ) -> IRStmt<'c> {
+    ) {
         IRStmt::Return(ReturnStmt {
             ret_val: self.compile_expr(&ret.val, ctx),
-        })
+        });
     }
 
-    fn compile_fn_stmt(&'c self, node: &'c FnStatement) -> IRStmt<'c> {
+    fn compile_fn_stmt(&'c mut self, node: &'c FnStatement) {
         IRStmt::Function(FuncStmt {
             block: {
                 let mut block = self
                     .compile_block_stmt(&node.block, Some(CompileCtx::RetType(&node.ret_type)))
                     .stmts;
-                if node.name == "main" {
+                if let ast::Ident::Slice("main") = node.name {
                     if let Some(last) = block.last() {
                         match last {
                             IRStmt::Return(_) => (),
@@ -110,17 +145,20 @@ impl<'c> Compiler {
             },
             name: IRTypedIdent {
                 _type: match node.name {
-                    "main" => ir::Type::Ident(Ident("i32")),
+                    ast::Ident::Slice("main") => ir::Type::Ident(Ident("i32")),
                     _ => self.compile_type(&node.ret_type),
                 },
-                ident: Ident(node.name),
+                ident: ir::Ident(match node.name {
+                    ast::Ident::Slice(s) => s,
+                    ast::Ident::Owned(_) => todo!(),
+                }),
             },
             args: self.compile_def_args(&node.args),
-        })
+        });
     }
 
-    fn compile_loop_stmt(&'c self, node: &'c LoopStatement) -> IRStmt<'c> {
-        IRStmt::Label(LabelStmt { name: Ident(&format!("L{}", self.label_index)) });
+    fn compile_loop_stmt(&'c self, node: &'c LoopStatement) {
+        IRStmt::Label(LabelStmt { name: Ident("L") });
     }
 
     fn compile_call_expr(
@@ -130,8 +168,11 @@ impl<'c> Compiler {
     ) -> CallExpr<'c> {
         CallExpr {
             name: match node.name {
-                "puts" => Ident("print"),
-                _ => Ident(node.name),
+                ast::Ident::Slice("puts") => Ident("print"),
+                _ => ir::Ident(match node.name {
+                    ast::Ident::Slice(s) => s,
+                    ast::Ident::Owned(_) => todo!(),
+                }),
             },
             args: self.compile_args(&node.args),
         }
@@ -141,14 +182,14 @@ impl<'c> Compiler {
         &self,
         node: &'c CallExpression,
         ctx: Option<CompileCtx<'c>>,
-    ) -> IRStmt<'c> {
+    ) {
         let expr = node
             .args
             .first()
             .unwrap_or_else(|| panic!("Expected exit call to have one argument for the exit code"));
         IRStmt::Exit(ExitStmt {
             exit_code: self.compile_expr(expr, ctx),
-        })
+        });
     }
 
     fn compile_arith_op_expr(
@@ -200,7 +241,10 @@ impl<'c> Compiler {
 
     fn compile_lit(&self, node: &'c ast::Literal, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
         match node {
-            ast::Literal::Ident(ident) => IRExpr::Ident(Ident(ident)),
+            ast::Literal::Ident(ident) => IRExpr::Ident(ir::Ident(match ident {
+                ast::Ident::Slice(s) => s,
+                ast::Ident::Owned(_) => todo!(),
+            })),
             ast::Literal::String(string) => IRExpr::Literal(
                 ir::Literal::String(string),
                 ir::Type::Array(&ir::Type::Ident(Ident("i8")), string.len()),
@@ -221,7 +265,10 @@ impl<'c> Compiler {
     fn compile_typed_ident(&'c self, node: &'c TypedIdent<'c>) -> IRTypedIdent<'c> {
         IRTypedIdent {
             _type: self.compile_type(&node._type),
-            ident: Ident(node.ident),
+            ident: Ident(match node.ident {
+                ast::Ident::Slice(s) => s,
+                ast::Ident::Owned(_) => todo!(),
+            }),
         }
     }
 
@@ -234,24 +281,25 @@ impl<'c> Compiler {
     }
 
     fn compile_block_stmt(
-        &'c self,
+        &'c mut self,
         node: &'c BlockStatement<'c>,
         ctx: Option<CompileCtx<'c>>,
     ) -> BlockStmt<'c> {
-        let mut out = Vec::new();
+        let start = self.out.stream_ref().stream.len();
         for node in &node.stmts {
-            out.push(self.compile_stmt(node, ctx))
+            self.compile_stmt(node, ctx)
         }
-        BlockStmt { stmts: out }
+        let out = &self.out.stream_ref().stream.as_slice()[start..];
+        BlockStmt { stmts: Vec::from(out) }
     }
 
     fn compile_type(&'c self, _type: &'c ast::Type<'c>) -> ir::Type<'c> {
         match _type {
-            ast::Type::Ident(ident) => match *ident {
-                "int" => ir::Type::Ident(ir::Ident("i32")),
-                "float" => ir::Type::Ident(ir::Ident("f32")),
-                "string" => ir::Type::Array(&ir::Type::Ident(Ident("i8")), 8),
-                id => panic!("{id}"),
+            ast::Type::Ident(ident) => match ident {
+                ast::Ident::Slice("int") => ir::Type::Ident(ir::Ident("i32")),
+                ast::Ident::Slice("float") => ir::Type::Ident(ir::Ident("f32")),
+                ast::Ident::Slice("string") => ir::Type::Array(&ir::Type::Ident(Ident("i8")), 8),
+                id => panic!("{id:?}"),
             },
             ast::Type::Array(_type, len) => {
                 let _type = self.arena.alloc(self.compile_type(_type));
@@ -259,4 +307,5 @@ impl<'c> Compiler {
             }
         }
     }
+    */
 }
