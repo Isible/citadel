@@ -1,6 +1,8 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 mod utils;
 
+use std::mem;
+
 use bumpalo::Bump;
 use citadel_api::frontend::ir::{self, irgen::IRGenerator, IRExpr, IRStmt, IRTypedIdent, VarStmt};
 
@@ -67,13 +69,14 @@ impl<'c> Compiler<'c> {
                 ident: &node.name,
             }),
             args: vec![],
-            block: ir::BlockStmt { stmts: vec![] },
+            block: self.compile_block_stmt(),
         });
         self.out.gen_ir(stmt);
     }
 
-    fn compile_block_stmt(&mut self) {
-        
+    fn compile_block_stmt(&mut self) -> ir::BlockStmt<'c> {
+        let mut block: Vec<IRStmt<'c>> = Vec::new();
+        mem::swap(self.out.mut_stream_ref().mut_stream_ref(), &mut block);
     }
 
     fn compile_expr(&self, node: Expression<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {

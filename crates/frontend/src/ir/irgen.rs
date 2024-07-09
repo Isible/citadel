@@ -44,12 +44,22 @@ impl<'g> IRGenerator<'g> {
         self.ir.stream.push(node);
     }
 
+    pub fn mut_stream_ref(&mut self) -> &mut HIRStream<'g> {
+        &mut self.ir
+    }
+
     pub fn stream_ref(&self) -> &HIRStream<'g> {
         &self.ir
     }
 
     pub fn stream(self) -> HIRStream<'g> {
         self.ir
+    }
+}
+
+impl<'hir> HIRStream<'hir> {
+    pub fn mut_stream_ref(&mut self) -> &mut Vec<IRStmt<'hir>> {
+        &mut self.stream
     }
 }
 
