@@ -1,11 +1,11 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
+mod utils;
 
 use bumpalo::Bump;
-use citadel_api::frontend::ir::{
-    self, irgen::IRGenerator, IRExpr, IRStmt, IRTypedIdent, VarStmt
-};
+use citadel_api::frontend::ir::{self, irgen::IRGenerator, IRExpr, IRStmt, IRTypedIdent, VarStmt};
 
 use super::ast::{self, Ident, Type, *};
+use utils as cutils;
 
 #[derive(Default)]
 pub struct Compiler<'c> {
@@ -40,7 +40,7 @@ impl<'c> Compiler<'c> {
     fn compile_stmt(&mut self, node: Statement<'c>) {
         match node {
             Statement::Let(node) => self.compile_let_stmt(node),
-            Statement::Fn(_) => todo!(),
+            Statement::Fn(node) => self.compile_fn_stmt(node),
             Statement::If(_) => todo!(),
             Statement::Loop(_) => todo!(),
             Statement::Return(_) => todo!(),
@@ -50,7 +50,7 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_let_stmt(&mut self, node: LetStatement<'c>) {
-        let name = Self::compile_typed_ident(node.name);
+        let name = cutils::compile_typed_ident(node.name);
         let val = self.compile_expr(node.val, Some(CompileCtx::VarType(name._type)));
         let stmt = IRStmt::Variable(VarStmt {
             val,
@@ -58,6 +58,22 @@ impl<'c> Compiler<'c> {
             name,
         });
         self.out.gen_ir(stmt);
+    }
+
+    fn compile_fn_stmt(&mut self, node: FnStatement<'c>) {
+        let stmt = IRStmt::Function(ir::FuncStmt {
+            name: cutils::compile_typed_ident(TypedIdent {
+                _type: node.ret_type,
+                ident: &node.name,
+            }),
+            args: vec![],
+            block: ir::BlockStmt { stmts: vec![] },
+        });
+        self.out.gen_ir(stmt);
+    }
+
+    fn compile_block_stmt(&mut self) {
+        
     }
 
     fn compile_expr(&self, node: Expression<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
@@ -69,25 +85,17 @@ impl<'c> Compiler<'c> {
 
     fn compile_lit_expr(&self, node: Literal<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
         match node {
-            Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(int), match ctx {
-                Some(t) => t._type(),
-                None => ir::Type::Ident(ir::Ident("i32")),
-            }),
+            Literal::Integer(int) => IRExpr::Literal(
+                ir::Literal::Int32(int),
+                match ctx {
+                    Some(t) => t._type(),
+                    None => ir::Type::Ident(ir::Ident("i32")),
+                },
+            ),
             _ => todo!(),
         }
     }
 
-    fn compile_typed_ident(typed_ident: TypedIdent<'c>) -> IRTypedIdent<'c> {
-        IRTypedIdent { ident: ir::Ident(typed_ident.ident), _type: Self::compile_type(typed_ident._type) }
-    }
-
-    fn compile_type(_type: Type<'c>) -> ir::Type<'c> {
-        match _type {
-            Type::Ident(id) => ir::Type::Ident(ir::Ident(id)),
-            Type::Array(_, _) => todo!(),
-        }
-    }
-    
     /*
     pub fn compile_program(&'c mut self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
         self.out.gen_ir(Self::init_program());
