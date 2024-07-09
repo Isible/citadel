@@ -5,5 +5,9 @@ fn test(): void {
 }
 
 fn deez(a: i32, b: i32, c: i8): f64 {
+    puts("abc")
+}
+
+fn test(): void {
 
 }

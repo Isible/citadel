@@ -4,5 +4,8 @@ func @test() void {
     call %deez(l{10:i32},l{20:i32},l{30:i8})
 }
 func @deez($a i32,$b i32,$c i8) f64 {
+    call %print(l{""abc"":[i8; 3]})
+}
+func @test() void {
 
 }

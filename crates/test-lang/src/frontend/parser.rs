@@ -193,7 +193,7 @@ impl<'p> Parser<'p> {
         self.next_tok();
 
         self.functions.insert(name, FunctionInfo {
-            name,
+            ir_name: name,
             args: args.clone(),
             ret_type: ast::Type::Ident(ret_type)
         });

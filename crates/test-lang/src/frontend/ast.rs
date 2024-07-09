@@ -6,7 +6,7 @@ pub type FunctionTable<'ft> = HashMap<&'ft str, FunctionInfo<'ft>>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionInfo<'fi> {
-    pub name: &'fi str,
+    pub ir_name: &'fi str,
     pub args: Vec<TypedIdent<'fi>>,
     pub ret_type: Type<'fi>,
 }

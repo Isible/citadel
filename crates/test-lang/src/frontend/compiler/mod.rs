@@ -1,26 +1,19 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
-mod utils;
-
 use std::mem;
 
 use bumpalo::Bump;
 use citadel_api::frontend::ir::{
     self,
     irgen::{HIRStream, IRGenerator},
-    CallExpr, IRExpr, IRStmt, VarStmt, FLOAT64_T, INT32_T, INT8_T,
+    CallExpr, IRExpr, IRStmt, IRTypedIdent, VarStmt, FLOAT64_T, INT32_T, INT8_T,
 };
 
-use crate::no_ctx;
-
 use super::ast::{self, *};
-use utils as cutils;
 
-#[derive(Default)]
 pub struct Compiler<'c> {
+    arena: &'c Bump,
     out: IRGenerator<'c>,
-    arena: Bump,
     functions: ast::FunctionTable<'c>,
-    builltin_functions: ast::FunctionTable<'c>,
 
     label_index: usize,
 }
@@ -29,6 +22,12 @@ pub struct Compiler<'c> {
 pub enum CompileCtx<'ctx> {
     RetType(ir::Type<'ctx>),
     VarType(ir::Type<'ctx>),
+}
+
+macro_rules! no_ctx {
+    ($expr:expr) => {{
+        ($expr, None)
+    }};
 }
 
 impl<'ctx> CompileCtx<'ctx> {
@@ -41,16 +40,33 @@ impl<'ctx> CompileCtx<'ctx> {
 }
 
 impl<'c> Compiler<'c> {
-    pub fn compile_program(ast: Vec<Statement<'c>>, functions: FunctionTable<'c>) -> HIRStream<'c> {
+    pub fn compile_program(ast: Vec<Statement<'c>>, functions: FunctionTable<'c>, arena: &'c Bump) -> HIRStream<'c> {
         dbg!(&functions);
         let mut compiler = Compiler {
             functions,
-            ..Default::default()
+            arena,
+            label_index: Default::default(),
+            out: Default::default(),
         };
+        compiler.init_builtins();
         for node in ast {
             compiler.compile_stmt(node);
         }
         compiler.out.stream()
+    }
+
+    fn init_builtins(&mut self) {
+        self.functions.insert(
+            "puts",
+            FunctionInfo {
+                ir_name: "print",
+                args: vec![TypedIdent {
+                    ident: "msg",
+                    _type: Type::Array(&Type::Ident("i8"), 3),
+                }],
+                ret_type: Type::Ident("void"),
+            },
+        );
     }
 
     fn compile_stmt(&mut self, node: Statement<'c>) {
@@ -70,7 +86,7 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_let_stmt(&mut self, node: LetStatement<'c>) {
-        let name = cutils::compile_typed_ident(node.name);
+        let name = self.compile_typed_ident(node.name);
         let (val, _) = self.compile_expr(node.val, Some(CompileCtx::VarType(name._type)));
         let stmt = IRStmt::Variable(VarStmt {
             val,
@@ -82,11 +98,11 @@ impl<'c> Compiler<'c> {
 
     fn compile_fn_stmt(&mut self, node: FnStatement<'c>) {
         let stmt = IRStmt::Function(ir::FuncStmt {
-            name: cutils::compile_typed_ident(TypedIdent {
+            name: self.compile_typed_ident(TypedIdent {
                 _type: node.ret_type,
                 ident: &node.name,
             }),
-            args: cutils::compile_typed_idents(node.args.as_slice()),
+            args: self.compile_typed_idents(node.args),
             block: self.compile_block_stmt(node.block),
         });
         self.out.gen_ir(stmt);
@@ -156,11 +172,9 @@ impl<'c> Compiler<'c> {
             .functions
             .get(node.name)
             .expect(format!("No method with name: {}", node.name).as_str());
-        let ctx = Some(CompileCtx::RetType(cutils::compile_type(
-            func_info.ret_type,
-        )));
+        let ctx = Some(CompileCtx::RetType(self.compile_type(func_info.ret_type)));
         let expr = ir::CallExpr {
-            name: &node.name,
+            name: func_info.ir_name,
             args: self.compile_call_args(node.args, func_info.args.as_slice()),
         };
         (expr, ctx)
@@ -173,24 +187,50 @@ impl<'c> Compiler<'c> {
     ) -> Vec<IRExpr<'c>> {
         let mut call_args = Vec::new();
         for (arg, info) in args.into_iter().zip(args_info) {
-            let ctx = Some(CompileCtx::VarType(cutils::compile_type(info._type)));
+            let ctx = Some(CompileCtx::VarType(self.compile_type(info._type)));
             call_args.push(self.compile_expr(arg, ctx).0)
         }
         call_args
     }
 
-    /*
-    pub fn compile_program(&'c mut self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
-        self.out.gen_ir(Self::init_program());
-
-        for stmt in ast {
-            self.compile_stmt(stmt, None)
+    fn compile_type(&self, _type: Type<'c>) -> ir::Type<'c> {
+        match _type {
+            Type::Ident(id) => ir::Type::Ident(id),
+            Type::Array(_type, len) => {
+                let _type = self.arena.alloc(self.compile_type(*_type));
+                ir::Type::Array(_type, len as u32)
+            }
         }
-        self.out.stream()
     }
-    */
 
-    /*
+    fn compile_typed_ident(&self, typed_ident: TypedIdent<'c>) -> IRTypedIdent<'c> {
+        IRTypedIdent {
+            ident: typed_ident.ident,
+            _type: self.compile_type(typed_ident._type),
+        }
+    }
+
+    fn compile_typed_idents(&self, typed_idents: Vec<TypedIdent<'c>>) -> Vec<IRTypedIdent<'c>> {
+        let mut ir_typed_idents = Vec::new();
+        for typed_ident in typed_idents {
+            ir_typed_idents.push(self.compile_typed_ident(typed_ident))
+        }
+        ir_typed_idents
+    }
+}
+
+/*
+pub fn compile_program(&'c mut self, ast: &'c Vec<Statement>) -> HIRStream<'c> {
+    self.out.gen_ir(Self::init_program());
+
+    for stmt in ast {
+        self.compile_stmt(stmt, None)
+    }
+    self.out.stream()
+}
+*/
+
+/*
     fn init_program() {
         IRStmt::Entry(BlockStmt {
             stmts: vec![IRStmt::Exit(ExitStmt {
@@ -429,5 +469,5 @@ impl<'c> Compiler<'c> {
             }
         }
     }
-    */
 }
+    */
