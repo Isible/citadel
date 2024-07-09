@@ -2,12 +2,10 @@
 
 use bumpalo::Bump;
 use citadel_api::frontend::ir::{
-    self,
-    irgen::{HIRStream, IRGenerator},
-    *,
+    self, irgen::IRGenerator, IRExpr, IRStmt, IRTypedIdent, VarStmt
 };
 
-use super::ast::{self, *};
+use super::ast::{self, Ident, Type, *};
 
 #[derive(Default)]
 pub struct Compiler<'c> {
@@ -19,8 +17,17 @@ pub struct Compiler<'c> {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CompileCtx<'ctx> {
-    RetType(&'ctx ast::Type<'ctx>),
-    VarType(&'ctx ast::Type<'ctx>),
+    RetType(ir::Type<'ctx>),
+    VarType(ir::Type<'ctx>),
+}
+
+impl<'ctx> CompileCtx<'ctx> {
+    fn _type(&self) -> ir::Type<'ctx> {
+        match self {
+            CompileCtx::RetType(t) => *t,
+            CompileCtx::VarType(t) => *t,
+        }
+    }
 }
 
 impl<'c> Compiler<'c> {
@@ -43,18 +50,42 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_let_stmt(&mut self, node: LetStatement<'c>) {
+        let name = Self::compile_typed_ident(node.name);
+        let val = self.compile_expr(node.val, Some(CompileCtx::VarType(name._type)));
         let stmt = IRStmt::Variable(VarStmt {
-            name: IRTypedIdent {
-                ident: ir::Ident(match node.name.ident {
-                    ast::Ident::Slice(s) => s,
-                    ast::Ident::Owned(_) => todo!(),
-                }),
-                _type: ir::Type::Ident(Ident("i32"))
-            },
-            val: IRExpr::Literal(ir::Literal::Int32(1), ir::Type::Ident(Ident("i32"))),
+            val,
             is_const: true,
+            name,
         });
         self.out.gen_ir(stmt);
+    }
+
+    fn compile_expr(&self, node: Expression<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
+        match node {
+            Expression::Literal(node) => self.compile_lit_expr(node, ctx),
+            _ => todo!(),
+        }
+    }
+
+    fn compile_lit_expr(&self, node: Literal<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
+        match node {
+            Literal::Integer(int) => IRExpr::Literal(ir::Literal::Int32(int), match ctx {
+                Some(t) => t._type(),
+                None => ir::Type::Ident(ir::Ident("i32")),
+            }),
+            _ => todo!(),
+        }
+    }
+
+    fn compile_typed_ident(typed_ident: TypedIdent<'c>) -> IRTypedIdent<'c> {
+        IRTypedIdent { ident: ir::Ident(typed_ident.ident), _type: Self::compile_type(typed_ident._type) }
+    }
+
+    fn compile_type(_type: Type<'c>) -> ir::Type<'c> {
+        match _type {
+            Type::Ident(id) => ir::Type::Ident(ir::Ident(id)),
+            Type::Array(_, _) => todo!(),
+        }
     }
     
     /*

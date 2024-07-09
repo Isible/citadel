@@ -29,26 +29,22 @@ macro_rules! optimize {
     }};
 }
 
-pub struct Output<T, B>
+pub struct Output<B>
 where
-    T: Target,
-    B: Backend<Target = T>,
+    B: Backend,
 {
     pub backend: B,
     pub stream: B::Output,
-    phantom: PhantomData<T>,
 }
 
-impl<T, B> Output<T, B>
+impl<B> Output<B>
 where
-    T: Target,
-    B: Backend<Target = T>,
+    B: Backend,
 {
     pub fn new(backend: B, stream: B::Output) -> Self {
         Self {
             backend,
             stream,
-            phantom: PhantomData,
         }
     }
 

@@ -19,13 +19,9 @@ pub enum Expression<'ast> {
     Literal(Literal<'ast>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Ident<'ast> {
-    Slice(&'ast str),
-    Owned(String),
-}
+pub type Ident<'ast> = &'ast str;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Type<'ast> {
     Ident(Ident<'ast>),
     Array(&'ast Type<'ast>, usize),

@@ -38,7 +38,7 @@ pub enum IRExpr<'ir> {
     StructInit(StructInitExpr<'ir>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Type<'ir> {
     Ident(Ident<'ir>),
     Array(&'ir Type<'ir>, usize),
@@ -129,7 +129,7 @@ pub struct JumpStmt<'ir> {
     pub label: Ident<'ir>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IRTypedIdent<'ir> {
     pub ident: Ident<'ir>,
     pub _type: Type<'ir>,
