@@ -1,16 +1,18 @@
 //! Parser module for parsing test-lang tokens into an abstract syntax tree
 
+use std::collections::HashMap;
+
 use bumpalo::Bump;
 
 use crate::{
     expect_tok,
-    frontend::ast::{LoopStatement, Type},
+    frontend::ast::{self, FunctionInfo, LoopStatement, Type},
 };
 
 use super::{
     ast::{
-        BlockStatement, CallExpression, Expression, FnStatement, IfStatement, InfixOpExpr,
-        LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent,
+        BlockStatement, CallExpression, Expression, FnStatement, FunctionTable, IfStatement,
+        InfixOpExpr, LetStatement, Literal, Operator, ReturnStatement, Statement, TypedIdent,
     },
     lexer::Lexer,
     tokens::Token,
@@ -20,6 +22,7 @@ pub struct Parser<'p> {
     lexer: &'p Lexer<'p>,
     arena: &'p Bump,
 
+    functions: FunctionTable<'p>,
     tok_index: usize,
 }
 
@@ -42,6 +45,7 @@ impl<'p> Parser<'p> {
         Self {
             lexer,
             arena,
+            functions: HashMap::new(),
             tok_index: 0,
         }
     }
@@ -56,8 +60,12 @@ impl<'p> Parser<'p> {
         program
     }
 
+    pub fn functions(self) -> FunctionTable<'p> {
+        self.functions
+    }
+
     // Every parse function needs to set cur_token to the last character in the line
-    pub fn parse_stmt(&mut self) -> Option<Statement<'p>> {
+    fn parse_stmt(&mut self) -> Option<Statement<'p>> {
         match self.cur_tok()? {
             Token::Let => self.parse_let_stmt(),
             Token::Fn => self.parse_fn_stmt(),
@@ -172,15 +180,9 @@ impl<'p> Parser<'p> {
 
         self.next_tok();
 
-        expect_tok!(
-            self.peek_tok(),
-            Some(Token::Ident(_))
-                | Some(Token::Int)
-                | Some(Token::String)
-                | Some(Token::Char)
-                | Some(Token::Float),
-            |tok| panic!("Expected peek token to be IDENT, received {tok:?} instead")
-        );
+        expect_tok!(self.peek_tok()?, Token::Ident(_), |tok| panic!(
+            "Expected peek token to be IDENT, received {tok:?} instead"
+        ));
         self.next_tok();
 
         let ret_type = self.determine_type(self.cur_tok()?);
@@ -189,6 +191,12 @@ impl<'p> Parser<'p> {
             "Expected peek token to be LCURLY, received {tok:?} instead"
         ));
         self.next_tok();
+
+        self.functions.insert(name, FunctionInfo {
+            name,
+            args: args.clone(),
+            ret_type: ast::Type::Ident(ret_type)
+        });
 
         let block = self.parse_block_stmt(Token::RCurly);
 
@@ -352,10 +360,6 @@ impl<'p> Parser<'p> {
 
     fn expect_peek_tok_as_type(&self) {
         match self.peek_tok() {
-            Some(Token::Int) => (),
-            Some(Token::Float) => (),
-            Some(Token::Char) => (),
-            Some(Token::String) => (),
             Some(Token::Ident(_)) => (),
             tok => panic!("expected a type, got: {tok:?}"),
         }
@@ -391,10 +395,6 @@ impl<'p> Parser<'p> {
     fn determine_type(&self, tok: &'p Token<'p>) -> &'p str {
         match tok {
             Token::Ident(ident) => ident,
-            Token::Int => "int",
-            Token::Float => "float",
-            Token::String => "string",
-            Token::Char => "char",
             tok => panic!("Invalid token for type: {tok:?}"),
         }
     }

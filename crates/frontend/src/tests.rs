@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::ir::{
-        self, irgen::IRGenerator, BlockStmt, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, Ident,
-        LabelStmt, Literal, ReturnStmt,
+        self, irgen::IRGenerator, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, LabelStmt, Literal,
+        ReturnStmt, INT8_T,
     };
 
     #[test]
@@ -12,8 +12,8 @@ mod tests {
         // abstract function
         let binding = IRStmt::DeclaredFunction(DeclFuncStmt {
             name: IRTypedIdent {
-                ident: Ident("myFuncName"),
-                _type: ir::Type::Ident(Ident("void")),
+                ident: "myFuncName",
+                _type: ir::Type::Ident("void"),
             },
             args: Vec::new(),
         });
@@ -27,13 +27,11 @@ mod tests {
         let mut code_gen = IRGenerator::default();
 
         let ir_stream = [
-            IRStmt::Label(LabelStmt {
-                name: Ident("myLabel"),
-            }),
+            IRStmt::Label(LabelStmt { name: "myLabel" }),
             IRStmt::Return(ReturnStmt {
                 ret_val: IRExpr::Literal(
                     Literal::String("test".into()),
-                    ir::Type::Array(&ir::Type::Ident(ir::Ident("i8")), 4),
+                    ir::Type::Array(&ir::Type::Ident(INT8_T), 4),
                 ),
             }),
         ];

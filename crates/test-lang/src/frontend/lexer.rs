@@ -4,6 +4,7 @@ use logos::Logos;
 
 use super::tokens::Token;
 
+#[derive(Default)]
 pub struct Lexer<'l> {
     pub input: &'l str,
     pub tokens: Vec<Token<'l>>,

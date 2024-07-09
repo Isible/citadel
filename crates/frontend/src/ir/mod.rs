@@ -2,12 +2,17 @@
 //! This has the nodes (statements, expressions) for generating an IR
 //!
 //! It is recommended to use the [IR-Generator](frontend::ir::ir_gen) module for generating the IR
-//! but you can of course also generate the ir yourself
-
-use std::ops::Deref;
+//! but you can of course also generate the ir yourself (then you have to build your own typetable however)
 
 pub mod traits;
 pub mod irgen;
+
+pub const INT8_T: &str = "i8";
+pub const INT16_T: &str = "i16";
+pub const INT32_T: &str = "i32";
+pub const INT64_T: &str = "i64";
+pub const FLOAT32_T: &str = "f32";
+pub const FLOAT64_T: &str = "f64";
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum IRStmt<'ir> {
@@ -41,7 +46,7 @@ pub enum IRExpr<'ir> {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Type<'ir> {
     Ident(Ident<'ir>),
-    Array(&'ir Type<'ir>, usize),
+    Array(&'ir Type<'ir>, u32),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,8 +54,8 @@ pub enum Literal<'ir> {
     String(&'ir str),
     Char(u8),
 
-    Float(f32),
-    Double(f64),
+    Float32(f32),
+    Float64(f64),
     
     /// Bool is an i1. 
     Bool(bool),
@@ -73,8 +78,7 @@ pub enum Operator {
     Div,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Ident<'ir>(pub &'ir str);
+pub type Ident<'ir> = &'ir str;
 
 
 #[derive(Debug, Clone, PartialEq)]

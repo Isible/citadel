@@ -1,18 +1,26 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
 mod utils;
 
-use std::{mem, rc::Rc};
+use std::mem;
 
 use bumpalo::Bump;
-use citadel_api::frontend::ir::{self, irgen::IRGenerator, IRExpr, IRStmt, IRTypedIdent, VarStmt};
+use citadel_api::frontend::ir::{
+    self,
+    irgen::{HIRStream, IRGenerator},
+    CallExpr, IRExpr, IRStmt, VarStmt, FLOAT64_T, INT32_T, INT8_T,
+};
 
-use super::ast::{self, Ident, Type, *};
+use crate::no_ctx;
+
+use super::ast::{self, *};
 use utils as cutils;
 
 #[derive(Default)]
 pub struct Compiler<'c> {
-    pub arena: Bump,
-    pub out: IRGenerator<'c>,
+    out: IRGenerator<'c>,
+    arena: Bump,
+    functions: ast::FunctionTable<'c>,
+    builltin_functions: ast::FunctionTable<'c>,
 
     label_index: usize,
 }
@@ -24,7 +32,7 @@ pub enum CompileCtx<'ctx> {
 }
 
 impl<'ctx> CompileCtx<'ctx> {
-    fn _type(&self) -> ir::Type<'ctx> {
+    fn as_type(&self) -> ir::Type<'ctx> {
         match self {
             CompileCtx::RetType(t) => *t,
             CompileCtx::VarType(t) => *t,
@@ -33,10 +41,16 @@ impl<'ctx> CompileCtx<'ctx> {
 }
 
 impl<'c> Compiler<'c> {
-    pub fn compile_program(&mut self, ast: Vec<Statement<'c>>) {
+    pub fn compile_program(ast: Vec<Statement<'c>>, functions: FunctionTable<'c>) -> HIRStream<'c> {
+        dbg!(&functions);
+        let mut compiler = Compiler {
+            functions,
+            ..Default::default()
+        };
         for node in ast {
-            self.compile_stmt(node);
+            compiler.compile_stmt(node);
         }
+        compiler.out.stream()
     }
 
     fn compile_stmt(&mut self, node: Statement<'c>) {
@@ -47,13 +61,17 @@ impl<'c> Compiler<'c> {
             Statement::Loop(_) => todo!(),
             Statement::Return(_) => todo!(),
             Statement::Block(_) => todo!(),
-            Statement::Expression(_) => todo!(),
+            Statement::Expression(node) => {
+                if let Some(call) = self.compile_expr_stmt(node) {
+                    self.out.gen_ir(call);
+                }
+            }
         }
     }
 
     fn compile_let_stmt(&mut self, node: LetStatement<'c>) {
         let name = cutils::compile_typed_ident(node.name);
-        let val = self.compile_expr(node.val, Some(CompileCtx::VarType(name._type)));
+        let (val, _) = self.compile_expr(node.val, Some(CompileCtx::VarType(name._type)));
         let stmt = IRStmt::Variable(VarStmt {
             val,
             is_const: true,
@@ -68,7 +86,7 @@ impl<'c> Compiler<'c> {
                 _type: node.ret_type,
                 ident: &node.name,
             }),
-            args: vec![],
+            args: cutils::compile_typed_idents(node.args.as_slice()),
             block: self.compile_block_stmt(node.block),
         });
         self.out.gen_ir(stmt);
@@ -81,15 +99,29 @@ impl<'c> Compiler<'c> {
             self.compile_stmt(stmt);
         }
         mem::swap(self.out.mut_stream_ref().mut_stream_ref(), &mut block);
-        ir::BlockStmt {
-            stmts: block
+        ir::BlockStmt { stmts: block }
+    }
+
+    fn compile_expr_stmt(&self, node: Expression<'c>) -> Option<IRStmt<'c>> {
+        match node {
+            Expression::Call(node) => Some(ir::IRStmt::Call(self.compile_call_expr(node).0)),
+            Expression::Infix(_) => None,
+            Expression::Literal(_) => None,
         }
     }
 
-    fn compile_expr(&self, node: Expression<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
+    fn compile_expr(
+        &self,
+        node: Expression<'c>,
+        ctx: Option<CompileCtx<'c>>,
+    ) -> (IRExpr<'c>, Option<CompileCtx<'c>>) {
         match node {
-            Expression::Literal(node) => self.compile_lit_expr(node, ctx),
-            _ => todo!(),
+            Expression::Literal(node) => no_ctx!(self.compile_lit_expr(node, ctx)),
+            Expression::Call(node) => {
+                let (call, ctx) = self.compile_call_expr(node);
+                (IRExpr::Call(call), ctx)
+            }
+            Expression::Infix(_) => todo!(),
         }
     }
 
@@ -97,13 +129,54 @@ impl<'c> Compiler<'c> {
         match node {
             Literal::Integer(int) => IRExpr::Literal(
                 ir::Literal::Int32(int),
-                match ctx {
-                    Some(t) => t._type(),
-                    None => ir::Type::Ident(ir::Ident("i32")),
-                },
+                ctx.map(|c| c.as_type()).unwrap_or(ir::Type::Ident(INT32_T)),
             ),
-            _ => todo!(),
+            Literal::Float(float) => IRExpr::Literal(
+                ir::Literal::Float64(float),
+                ctx.map(|c| c.as_type())
+                    .unwrap_or(ir::Type::Ident(FLOAT64_T)),
+            ),
+            Literal::String(str) => IRExpr::Literal(
+                ir::Literal::String(str),
+                ctx.map(|c| c.as_type())
+                    .unwrap_or(ir::Type::Array(&ir::Type::Ident(INT8_T), str.len() as u32)),
+            ),
+            Literal::Boolean(bool) => {
+                IRExpr::Literal(ir::Literal::Bool(bool), ir::Type::Ident(INT8_T))
+            }
+            Literal::Ident(ident) => IRExpr::Ident(ident),
         }
+    }
+
+    fn compile_call_expr(
+        &self,
+        node: CallExpression<'c>,
+    ) -> (CallExpr<'c>, Option<CompileCtx<'c>>) {
+        let func_info = self
+            .functions
+            .get(node.name)
+            .expect(format!("No method with name: {}", node.name).as_str());
+        let ctx = Some(CompileCtx::RetType(cutils::compile_type(
+            func_info.ret_type,
+        )));
+        let expr = ir::CallExpr {
+            name: &node.name,
+            args: self.compile_call_args(node.args, func_info.args.as_slice()),
+        };
+        (expr, ctx)
+    }
+
+    fn compile_call_args(
+        &self,
+        args: Vec<Expression<'c>>,
+        args_info: &[TypedIdent<'c>],
+    ) -> Vec<IRExpr<'c>> {
+        let mut call_args = Vec::new();
+        for (arg, info) in args.into_iter().zip(args_info) {
+            let ctx = Some(CompileCtx::VarType(cutils::compile_type(info._type)));
+            call_args.push(self.compile_expr(arg, ctx).0)
+        }
+        call_args
     }
 
     /*

@@ -1,3 +1,5 @@
+use citadel_frontend::ir::{INT16_T, INT32_T, INT64_T, INT8_T};
+
 use crate::asm::{
     self,
     elements::{
@@ -83,10 +85,10 @@ pub(crate) fn arg_regs_by_size(size: u8) -> [Register; 6] {
 #[inline(always)]
 pub(crate) fn int_size(int: &str) -> u8 {
     match int {
-        "i8" => 1,
-        "i16" => 2,
-        "i32" => 4,
-        "i64" => 8,
+        INT8_T => 1,
+        INT16_T => 2,
+        INT32_T => 4,
+        INT64_T => 8,
         _ => unreachable!(),
     }
 }

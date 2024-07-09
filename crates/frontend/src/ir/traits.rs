@@ -166,8 +166,8 @@ impl Display for Literal<'_> {
             &match self {
                 Literal::String(string) => format!("\"{}\"", string),
                 Literal::Char(char) => char.to_string(),
-                Literal::Float(val) => val.to_string(),
-                Literal::Double(val) => val.to_string(),
+                Literal::Float32(val) => val.to_string(),
+                Literal::Float64(val) => val.to_string(),
                 Literal::Bool(val) => val.to_string(),
                 Literal::Int8(val) => val.to_string(),
                 Literal::Int16(val) => val.to_string(),
@@ -178,12 +178,6 @@ impl Display for Literal<'_> {
                 Literal::Vector(val) => format!("<{}>", val.to_string()),
             }
         )
-    }
-}
-
-impl Display for Ident<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 
@@ -199,13 +193,5 @@ impl Display for Type<'_> {
 impl Display for ExitStmt<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "exit {}", self.exit_code)
-    }
-}
-
-impl<'ir> Deref for Ident<'ir> {
-    type Target = &'ir str;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
     }
 }

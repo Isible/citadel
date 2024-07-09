@@ -9,8 +9,7 @@ use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::{
     ir::{
-        self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr,
-        IRStmt, Ident, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt,
+        self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, Ident, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt, INT16_T, INT32_T, INT64_T, INT8_T
     },
     util::CompositeDataType,
 };
@@ -117,7 +116,7 @@ impl<'c> CodeGenerator<'c> {
             IRExpr::Ident(node) => cutils::get_stack_location(
                 *self
                     .symbol_table
-                    .get(node.0)
+                    .get(node)
                     .unwrap_or_else(|| panic!("Could not find ident with name {node:?}")),
             ),
             IRExpr::StructInit(node) => self.gen_struct_init(node),
@@ -143,7 +142,7 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_call(&mut self, node: &'c CallExpr) {
-        match *node.name {
+        match node.name {
             "print" => self.gen_print(node),
             _ => {
                 self.gen_call_args(node);
@@ -268,7 +267,7 @@ impl<'c> CodeGenerator<'c> {
                     args: _,
                 }) => (),
                 _ => {
-                    if let ir::Type::Ident(Ident("void")) = node.name._type {
+                    if let ir::Type::Ident("void") = node.name._type {
                         self.out.push(cutils::destroy_stackframe());
                     }
                     self.out.push(cutils::gen_ret());
@@ -278,7 +277,7 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_struct_init(&mut self, node: &'c StructInitExpr) -> Operand {
-        let size = self.size_of(&ir::Type::Ident(ir::Ident(*node.name)));
+        let size = self.size_of(&ir::Type::Ident(node.name));
         self.gen_mov_ins(
             cutils::get_stack_location(self.stack_pointer - size as i32),
             Operand::Literal(Literal::Int32(0)),
@@ -299,7 +298,7 @@ impl<'c> CodeGenerator<'c> {
             let size = self.size_of(&expr._type);
             self.gen_mov_ins(
                 cutils::get_stack_location(self.stack_pointer - size as i32),
-                Operand::Register(cutils::arg_regs_by_size(size)[i]),
+                Operand::Register(cutils::arg_regs_by_size(size.try_into().expect("Failed to convert u32 to u8"))[i]),
             );
             self.stack_pointer -= size as i32;
             self.symbol_table.insert(&expr.ident, self.stack_pointer);
@@ -338,14 +337,14 @@ impl<'c> CodeGenerator<'c> {
     }
 
     /// Returns the size of the type in bytes
-    fn size_of(&self, _type: &ir::Type<'c>) -> u8 {
+    fn size_of(&self, _type: &ir::Type<'c>) -> u32 {
         // The type or array is an integer type/array
         match _type {
-            Type::Ident(ident @ Ident("i8" | "i16" | "i32" | "i64")) => {
-                return cutils::int_size(**ident)
+            Type::Ident(ident @ (INT8_T | INT16_T | INT32_T | INT64_T)) => {
+                return cutils::int_size(*ident) as u32;
             }
-            Type::Array(Type::Ident(ident @ Ident("i8" | "i16" | "i32" | "i64")), size) => {
-                return cutils::int_size(**ident) * *size as u8
+            Type::Array(Type::Ident(ident @ (INT8_T | INT16_T | INT32_T | INT64_T)), size) => {
+                return cutils::int_size(*ident) as u32 * *size;
             }
             _ => (),
         }
@@ -362,7 +361,7 @@ impl<'c> CodeGenerator<'c> {
             .types
             .get(type_name)
             .unwrap_or_else(|| panic!("Could not find type with the name {}", _type));
-        let mut size = 0;
+        let mut size: u32 = 0;
         match cdt.0 {
             // Add sizes if cdt is a struct
             CompositeDataType::Struct => {
@@ -382,7 +381,7 @@ impl<'c> CodeGenerator<'c> {
         }
         match _type {
             Type::Ident(_) => size,
-            Type::Array(_, arr_size) => size * *arr_size as u8,
+            Type::Array(_, arr_size) => size * *arr_size,
         }
     }
 

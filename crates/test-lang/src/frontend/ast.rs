@@ -1,5 +1,16 @@
 //! Abstract Syntax Tree for the language
 
+use std::collections::HashMap;
+
+pub type FunctionTable<'ft> = HashMap<&'ft str, FunctionInfo<'ft>>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionInfo<'fi> {
+    pub name: &'fi str,
+    pub args: Vec<TypedIdent<'fi>>,
+    pub ret_type: Type<'fi>,
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Statement<'ast> {
     Let(LetStatement<'ast>),
@@ -40,6 +51,7 @@ pub enum Operator {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal<'ast> {
     Ident(Ident<'ast>),
+    // TODO: Use an array for this?
     String(&'ast str),
     Integer(i32),
     Float(f64),
@@ -94,7 +106,7 @@ pub struct InfixOpExpr<'ast> {
     pub sides: (&'ast Expression<'ast>, &'ast Expression<'ast>)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TypedIdent<'ast> {
     pub _type: Type<'ast>,
     pub ident: Ident<'ast>,
