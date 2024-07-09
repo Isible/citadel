@@ -58,6 +58,10 @@ impl<'g> IRGenerator<'g> {
 }
 
 impl<'hir> HIRStream<'hir> {
+    pub fn stream_ref(&self) -> &Vec<IRStmt<'hir>> {
+        &self.stream
+    }
+
     pub fn mut_stream_ref(&mut self) -> &mut Vec<IRStmt<'hir>> {
         &mut self.stream
     }

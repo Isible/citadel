@@ -4,7 +4,7 @@ use bumpalo::Bump;
 
 use crate::{
     expect_tok,
-    frontend::ast::{Ident, LoopStatement, Type},
+    frontend::ast::{LoopStatement, Type},
 };
 
 use super::{
