@@ -6,6 +6,5 @@ members = [
     "crates/backend",   # machine code compiler
     "crates/test-lang", # language for testing
     "crates/irparser",  # IR Lexer & Parser
-    "crates/engine",    # Citadel execution engine
 ]
 resolver = "2"

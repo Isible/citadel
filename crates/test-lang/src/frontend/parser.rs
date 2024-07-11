@@ -109,6 +109,7 @@ impl<'p> Parser<'p> {
                 Some(Expression::Literal(Literal::Float(float.parse().unwrap())))
             }
             Token::LitString(string) => Some(Expression::Literal(Literal::String(string))),
+            Token::LitChar(ch) => Some(Expression::Literal(Literal::Char(ch.parse().unwrap()))),
             //Token::LitBool(boolean) => Some(Expression::Literal(Literal::Boolean(
             //    boolean.parse().unwrap(),
             //))),
@@ -192,11 +193,14 @@ impl<'p> Parser<'p> {
         ));
         self.next_tok();
 
-        self.functions.insert(name, FunctionInfo {
+        let func_info = FunctionInfo {
             ir_name: name,
             args: args.clone(),
-            ret_type: ast::Type::Ident(ret_type)
-        });
+            ret_type: ast::Type::Ident(ret_type),
+        };
+        if self.functions.insert(name, func_info).is_some() {
+            panic!("Function with name {} is defined twice", name)
+        }
 
         let block = self.parse_block_stmt(Token::RCurly);
 

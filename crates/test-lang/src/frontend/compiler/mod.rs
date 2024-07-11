@@ -1,11 +1,11 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
-use std::mem;
+use std::{mem, vec};
 
 use bumpalo::Bump;
 use citadel_api::frontend::ir::{
     self,
     irgen::{HIRStream, IRGenerator},
-    CallExpr, IRExpr, IRStmt, IRTypedIdent, VarStmt, FLOAT64_T, INT32_T, INT8_T,
+    CallExpr, ExitStmt, IRExpr, IRStmt, IRTypedIdent, VarStmt, FLOAT64_T, INT32_T, INT8_T,
 };
 
 use super::ast::{self, *};
@@ -40,33 +40,38 @@ impl<'ctx> CompileCtx<'ctx> {
 }
 
 impl<'c> Compiler<'c> {
-    pub fn compile_program(ast: Vec<Statement<'c>>, functions: FunctionTable<'c>, arena: &'c Bump) -> HIRStream<'c> {
-        dbg!(&functions);
+    pub fn compile_program(
+        ast: Vec<Statement<'c>>,
+        functions: FunctionTable<'c>,
+        arena: &'c Bump,
+    ) -> HIRStream<'c> {
+        if !functions.contains_key("main") {
+            panic!("Program does not have a main function");
+        }
+
         let mut compiler = Compiler {
             functions,
             arena,
             label_index: Default::default(),
             out: Default::default(),
         };
-        compiler.init_builtins();
+
+        compiler.init_program();
         for node in ast {
             compiler.compile_stmt(node);
         }
         compiler.out.stream()
     }
 
-    fn init_builtins(&mut self) {
-        self.functions.insert(
-            "puts",
-            FunctionInfo {
-                ir_name: "print",
-                args: vec![TypedIdent {
-                    ident: "msg",
-                    _type: Type::Array(&Type::Ident("i8"), 3),
-                }],
-                ret_type: Type::Ident("void"),
-            },
-        );
+    fn init_program(&mut self) {
+        self.out.gen_ir(IRStmt::Entry(ir::BlockStmt {
+            stmts: vec![IRStmt::Exit(ir::ExitStmt {
+                exit_code: IRExpr::Call(CallExpr {
+                    name: "main",
+                    args: vec![],
+                }),
+            })],
+        }))
     }
 
     fn compile_stmt(&mut self, node: Statement<'c>) {
@@ -118,7 +123,7 @@ impl<'c> Compiler<'c> {
         ir::BlockStmt { stmts: block }
     }
 
-    fn compile_expr_stmt(&self, node: Expression<'c>) -> Option<IRStmt<'c>> {
+    fn compile_expr_stmt(&mut self, node: Expression<'c>) -> Option<IRStmt<'c>> {
         match node {
             Expression::Call(node) => Some(ir::IRStmt::Call(self.compile_call_expr(node).0)),
             Expression::Infix(_) => None,
@@ -127,13 +132,16 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_expr(
-        &self,
+        &mut self,
         node: Expression<'c>,
         ctx: Option<CompileCtx<'c>>,
     ) -> (IRExpr<'c>, Option<CompileCtx<'c>>) {
         match node {
             Expression::Literal(node) => no_ctx!(self.compile_lit_expr(node, ctx)),
             Expression::Call(node) => {
+                if node.name == "exit" {
+                    return self.compile_exit_expr(node);
+                }
                 let (call, ctx) = self.compile_call_expr(node);
                 (IRExpr::Call(call), ctx)
             }
@@ -160,18 +168,27 @@ impl<'c> Compiler<'c> {
             Literal::Boolean(bool) => {
                 IRExpr::Literal(ir::Literal::Bool(bool), ir::Type::Ident(INT8_T))
             }
+            Literal::Char(ch) => {
+                IRExpr::Literal(ir::Literal::Char(ch as u8), ir::Type::Ident(INT8_T))
+            }
             Literal::Ident(ident) => IRExpr::Ident(ident),
         }
     }
 
     fn compile_call_expr(
-        &self,
+        &mut self,
         node: CallExpression<'c>,
     ) -> (CallExpr<'c>, Option<CompileCtx<'c>>) {
+        match node.name {
+            "puts" => return self.compile_print_call(node),
+            _ => (),
+        }
+
         let func_info = self
             .functions
             .get(node.name)
-            .expect(format!("No method with name: {}", node.name).as_str());
+            .expect(format!("No method with name: {}", node.name).as_str())
+            .clone();
         let ctx = Some(CompileCtx::RetType(self.compile_type(func_info.ret_type)));
         let expr = ir::CallExpr {
             name: func_info.ir_name,
@@ -181,7 +198,7 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_call_args(
-        &self,
+        &mut self,
         args: Vec<Expression<'c>>,
         args_info: &[TypedIdent<'c>],
     ) -> Vec<IRExpr<'c>> {
@@ -216,6 +233,39 @@ impl<'c> Compiler<'c> {
             ir_typed_idents.push(self.compile_typed_ident(typed_ident))
         }
         ir_typed_idents
+    }
+
+    fn compile_print_call(
+        &mut self,
+        node: CallExpression<'c>,
+    ) -> (ir::CallExpr<'c>, Option<CompileCtx<'c>>) {
+        let msg_expr = node
+            .args
+            .first()
+            .expect("\"Puts\" function needs exactly one argument, currently it has none");
+        let msg_len = match msg_expr {
+            Expression::Literal(Literal::String(str)) => str.len(),
+            _ => todo!(),
+        };
+        let expr = ir::CallExpr {
+            name: "print",
+            args: self.compile_call_args(
+                node.args,
+                &[TypedIdent {
+                    _type: Type::Array(&Type::Ident(INT8_T), msg_len),
+                    ident: "msg",
+                }],
+            ),
+        };
+        (expr, Some(CompileCtx::RetType(ir::Type::Ident("void"))))
+    }
+
+    fn compile_exit_expr(&mut self, mut node: CallExpression<'c>) -> (IRExpr<'c>, Option<CompileCtx<'c>>) {
+        let exit_code = self.compile_expr(node.args.remove(0), Some(CompileCtx::VarType(ir::Type::Ident(INT32_T)))).0;
+        self.out.gen_ir(IRStmt::Exit(ExitStmt {
+            exit_code
+        }));
+        (IRExpr::Literal(ir::Literal::Int32(-1), ir::Type::Ident(INT32_T)), Some(CompileCtx::RetType(ir::Type::Ident(INT32_T))))
     }
 }
 

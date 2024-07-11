@@ -1,10 +1,21 @@
 section .data
     msg db 8
-test:
+section .text
+    global _start
+_start:
+    call main
+    mov rdi,rax
+    mov rax,60
+    syscall
+main:
     push rbp
     mov rbp,rsp
     mov [rbp-1],dword 100
     mov [rbp-5],dword 200
+    mov rdi,dword 69
+    mov rax,60
+    syscall
+    mov [rbp-6],dword 0
     mov edi,dword 10
     mov esi,dword 20
     mov edx,dword 30
@@ -14,15 +25,15 @@ test:
 deez:
     push rbp
     mov rbp,rsp
-    mov [rbp-9],edi
-    mov [rbp-13],esi
-    mov [rbp-14],cl
+    mov [rbp-10],edi
+    mov [rbp-14],esi
+    mov [rbp-15],cl
     mov rsi,dword 1633771873
     mov rdx,8
     call print
     pop rbp
     ret
-test:
+test1:
     push rbp
     mov rbp,rsp
     pop rbp

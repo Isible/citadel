@@ -103,7 +103,7 @@ impl<'c> CodeGenerator<'c> {
     fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
         match &node {
             IRExpr::Literal(node, type_) => match node {
-                ir::Literal::Int32(val) => Operand::Literal(Literal::Int32(*val)),
+                ir::Literal::Int32(val) => Operand::SizedLiteral(SizedLiteral(Literal::Int32(*val), DataSize::DWord)),
                 ir::Literal::String(val) => self.gen_string(val, type_),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },

@@ -48,14 +48,14 @@ pub enum Operator {
     Equals
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Literal<'ast> {
     Ident(Ident<'ast>),
-    // TODO: Use an array for this?
     String(&'ast str),
     Integer(i32),
     Float(f64),
     Boolean(bool),
+    Char(char),
 }
 
 #[derive(Debug, Clone, PartialEq)]

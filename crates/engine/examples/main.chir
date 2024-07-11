@@ -1,3 +1,0 @@
-func @test() void {
-    $arr [[[i8; l{32}]; l{32}]; l{32}] = l{"Ballz"}
-}

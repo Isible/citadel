@@ -36,6 +36,10 @@ The mission of this project is to empower more people to build compilers and for
 
 - [IrParser](crates/irparser) - a parser for tokenizing and parsing IR into valid IR statements as specified in the frontend. This is also used for ciri and the engine
 
-- [Engine](crates/engine) - a simple compiler implementation for compiling IR to a specified backend. Uses IRParser to parse the IR.
-
 - [Test-lang](test-lang) For testing, experimenting and providing an example on how to build a compiler with citadel
+
+## External Projects
+
+- [Engine](https://github.com/Isible/citadel-engine) - a simple compiler implementation for compiling IR to a specified backend. Uses IRParser to parse the IR.
+
+- [Citadel-Dev-Tools](https://github.com/Isible/citadel-dev-tools) - tools that are needed when developing the citadel toolchain, the backend in particular

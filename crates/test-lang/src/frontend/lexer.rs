@@ -14,8 +14,16 @@ impl<'l> Lexer<'l> {
     pub fn new(input: &'l str) -> Self {
         let mut tokens = Vec::new();
         for token in Token::lexer(input) {
-            tokens.push(token.unwrap())
+            tokens.push(match token.unwrap() {
+                Token::LitString(str) => Token::LitString(Self::trim_marks(str)),
+                Token::LitChar(str) => Token::LitChar(Self::trim_marks(str)),
+                tok => tok,
+            })
         }
         Self { input, tokens }
+    }
+
+    fn trim_marks(input: &str) -> &str {
+        &input[1..input.len() - 1]
     }
 }

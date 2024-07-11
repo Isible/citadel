@@ -22,7 +22,7 @@ pub fn compile_asm(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::R
     let asm = compile!(AsmBackend::new(TargetX86_64), ir_stream);
     asm.to_file(match out_path {
         Some(path) => path,
-        None => PathBuf::from("out.asm"),
+        None => PathBuf::from("build/asm/out.asm"),
     })
 }
 

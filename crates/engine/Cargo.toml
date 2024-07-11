@@ -1,9 +1,0 @@
-[package]
-name = "citadel"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-citadel-irparser = { path = "../irparser" }
-citadel-api = { path = "../api" }
-bumpalo = "3.16.0"
