@@ -1,11 +1,9 @@
 //! The compiler module is responsible for taking the AST and converting it into IR code.
-use std::{mem, vec};
+use std::mem;
 
 use bumpalo::Bump;
 use citadel_api::frontend::ir::{
-    self,
-    irgen::{HIRStream, IRGenerator},
-    CallExpr, ExitStmt, IRExpr, IRStmt, IRTypedIdent, VarStmt, FLOAT64_T, INT32_T, INT8_T,
+    self, irgen::{HIRStream, IRGenerator}, ArithOpExpr, CallExpr, ExitStmt, IRExpr, IRStmt, IRTypedIdent, ReturnStmt, VarStmt, FLOAT64_T, INT32_T, INT8_T
 };
 
 use super::ast::{self, *};
@@ -14,13 +12,14 @@ pub struct Compiler<'c> {
     arena: &'c Bump,
     out: IRGenerator<'c>,
     functions: ast::FunctionTable<'c>,
-
     label_index: usize,
+    global_ctx: Option<CompileCtx<'c>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CompileCtx<'ctx> {
-    RetType(ir::Type<'ctx>),
+    FuncRetType(ir::Type<'ctx>),
+    CallRetType(ir::Type<'ctx>),
     VarType(ir::Type<'ctx>),
 }
 
@@ -33,8 +32,9 @@ macro_rules! no_ctx {
 impl<'ctx> CompileCtx<'ctx> {
     fn as_type(&self) -> ir::Type<'ctx> {
         match self {
-            CompileCtx::RetType(t) => *t,
+            CompileCtx::CallRetType(t) => *t,
             CompileCtx::VarType(t) => *t,
+            CompileCtx::FuncRetType(t) => *t,
         }
     }
 }
@@ -54,6 +54,7 @@ impl<'c> Compiler<'c> {
             arena,
             label_index: Default::default(),
             out: Default::default(),
+            global_ctx: Default::default(),
         };
 
         compiler.init_program();
@@ -80,7 +81,7 @@ impl<'c> Compiler<'c> {
             Statement::Fn(node) => self.compile_fn_stmt(node),
             Statement::If(_) => todo!(),
             Statement::Loop(_) => todo!(),
-            Statement::Return(_) => todo!(),
+            Statement::Return(node) => self.compile_return_stmt(node),
             Statement::Block(_) => todo!(),
             Statement::Expression(node) => {
                 if let Some(call) = self.compile_expr_stmt(node) {
@@ -102,6 +103,7 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_fn_stmt(&mut self, node: FnStatement<'c>) {
+        self.global_ctx = Some(CompileCtx::FuncRetType(self.compile_type(node.ret_type)));
         let stmt = IRStmt::Function(ir::FuncStmt {
             name: self.compile_typed_ident(TypedIdent {
                 _type: node.ret_type,
@@ -123,9 +125,19 @@ impl<'c> Compiler<'c> {
         ir::BlockStmt { stmts: block }
     }
 
+    fn compile_return_stmt(&mut self, node: ReturnStatement<'c>) {
+        let stmt = IRStmt::Return(ReturnStmt {
+            ret_val: self.compile_expr(node.val, self.global_ctx).0,
+        });
+        self.out.gen_ir(stmt);
+    }
+
     fn compile_expr_stmt(&mut self, node: Expression<'c>) -> Option<IRStmt<'c>> {
         match node {
-            Expression::Call(node) => Some(ir::IRStmt::Call(self.compile_call_expr(node).0)),
+            Expression::Call(mut node) => Some(match node.name {
+                "exit" => ir::IRStmt::Exit(ExitStmt { exit_code: self.compile_expr(node.args.remove(0), None).0 }),
+                _ => ir::IRStmt::Call(self.compile_call_expr(node).0),
+            }),
             Expression::Infix(_) => None,
             Expression::Literal(_) => None,
         }
@@ -145,8 +157,15 @@ impl<'c> Compiler<'c> {
                 let (call, ctx) = self.compile_call_expr(node);
                 (IRExpr::Call(call), ctx)
             }
-            Expression::Infix(_) => todo!(),
+            Expression::Infix(node) => no_ctx!(self.compile_infix_expr(node)),
         }
+    }
+
+    fn compile_infix_expr(&mut self, node: InfixOpExpr<'c>) -> IRExpr<'c> {
+        IRExpr::ArithOp(ArithOpExpr {
+            values: (Box::from(self.compile_expr(node.sides.0.clone(), None).0), Box::from(self.compile_expr(node.sides.1.clone(), None).0)),
+            op: Self::compile_op(node.operator),
+        })
     }
 
     fn compile_lit_expr(&self, node: Literal<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
@@ -189,7 +208,9 @@ impl<'c> Compiler<'c> {
             .get(node.name)
             .expect(format!("No method with name: {}", node.name).as_str())
             .clone();
-        let ctx = Some(CompileCtx::RetType(self.compile_type(func_info.ret_type)));
+        let ctx = Some(CompileCtx::CallRetType(
+            self.compile_type(func_info.ret_type),
+        ));
         let expr = ir::CallExpr {
             name: func_info.ir_name,
             args: self.compile_call_args(node.args, func_info.args.as_slice()),
@@ -257,15 +278,35 @@ impl<'c> Compiler<'c> {
                 }],
             ),
         };
-        (expr, Some(CompileCtx::RetType(ir::Type::Ident("void"))))
+        (expr, Some(CompileCtx::CallRetType(ir::Type::Ident("void"))))
     }
 
-    fn compile_exit_expr(&mut self, mut node: CallExpression<'c>) -> (IRExpr<'c>, Option<CompileCtx<'c>>) {
-        let exit_code = self.compile_expr(node.args.remove(0), Some(CompileCtx::VarType(ir::Type::Ident(INT32_T)))).0;
-        self.out.gen_ir(IRStmt::Exit(ExitStmt {
-            exit_code
-        }));
-        (IRExpr::Literal(ir::Literal::Int32(-1), ir::Type::Ident(INT32_T)), Some(CompileCtx::RetType(ir::Type::Ident(INT32_T))))
+    fn compile_exit_expr(
+        &mut self,
+        mut node: CallExpression<'c>,
+    ) -> (IRExpr<'c>, Option<CompileCtx<'c>>) {
+        let exit_code = self
+            .compile_expr(
+                node.args.remove(0),
+                Some(CompileCtx::VarType(ir::Type::Ident(INT32_T))),
+            )
+            .0;
+        self.out.gen_ir(IRStmt::Exit(ExitStmt { exit_code }));
+        (
+            IRExpr::Literal(ir::Literal::Int32(-1), ir::Type::Ident(INT32_T)),
+            Some(CompileCtx::CallRetType(ir::Type::Ident(INT32_T))),
+        )
+    }
+
+    fn compile_op(op: Operator) -> ir::Operator {
+        match op {
+            Operator::Add => ir::Operator::Add,
+            Operator::Sub => ir::Operator::Sub,
+            Operator::Div => ir::Operator::Div,
+            Operator::Mul => ir::Operator::Mul,
+            Operator::Reassign => todo!(),
+            Operator::Equals => todo!(),
+        }
     }
 }
 

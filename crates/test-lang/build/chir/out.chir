@@ -1,0 +1,7 @@
+entry {
+     exit call %main() 
+}
+func @main() void {
+    $x i32 = l{200:i32}
+    exit l{0:i32}
+}

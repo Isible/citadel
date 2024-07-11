@@ -19,11 +19,8 @@ pub fn compile_asm(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::R
     let ast = parser.parse_program();
     let compiler_arena = Bump::new();
     let ir_stream = Compiler::compile_program(ast, parser.functions(), &compiler_arena);
-    let asm = compile!(AsmBackend::new(TargetX86_64), ir_stream);
-    asm.to_file(match out_path {
-        Some(path) => path,
-        None => PathBuf::from("build/asm/out.asm"),
-    })
+    compile!(AsmBackend::new(TargetX86_64), ir_stream)
+        .to_file(out_path.unwrap_or(PathBuf::from("build/asm/out.asm")))
 }
 
 pub fn compile_chir(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::Result<()> {
@@ -35,10 +32,7 @@ pub fn compile_chir(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::
     let compiler_arena = Bump::new();
     let ir_stream = Compiler::compile_program(ast, parser.functions(), &compiler_arena);
     fs::write(
-        match out_path {
-            Some(path) => path,
-            None => PathBuf::from("out.chir"),
-        },
+        out_path.unwrap_or(PathBuf::from("build/chir/out.chir")),
         ir_stream.to_string(),
     )
 }
