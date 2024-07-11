@@ -79,9 +79,9 @@ impl<'c> Compiler<'c> {
         match node {
             Statement::Let(node) => self.compile_let_stmt(node),
             Statement::Fn(node) => self.compile_fn_stmt(node),
+            Statement::Return(node) => self.compile_return_stmt(node),
             Statement::If(_) => todo!(),
             Statement::Loop(_) => todo!(),
-            Statement::Return(node) => self.compile_return_stmt(node),
             Statement::Block(_) => todo!(),
             Statement::Expression(node) => {
                 if let Some(call) = self.compile_expr_stmt(node) {
@@ -304,7 +304,6 @@ impl<'c> Compiler<'c> {
             Operator::Sub => ir::Operator::Sub,
             Operator::Div => ir::Operator::Div,
             Operator::Mul => ir::Operator::Mul,
-            Operator::Reassign => todo!(),
             Operator::Equals => todo!(),
         }
     }

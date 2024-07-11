@@ -44,7 +44,6 @@ pub enum Operator {
     Sub,
     Div,
     Mul,
-    Reassign,
     Equals
 }
 

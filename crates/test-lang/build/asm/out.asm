@@ -8,8 +8,9 @@ _start:
 main:
     push rbp
     mov rbp,rsp
-    mov rax, 3
-    imul rax, 4
+    mov rax,dword 3
+    imul rax,dword 20
+    add rax,rax
     mov [rbp-4],rax
     mov rdi,[rbp-4]
     mov rax,60

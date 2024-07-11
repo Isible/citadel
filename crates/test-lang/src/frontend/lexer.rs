@@ -6,7 +6,6 @@ use super::tokens::Token;
 
 #[derive(Default)]
 pub struct Lexer<'l> {
-    pub input: &'l str,
     pub tokens: Vec<Token<'l>>,
 }
 
@@ -20,7 +19,7 @@ impl<'l> Lexer<'l> {
                 tok => tok,
             })
         }
-        Self { input, tokens }
+        Self { tokens }
     }
 
     fn trim_marks(input: &str) -> &str {
