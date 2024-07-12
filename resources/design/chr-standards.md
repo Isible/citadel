@@ -40,7 +40,6 @@ Reference a variable or function with `%`
 
 ### Integer
 
-- i1, - a boolean that can represent 0 or 1
 - i8, - can represent a byte
 - i16, - can represent a halfword
 - i32, - can represent a word (a word is the unit of data the computer can process in a single operation)
