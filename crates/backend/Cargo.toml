@@ -10,7 +10,7 @@ description = "The backend/codegenerator of the citadel compiler backend"
 
 [dependencies]
 bumpalo = "3.16.0"
-citadel-frontend = { path = "../frontend",  version = "0.0.11" }
+citadel-frontend = { path = "../frontend",  version = "0.0.12" }
 
 [dev-dependencies]
 citadel-irparser = { path = "../irparser" }
