@@ -11,4 +11,4 @@ description = "The api for the citadel compiler backend"
 [dependencies]
 citadel-frontend = { path = "../frontend", version = "0.0.12" }
 citadel-middleend = { path = "../middleend", version = "0.0.11" }
-citadel-backend = { path = "../backend", version = "0.0.11" }
+citadel-backend = { path = "../backend", version = "0.0.12" }
