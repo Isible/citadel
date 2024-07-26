@@ -13,7 +13,7 @@ fn main(): void {
 }
 ```
 
-Here is a little bit more complex program that will add 10 and 20 and then return the squre of that sum as the exit code
+Here is a little bit more complex program that will add 2 and 5 and then return the squre of that sum as the exit code
 
 ```test-lang
 fn main(): void {

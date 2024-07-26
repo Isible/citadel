@@ -19,4 +19,4 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: python scripts/tests.py all
+      run: python scripts/src/tests.py all
