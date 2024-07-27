@@ -3,8 +3,5 @@ entry {
 }
 
 func @main() i32 {
-'_entry:
-    $test [i8; 8] = l{"hell":[i8; 8]}
-    call %print(%test)
-    jmp '_entry
+    
 }

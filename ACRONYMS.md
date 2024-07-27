@@ -30,11 +30,9 @@
 
 - AST: Abstract Syntax Tree
 
-- CHIR: Citadel high level representation
+- (C)HIR: Citadel high level representation
 
-- CMIR: Citadel medium level representation
-
-- CLIR: Citadel low level representation
+- (C)LIR: Citadel low level representation
 
 - WIP: Work in progress
 

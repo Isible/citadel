@@ -9,7 +9,9 @@ use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::{
     ir::{
-        self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr, IRStmt, Ident, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt, INT16_T, INT32_T, INT64_T, INT8_T
+        self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr,
+        IRStmt, Ident, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt, INT16_T,
+        INT32_T, INT64_T, INT8_T,
     },
     util::CompositeDataType,
 };
@@ -103,7 +105,9 @@ impl<'c> CodeGenerator<'c> {
     fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
         match &node {
             IRExpr::Literal(node, type_) => match node {
-                ir::Literal::Int32(val) => Operand::SizedLiteral(SizedLiteral(Literal::Int32(*val), DataSize::DWord)),
+                ir::Literal::Int32(val) => {
+                    Operand::SizedLiteral(SizedLiteral(Literal::Int32(*val), DataSize::DWord))
+                }
                 ir::Literal::String(val) => self.gen_string(val, type_),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
@@ -264,12 +268,10 @@ impl<'c> CodeGenerator<'c> {
             match elem {
                 AsmElement::Instruction(Instruction {
                     opcode: Opcode::Ret,
-                    args: _,
+                    ..
                 }) => (),
                 _ => {
-                    if let ir::Type::Ident("void") = node.name._type {
-                        self.out.push(cutils::destroy_stackframe());
-                    }
+                    self.out.push(cutils::destroy_stackframe());
                     self.out.push(cutils::gen_ret());
                 }
             }
@@ -298,7 +300,10 @@ impl<'c> CodeGenerator<'c> {
             let size = self.size_of(&expr._type);
             self.gen_mov_ins(
                 cutils::get_stack_location(self.stack_pointer - size as i32),
-                Operand::Register(cutils::arg_regs_by_size(size.try_into().expect("Failed to convert u32 to u8"))[i]),
+                Operand::Register(
+                    cutils::arg_regs_by_size(size.try_into().expect("Failed to convert u32 to u8"))
+                        [i],
+                ),
             );
             self.stack_pointer -= size as i32;
             self.symbol_table.insert(&expr.ident, self.stack_pointer);
