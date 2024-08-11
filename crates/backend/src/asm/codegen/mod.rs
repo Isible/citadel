@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 use citadel_frontend::{
     ir::{
         self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr,
-        IRStmt, Ident, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt, INT16_T,
+        IRStmt, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt, INT16_T,
         INT32_T, INT64_T, INT8_T,
     },
     util::CompositeDataType,
