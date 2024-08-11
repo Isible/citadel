@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::ir::{
+    use crate::hir::{
         self, irgen::IRGenerator, DeclFuncStmt, IRExpr, IRStmt, IRTypedIdent, LabelStmt, Literal,
         ReturnStmt, INT8_T,
     };
@@ -13,7 +13,7 @@ mod tests {
         let binding = IRStmt::DeclaredFunction(DeclFuncStmt {
             name: IRTypedIdent {
                 ident: "myFuncName",
-                _type: ir::Type::Ident("void"),
+                _type: hir::Type::Ident("void"),
             },
             args: Vec::new(),
         });
@@ -31,7 +31,7 @@ mod tests {
             IRStmt::Return(ReturnStmt {
                 ret_val: IRExpr::Literal(
                     Literal::String("test".into()),
-                    ir::Type::Array(&ir::Type::Ident(INT8_T), 4),
+                    hir::Type::Array(&hir::Type::Ident(INT8_T), 4),
                 ),
             }),
         ];

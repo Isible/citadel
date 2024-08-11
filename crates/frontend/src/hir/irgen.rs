@@ -6,7 +6,7 @@
 
 use std::{collections::HashMap, fmt::Display};
 
-use crate::{ir::IRStmt, util::CompositeDataType};
+use crate::{hir::IRStmt, util::CompositeDataType};
 
 use super::{IRTypedIdent, Ident};
 

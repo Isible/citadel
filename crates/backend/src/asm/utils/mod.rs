@@ -2,7 +2,7 @@ pub mod codegen;
 
 use std::{fs::File, io::Write, path::PathBuf};
 
-use citadel_frontend::ir::{irgen::HIRStream, IRStmt};
+use citadel_frontend::hir::{irgen::HIRStream, IRStmt};
 
 use crate::{
     api::Target,

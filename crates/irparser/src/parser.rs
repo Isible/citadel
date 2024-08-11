@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use bumpalo::Bump;
-use citadel_frontend::ir::{
+use citadel_frontend::hir::{
     self,
     irgen::{HIRStream, IRGenerator},
     ArithOpExpr, BlockStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt,
@@ -362,19 +362,19 @@ impl<'p> Parser<'p> {
         }
     }
 
-    fn parse_type(&mut self) -> Option<ir::Type<'p>> {
+    fn parse_type(&mut self) -> Option<hir::Type<'p>> {
         match self.cur_tok()? {
             Token::LSquare => self.parse_arr_type(),
-            Token::Ident(ident) => Some(ir::Type::Ident(ident)),
+            Token::Ident(ident) => Some(hir::Type::Ident(ident)),
             tok => parser_error!("Failed to parse type from token: {tok:?}"),
         }
     }
 
-    fn parse_arr_type(&mut self) -> Option<ir::Type<'p>> {
+    fn parse_arr_type(&mut self) -> Option<hir::Type<'p>> {
         self.next_tok();
         let type_ = match *self.cur_tok()? {
             Token::LSquare => self.parse_arr_type()?,
-            Token::Ident(ident) => ir::Type::Ident(ident),
+            Token::Ident(ident) => hir::Type::Ident(ident),
             tok => parser_error!("Failed to parse type for array from token: {tok:?}"),
         };
         expect_tok!(self.peek_tok()?, Token::Semicolon, |tok| {
@@ -395,7 +395,7 @@ impl<'p> Parser<'p> {
         });
         self.next_tok();
         let type_ref = self.arena.alloc(type_);
-        Some(ir::Type::Array(type_ref, size))
+        Some(hir::Type::Array(type_ref, size))
     }
 
     fn parse_return(&mut self) -> Option<IRStmt<'p>> {

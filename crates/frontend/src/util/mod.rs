@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::ir::{IRExpr, IRTypedIdent};
+use crate::hir::{IRExpr, IRTypedIdent};
 
 pub mod errors;
 

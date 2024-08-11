@@ -9,7 +9,7 @@ mod tests;
 
 use std::process::Output;
 
-use citadel_frontend::ir::irgen::HIRStream;
+use citadel_frontend::hir::irgen::HIRStream;
 
 use crate::{
     api::{Backend, Target},

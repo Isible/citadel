@@ -1,4 +1,4 @@
-use citadel_frontend::ir::{INT16_T, INT32_T, INT64_T, INT8_T};
+use citadel_frontend::hir::{INT16_T, INT32_T, INT64_T, INT8_T};
 
 use crate::asm::{
     self,

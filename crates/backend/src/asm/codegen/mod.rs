@@ -8,7 +8,7 @@
 use std::collections::{HashMap, HashSet};
 
 use citadel_frontend::{
-    ir::{
+    hir::{
         self, irgen::TypeTable, ArithOpExpr, BlockStmt, CallExpr, ExitStmt, FuncStmt, IRExpr,
         IRStmt, JumpStmt, LabelStmt, ReturnStmt, StructInitExpr, Type, VarStmt, INT16_T,
         INT32_T, INT64_T, INT8_T,
@@ -105,10 +105,10 @@ impl<'c> CodeGenerator<'c> {
     fn gen_expr(&mut self, node: &'c IRExpr) -> Operand {
         match &node {
             IRExpr::Literal(node, type_) => match node {
-                ir::Literal::Int32(val) => {
+                hir::Literal::Int32(val) => {
                     Operand::SizedLiteral(SizedLiteral(Literal::Int32(*val), DataSize::DWord))
                 }
-                ir::Literal::String(val) => self.gen_string(val, type_),
+                hir::Literal::String(val) => self.gen_string(val, type_),
                 int => todo!("Handle non-i32 literals here: {:?}", int),
             },
             IRExpr::Call(node) => {
@@ -183,10 +183,10 @@ impl<'c> CodeGenerator<'c> {
             self.gen_mov_ins(Operand::Register(Register::Rax), left_expr)
         }
         let arith_op = match node.op {
-            ir::Operator::Add => self.gen_arith_op_ins(Opcode::Add, node),
-            ir::Operator::Sub => self.gen_arith_op_ins(Opcode::Sub, node),
-            ir::Operator::Mul => self.gen_arith_op_ins(Opcode::Mul, node),
-            ir::Operator::Div => self.gen_arith_op_ins(Opcode::Div, node),
+            hir::Operator::Add => self.gen_arith_op_ins(Opcode::Add, node),
+            hir::Operator::Sub => self.gen_arith_op_ins(Opcode::Sub, node),
+            hir::Operator::Mul => self.gen_arith_op_ins(Opcode::Mul, node),
+            hir::Operator::Div => self.gen_arith_op_ins(Opcode::Div, node),
         };
         self.out.push(arith_op);
         Operand::Register(Register::Rax)
@@ -279,7 +279,7 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_struct_init(&mut self, node: &'c StructInitExpr) -> Operand {
-        let size = self.size_of(&ir::Type::Ident(node.name));
+        let size = self.size_of(&hir::Type::Ident(node.name));
         self.gen_mov_ins(
             cutils::get_stack_location(self.stack_pointer - size as i32),
             Operand::Literal(Literal::Int32(0)),
@@ -342,7 +342,7 @@ impl<'c> CodeGenerator<'c> {
     }
 
     /// Returns the size of the type in bytes
-    fn size_of(&self, _type: &ir::Type<'c>) -> u32 {
+    fn size_of(&self, _type: &hir::Type<'c>) -> u32 {
         // The type or array is an integer type/array
         match _type {
             Type::Ident(ident @ (INT8_T | INT16_T | INT32_T | INT64_T)) => {

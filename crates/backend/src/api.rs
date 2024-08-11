@@ -9,7 +9,7 @@ use std::{
     io,
 };
 
-use citadel_frontend::ir::irgen::HIRStream;
+use citadel_frontend::hir::irgen::HIRStream;
 
 // TODO: Remove these trait bounds?
 pub trait Target: Debug + Default + Copy + Clone {

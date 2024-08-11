@@ -2,7 +2,7 @@
 use std::mem;
 
 use bumpalo::Bump;
-use citadel_api::frontend::ir::{
+use citadel_api::frontend::hir::{
     self, irgen::{HIRStream, IRGenerator}, ArithOpExpr, CallExpr, ExitStmt, IRExpr, IRStmt, IRTypedIdent, ReturnStmt, VarStmt, FLOAT64_T, INT32_T, INT8_T
 };
 
@@ -18,9 +18,9 @@ pub struct Compiler<'c> {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CompileCtx<'ctx> {
-    FuncRetType(ir::Type<'ctx>),
-    CallRetType(ir::Type<'ctx>),
-    VarType(ir::Type<'ctx>),
+    FuncRetType(hir::Type<'ctx>),
+    CallRetType(hir::Type<'ctx>),
+    VarType(hir::Type<'ctx>),
 }
 
 macro_rules! no_ctx {
@@ -30,7 +30,7 @@ macro_rules! no_ctx {
 }
 
 impl<'ctx> CompileCtx<'ctx> {
-    fn as_type(&self) -> ir::Type<'ctx> {
+    fn as_type(&self) -> hir::Type<'ctx> {
         match self {
             CompileCtx::CallRetType(t) => *t,
             CompileCtx::VarType(t) => *t,
@@ -65,8 +65,8 @@ impl<'c> Compiler<'c> {
     }
 
     fn init_program(&mut self) {
-        self.out.gen_ir(IRStmt::Entry(ir::BlockStmt {
-            stmts: vec![IRStmt::Exit(ir::ExitStmt {
+        self.out.gen_ir(IRStmt::Entry(hir::BlockStmt {
+            stmts: vec![IRStmt::Exit(hir::ExitStmt {
                 exit_code: IRExpr::Call(CallExpr {
                     name: "main",
                     args: vec![],
@@ -104,7 +104,7 @@ impl<'c> Compiler<'c> {
 
     fn compile_fn_stmt(&mut self, node: FnStatement<'c>) {
         self.global_ctx = Some(CompileCtx::FuncRetType(self.compile_type(node.ret_type)));
-        let stmt = IRStmt::Function(ir::FuncStmt {
+        let stmt = IRStmt::Function(hir::FuncStmt {
             name: self.compile_typed_ident(TypedIdent {
                 _type: node.ret_type,
                 ident: &node.name,
@@ -115,14 +115,14 @@ impl<'c> Compiler<'c> {
         self.out.gen_ir(stmt);
     }
 
-    fn compile_block_stmt(&mut self, node: BlockStatement<'c>) -> ir::BlockStmt<'c> {
+    fn compile_block_stmt(&mut self, node: BlockStatement<'c>) -> hir::BlockStmt<'c> {
         let mut block = Vec::new();
         mem::swap(self.out.mut_stream_ref().mut_stream_ref(), &mut block);
         for stmt in node.stmts {
             self.compile_stmt(stmt);
         }
         mem::swap(self.out.mut_stream_ref().mut_stream_ref(), &mut block);
-        ir::BlockStmt { stmts: block }
+        hir::BlockStmt { stmts: block }
     }
 
     fn compile_return_stmt(&mut self, node: ReturnStatement<'c>) {
@@ -135,8 +135,8 @@ impl<'c> Compiler<'c> {
     fn compile_expr_stmt(&mut self, node: Expression<'c>) -> Option<IRStmt<'c>> {
         match node {
             Expression::Call(mut node) => Some(match node.name {
-                "exit" => ir::IRStmt::Exit(ExitStmt { exit_code: self.compile_expr(node.args.remove(0), None).0 }),
-                _ => ir::IRStmt::Call(self.compile_call_expr(node).0),
+                "exit" => hir::IRStmt::Exit(ExitStmt { exit_code: self.compile_expr(node.args.remove(0), None).0 }),
+                _ => hir::IRStmt::Call(self.compile_call_expr(node).0),
             }),
             Expression::Infix(_) => None,
             Expression::Literal(_) => None,
@@ -171,24 +171,24 @@ impl<'c> Compiler<'c> {
     fn compile_lit_expr(&self, node: Literal<'c>, ctx: Option<CompileCtx<'c>>) -> IRExpr<'c> {
         match node {
             Literal::Integer(int) => IRExpr::Literal(
-                ir::Literal::Int32(int),
-                ctx.map(|c| c.as_type()).unwrap_or(ir::Type::Ident(INT32_T)),
+                hir::Literal::Int32(int),
+                ctx.map(|c| c.as_type()).unwrap_or(hir::Type::Ident(INT32_T)),
             ),
             Literal::Float(float) => IRExpr::Literal(
-                ir::Literal::Float64(float),
+                hir::Literal::Float64(float),
                 ctx.map(|c| c.as_type())
-                    .unwrap_or(ir::Type::Ident(FLOAT64_T)),
+                    .unwrap_or(hir::Type::Ident(FLOAT64_T)),
             ),
             Literal::String(str) => IRExpr::Literal(
-                ir::Literal::String(str),
+                hir::Literal::String(str),
                 ctx.map(|c| c.as_type())
-                    .unwrap_or(ir::Type::Array(&ir::Type::Ident(INT8_T), str.len() as u32)),
+                    .unwrap_or(hir::Type::Array(&hir::Type::Ident(INT8_T), str.len() as u32)),
             ),
             Literal::Boolean(bool) => {
-                IRExpr::Literal(ir::Literal::Bool(bool), ir::Type::Ident(INT8_T))
+                IRExpr::Literal(hir::Literal::Bool(bool), hir::Type::Ident(INT8_T))
             }
             Literal::Char(ch) => {
-                IRExpr::Literal(ir::Literal::Char(ch as u8), ir::Type::Ident(INT8_T))
+                IRExpr::Literal(hir::Literal::Char(ch as u8), hir::Type::Ident(INT8_T))
             }
             Literal::Ident(ident) => IRExpr::Ident(ident),
         }
@@ -211,7 +211,7 @@ impl<'c> Compiler<'c> {
         let ctx = Some(CompileCtx::CallRetType(
             self.compile_type(func_info.ret_type),
         ));
-        let expr = ir::CallExpr {
+        let expr = hir::CallExpr {
             name: func_info.ir_name,
             args: self.compile_call_args(node.args, func_info.args.as_slice()),
         };
@@ -231,12 +231,12 @@ impl<'c> Compiler<'c> {
         call_args
     }
 
-    fn compile_type(&self, _type: Type<'c>) -> ir::Type<'c> {
+    fn compile_type(&self, _type: Type<'c>) -> hir::Type<'c> {
         match _type {
-            Type::Ident(id) => ir::Type::Ident(id),
+            Type::Ident(id) => hir::Type::Ident(id),
             Type::Array(_type, len) => {
                 let _type = self.arena.alloc(self.compile_type(*_type));
-                ir::Type::Array(_type, len as u32)
+                hir::Type::Array(_type, len as u32)
             }
         }
     }
@@ -259,7 +259,7 @@ impl<'c> Compiler<'c> {
     fn compile_print_call(
         &mut self,
         node: CallExpression<'c>,
-    ) -> (ir::CallExpr<'c>, Option<CompileCtx<'c>>) {
+    ) -> (hir::CallExpr<'c>, Option<CompileCtx<'c>>) {
         let msg_expr = node
             .args
             .first()
@@ -268,7 +268,7 @@ impl<'c> Compiler<'c> {
             Expression::Literal(Literal::String(str)) => str.len(),
             _ => todo!(),
         };
-        let expr = ir::CallExpr {
+        let expr = hir::CallExpr {
             name: "print",
             args: self.compile_call_args(
                 node.args,
@@ -278,7 +278,7 @@ impl<'c> Compiler<'c> {
                 }],
             ),
         };
-        (expr, Some(CompileCtx::CallRetType(ir::Type::Ident("void"))))
+        (expr, Some(CompileCtx::CallRetType(hir::Type::Ident("void"))))
     }
 
     fn compile_exit_expr(
@@ -288,22 +288,22 @@ impl<'c> Compiler<'c> {
         let exit_code = self
             .compile_expr(
                 node.args.remove(0),
-                Some(CompileCtx::VarType(ir::Type::Ident(INT32_T))),
+                Some(CompileCtx::VarType(hir::Type::Ident(INT32_T))),
             )
             .0;
         self.out.gen_ir(IRStmt::Exit(ExitStmt { exit_code }));
         (
-            IRExpr::Literal(ir::Literal::Int32(-1), ir::Type::Ident(INT32_T)),
-            Some(CompileCtx::CallRetType(ir::Type::Ident(INT32_T))),
+            IRExpr::Literal(hir::Literal::Int32(-1), hir::Type::Ident(INT32_T)),
+            Some(CompileCtx::CallRetType(hir::Type::Ident(INT32_T))),
         )
     }
 
-    fn compile_op(op: Operator) -> ir::Operator {
+    fn compile_op(op: Operator) -> hir::Operator {
         match op {
-            Operator::Add => ir::Operator::Add,
-            Operator::Sub => ir::Operator::Sub,
-            Operator::Div => ir::Operator::Div,
-            Operator::Mul => ir::Operator::Mul,
+            Operator::Add => hir::Operator::Add,
+            Operator::Sub => hir::Operator::Sub,
+            Operator::Div => hir::Operator::Div,
+            Operator::Mul => hir::Operator::Mul,
             Operator::Equals => todo!(),
         }
     }

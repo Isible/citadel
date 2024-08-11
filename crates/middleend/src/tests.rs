@@ -37,9 +37,9 @@ mod tests {
         };
     }
 
-    use citadel_frontend::ir::irgen::HIRStream;
+    use citadel_frontend::hir::irgen::HIRStream;
 
-    use crate::{experimental::api::Optimization, optimize};
+    use crate::{api::Optimization, optimize};
 
     test_optimization!(Opt1, HIRStream<'opt>, Vec<i32>, vec![]);
     test_optimization!(Opt2, Vec<i32>, HIRStream<'opt>, HIRStream::default());
