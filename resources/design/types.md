@@ -32,7 +32,7 @@ In citadel you need do the same thing using colon (`:`) syntax:
 
 (Suffixes for literals are a requirement)
 
-```txt
+```chir
 func @test() i32 {
     ret l{0:i32}
 }
@@ -42,7 +42,7 @@ func @test() i32 {
 
 For casting between different types you can use the `cast` keyword. Similar to the arithmetic expressions you need to provide two arguments. The first for specifying the type and the second for specifying the expression that should be cast.
 
-```txt
+```chir
 func @test() void {
     $x i32 = add l{10:i32}, l{0:i32} # Adding two numbers as an example
     $y f32 = cast f32, %x # cast value `x` to a float

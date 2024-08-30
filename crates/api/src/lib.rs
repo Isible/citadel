@@ -4,9 +4,9 @@ pub use citadel_backend as backend;
 pub use citadel_frontend as frontend;
 pub use citadel_middleend as middleend;
 
-use std::{fs, io, marker::PhantomData, path::PathBuf};
+use std::{fs, io, path::PathBuf};
 
-use citadel_backend::api::{Backend, Target};
+use citadel_backend::api::Backend;
 
 #[macro_export]
 macro_rules! compile {

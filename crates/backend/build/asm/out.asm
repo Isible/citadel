@@ -1,12 +1,6 @@
 section .text
     global _start
 _start:
-    call main
-    mov rdi,rax
+    mov rdi,12
     mov rax,60
     syscall
-main:
-    push rbp
-    mov rbp,rsp
-    pop rbp
-    ret

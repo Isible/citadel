@@ -16,7 +16,7 @@ Comparsion:
 
 #### C
 
-```C
+```c
 // The main function
 int main(void) {
     const int x = 100;
@@ -27,7 +27,7 @@ int main(void) {
 
 #### CIR
 
-```chr
+```chir
 # The main function
 func @main() i32 {
     # l{...} means that the value is a literal

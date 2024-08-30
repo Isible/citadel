@@ -6,7 +6,7 @@ Variables are used for storing mutable data
 
 A variable consists of the following components:
 
-```text
+```chir
 $myVar i32 = l{0:i32}
 ```
 
@@ -22,6 +22,6 @@ $myVar i32 = l{0:i32}
 
 Reference a variable or function with `%`
 
-```text
+```chir
 %myVar
 ```

@@ -4,15 +4,12 @@
 //! reside in the experimental module until it is
 //! stabelized.
 
-use std::{
-    fmt::Debug,
-    io,
-};
+use std::io;
 
 use citadel_frontend::hir::irgen::HIRStream;
 
 // TODO: Remove these trait bounds?
-pub trait Target: Debug + Default + Copy + Clone {
+pub trait Target: Default + Copy {
     fn name(&self) -> &str;
 }
 

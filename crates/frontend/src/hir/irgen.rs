@@ -20,7 +20,7 @@ pub struct IRGenerator<'s> {
 /// High-level IR stream that contains the ir stream
 /// as well as a typetable. This is output by the [IRGenerator]
 /// and used as an input for various optimizations.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct HIRStream<'hir> {
     pub stream: Vec<IRStmt<'hir>>,
     pub types: TypeTable<'hir>,
@@ -54,16 +54,6 @@ impl<'g> IRGenerator<'g> {
 
     pub fn stream(self) -> HIRStream<'g> {
         self.ir
-    }
-}
-
-impl<'hir> HIRStream<'hir> {
-    pub fn stream_ref(&self) -> &Vec<IRStmt<'hir>> {
-        &self.stream
-    }
-
-    pub fn mut_stream_ref(&mut self) -> &mut Vec<IRStmt<'hir>> {
-        &mut self.stream
     }
 }
 

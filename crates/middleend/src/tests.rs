@@ -37,9 +37,11 @@ mod tests {
         };
     }
 
+    use bumpalo::Bump;
     use citadel_frontend::hir::irgen::HIRStream;
+    use citadel_irparser::{IRLexer, IRParser};
 
-    use crate::{api::Optimization, optimize};
+    use crate::{api::Optimization, lir::opt, optimize};
 
     test_optimization!(Opt1, HIRStream<'opt>, Vec<i32>, vec![]);
     test_optimization!(Opt2, Vec<i32>, HIRStream<'opt>, HIRStream::default());
@@ -50,5 +52,18 @@ mod tests {
         let stream = HIRStream::default();
         let stream = optimize!(stream, Opt1, Opt2, Opt3);
         println!("Stream: {stream:?}");
+    }
+
+    #[test]
+    fn test_lower_ir_opt() {
+        // COPY PASTA CODE due to arenas :>
+        let input = r#""#;
+        let lexer = IRLexer::new(input);
+        let arena = Bump::new();
+        let mut parser = IRParser::new(&lexer, &arena);
+        let hir_stream = parser.parse_program();
+
+        let lir_stream = optimize!(hir_stream, opt::LowerIR);
+        println!("LIR Stream:\n{:#?}", lir_stream);
     }
 }

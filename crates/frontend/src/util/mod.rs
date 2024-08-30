@@ -4,7 +4,7 @@ use crate::hir::{IRExpr, IRTypedIdent};
 
 pub mod errors;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum CompositeDataType {
     Struct,
     Union,

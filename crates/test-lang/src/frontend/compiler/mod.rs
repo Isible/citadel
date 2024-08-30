@@ -117,11 +117,11 @@ impl<'c> Compiler<'c> {
 
     fn compile_block_stmt(&mut self, node: BlockStatement<'c>) -> hir::BlockStmt<'c> {
         let mut block = Vec::new();
-        mem::swap(self.out.mut_stream_ref().mut_stream_ref(), &mut block);
+        mem::swap(&mut self.out.mut_stream_ref().stream, &mut block);
         for stmt in node.stmts {
             self.compile_stmt(stmt);
         }
-        mem::swap(self.out.mut_stream_ref().mut_stream_ref(), &mut block);
+        mem::swap(&mut self.out.mut_stream_ref().stream, &mut block);
         hir::BlockStmt { stmts: block }
     }
 
