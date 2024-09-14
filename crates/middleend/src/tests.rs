@@ -1,23 +1,6 @@
 #[cfg(test)]
 mod tests {
     macro_rules! test_optimization {
-        ($name:ident,$in:ty,$out:ty) => {
-            struct $name;
-
-            impl<'opt> Optimization<'opt> for $name {
-                type InputIR = $in;
-
-                type OutputIR = $out;
-
-                fn stage_name(&self) -> &str {
-                    unimplemented!("Test optimizations should never be used for an actual compiler. Affected optimization: {}", stringify!($name))
-                }
-
-                fn optimize(&self, input: Self::InputIR) -> Self::OutputIR {
-                    input
-                }
-            }
-        };
         ($name:ident,$in:ty,$out:ty,$ret_val:expr) => {
             struct $name;
 
@@ -30,40 +13,32 @@ mod tests {
                     unimplemented!("Test optimizations should never be used for an actual compiler. Affected optimization: {}", stringify!($name))
                 }
 
-                fn optimize(&self, _: Self::InputIR) -> Self::OutputIR {
-                    $ret_val
+                fn optimize(&self, input: Self::InputIR) -> Self::OutputIR {
+                    $ret_val(input)
                 }
             }
         };
     }
 
-    use bumpalo::Bump;
-    use citadel_frontend::hir::irgen::HIRStream;
-    use citadel_irparser::{IRLexer, IRParser};
+    use crate::{api::Optimization, optimize};
 
-    use crate::{api::Optimization, lir::opt, optimize};
-
-    test_optimization!(Opt1, HIRStream<'opt>, Vec<i32>, vec![]);
-    test_optimization!(Opt2, Vec<i32>, HIRStream<'opt>, HIRStream::default());
-    test_optimization!(Opt3, HIRStream<'opt>, Vec<String>, vec!["ballz".into()]);
-
-    #[test]
-    fn test_macro() {
-        let stream = HIRStream::default();
-        let stream = optimize!(stream, Opt1, Opt2, Opt3);
-        println!("Stream: {stream:?}");
-    }
+    test_optimization!(IntToBool, Vec<i32>, Vec<bool>, |input: Vec<i32>| input
+        .iter()
+        .map(|i| if *i == 0 { false } else { true })
+        .collect());
+    test_optimization!(BoolToStr, Vec<bool>, Vec<String>, |input: Vec<bool>| input
+        .iter()
+        .map(|b| if *b { "1" } else { "0" }.to_string())
+        .collect());
+    test_optimization!(StrToInt, Vec<String>, Vec<i32>, |input: Vec<String>| input
+        .iter()
+        .map(|str| str.parse().unwrap())
+        .collect());
 
     #[test]
-    fn test_lower_ir_opt() {
-        // COPY PASTA CODE due to arenas :>
-        let input = r#""#;
-        let lexer = IRLexer::new(input);
-        let arena = Bump::new();
-        let mut parser = IRParser::new(&lexer, &arena);
-        let hir_stream = parser.parse_program();
-
-        let lir_stream = optimize!(hir_stream, opt::LowerIR);
-        println!("LIR Stream:\n{:#?}", lir_stream);
+    fn test_optimize_macro() {
+        let stream = vec![0, 1, 1, 1, 0];
+        let optimized_stream = optimize!(stream.clone(), IntToBool, BoolToStr, StrToInt);
+        assert_eq!(optimized_stream, stream);
     }
 }
