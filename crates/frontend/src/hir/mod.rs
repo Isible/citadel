@@ -7,6 +7,8 @@
 pub mod traits;
 pub mod irgen;
 
+pub use self::irgen::TypeTable;
+
 pub const INT8_T: &str = "i8";
 pub const INT16_T: &str = "i16";
 pub const INT32_T: &str = "i32";

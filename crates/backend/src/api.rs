@@ -4,11 +4,10 @@
 //! reside in the experimental module until it is
 //! stabelized.
 
-use std::io;
+use std::{io, path::Path};
 
 use citadel_frontend::hir::irgen::HIRStream;
 
-// TODO: Remove these trait bounds?
 pub trait Target: Default + Copy {
     fn name(&self) -> &str;
 }
@@ -69,10 +68,10 @@ pub trait Target: Default + Copy {
 /// would be `AsmElement`
 ///
 /// TODO: Trait methods
-pub trait Backend {
+pub trait Backend<'b> {
     type Target: self::Target;
-    
-    type Output: IntoIterator<Item: ToString>;
+
+    type Output: CompiledDisplay;
 
     /// Main function of the backend. This will take in a stream
     /// of IRStmts and generate code based on them. The target for
@@ -99,18 +98,22 @@ pub trait Backend {
     /// the citadel apis. In that case you should
     /// return Some(...) and the result of whether
     /// file creation was successful
-    fn to_file(&self, _output: &Self::Output) -> Option<io::Result<()>> {
-        None
-    }
+    fn to_file<P>(&self, output: &Self::Output, path: P) -> io::Result<()>
+    where
+        P: AsRef<Path>;
 
     /// This is for formatting outputted code.
     /// By default your backend does not support
     /// code formatting and thus it returns None.
-    /// 
+    ///
     /// If you do want your code to be formatable,
     /// you need to return Some(...) and the outputted
     /// and formatted string
     fn format(&self, _output: &Self::Output) -> Option<String> {
         None
     }
+}
+
+pub trait CompiledDisplay {
+    fn as_string(&self) -> String;
 }

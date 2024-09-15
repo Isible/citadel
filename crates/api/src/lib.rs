@@ -4,9 +4,9 @@ pub use citadel_backend as backend;
 pub use citadel_frontend as frontend;
 pub use citadel_middleend as middleend;
 
-use std::{fs, io, path::PathBuf};
+use std::{fs, io, path::{Path, PathBuf}};
 
-use citadel_backend::api::Backend;
+use citadel_backend::api::{Backend, CompiledDisplay};
 
 #[macro_export]
 macro_rules! compile {
@@ -29,17 +29,17 @@ macro_rules! optimize {
     }};
 }
 
-pub struct Output<B>
+pub struct Output<'o, B>
 where
-    B: Backend,
+    B: Backend<'o>,
 {
     pub backend: B,
     pub stream: B::Output,
 }
 
-impl<B> Output<B>
+impl<'o, B> Output<'o, B>
 where
-    B: Backend,
+    B: Backend<'o>,
 {
     pub fn new(backend: B, stream: B::Output) -> Self {
         Self {
@@ -48,21 +48,8 @@ where
         }
     }
 
-    pub fn to_file(self, path: PathBuf) -> io::Result<()> {
-        if let Some(res) = self.backend.to_file(&self.stream) {
-            return res;
-        }
-
-        let contents = if let Some(formatted) = self.backend.format(&self.stream) {
-            formatted
-        } else {
-            self.stream
-                .into_iter()
-                .map(|elem| elem.to_string())
-                .collect::<Vec<String>>()
-                .join("\n")
-        };
-
-        fs::write(path, contents)
+    pub fn to_file<P>(self, path: P) -> io::Result<()>
+    where P: AsRef<Path> {
+        self.backend.to_file(&self.stream, path)
     }
 }

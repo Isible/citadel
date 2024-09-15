@@ -4,7 +4,7 @@ mod tests;
 use std::{fs, io, path::PathBuf};
 
 use bumpalo::Bump;
-use citadel_api::backend::asm::{AsmBackend, TargetX86_64};
+use citadel_api::backend::x86::{X86Backend, TargetX86_64};
 use citadel_api::compile;
 
 use frontend::{lexer::Lexer, parser::Parser};
@@ -19,7 +19,8 @@ pub fn compile_asm(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::R
     let ast = parser.parse_program();
     let compiler_arena = Bump::new();
     let ir_stream = Compiler::compile_program(ast, parser.functions(), &compiler_arena);
-    compile!(AsmBackend::new(TargetX86_64), ir_stream)
+    let codegen_arena = Bump::new();
+    compile!(X86Backend::new(TargetX86_64, &codegen_arena), ir_stream)
         .to_file(out_path.unwrap_or(PathBuf::from("build/asm/out.asm")))
 }
 

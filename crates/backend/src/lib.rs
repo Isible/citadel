@@ -11,4 +11,4 @@
 //! For an example on how to do so, look at [WIP]
 
 pub mod api;
-pub mod asm;
+pub mod x86;
