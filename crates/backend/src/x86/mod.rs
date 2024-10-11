@@ -42,6 +42,16 @@ pub struct CompileResult {
     pub data: Vec<DataValue>,
 }
 
+impl CompileResult {
+    pub fn gen_instructions(&self) -> Vec<u8> {
+        let mut program = Vec::new();
+        for ins in &self.instructions {
+            program.extend_from_slice(&[ins.opcode(), ]);
+        }
+        program
+    }
+}
+
 impl CompiledDisplay for CompileResult {
     fn as_string(&self) -> String {
         todo!()

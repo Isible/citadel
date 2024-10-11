@@ -4,7 +4,7 @@
 
 pub mod traits;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Instruction {
     MovR2R {
         val: Register,
@@ -23,6 +23,32 @@ pub enum Instruction {
         dest: (),
     },
     Syscall
+}
+
+impl Instruction {
+    pub fn opcode(&self) -> u8 {
+        match self {
+            Instruction::MovR2R { val, dest } => todo!(),
+            Instruction::MovI2R { val, dest } => match dest {
+                Register::Rax => 0xb8,
+                Register::Rdi => 0xbf,
+                _ => todo!(),
+            },
+            Instruction::MovM2R { val, dest } => todo!(),
+            Instruction::MovR2M { val, dest } => todo!(),
+            Instruction::Syscall => todo!(),
+        }
+    }
+
+    pub fn val_dest(&self) -> (u8, u8) {
+        match self {
+            Instruction::MovR2R { val, dest } => todo!(),
+            Instruction::MovI2R { val, dest } => (*val as u8, dest.code()),
+            Instruction::MovM2R { val, dest } => todo!(),
+            Instruction::MovR2M { val, dest } => todo!(),
+            Instruction::Syscall => todo!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -112,6 +138,22 @@ pub enum Register {
     R13b,
     R14b,
     R15b,
+}
+
+impl Register {
+    pub fn code(&self) -> u8 {
+        match self {
+            Self::Rax => 0x0,
+            Self::Rcx => 0x1,
+            Self::Rdx => 0x2,
+            Self::Rbx => 0x3,
+            Self::Rsp => 0x4,
+            Self::Rbp => 0x5,
+            Self::Rsi => 0x6,
+            Self::Rdi => 0x7,
+            _ => todo!()
+        }
+    }
 }
 
 #[derive(Debug)]

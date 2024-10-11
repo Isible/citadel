@@ -6,7 +6,7 @@ use bumpalo::Bump;
 use citadel_frontend::hir::{
     self,
     irgen::{HIRStream, IRGenerator},
-    ArithOpExpr, BlockStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt,
+    BinOpExpr, BlockStmt, CallExpr, DeclFuncStmt, ExitStmt, FuncStmt, IRExpr, IRStmt,
     IRTypedIdent, Ident, JumpStmt, LabelStmt, Literal, Operator, ReturnStmt, StructInitExpr,
     StructStmt, UnionStmt, VarStmt,
 };
@@ -442,7 +442,7 @@ impl<'p> Parser<'p> {
         self.next_tok();
         let right = self.parse_expr();
 
-        Some(IRExpr::ArithOp(ArithOpExpr {
+        Some(IRExpr::BinOp(BinOpExpr {
             op,
             values: (Box::from(left?), Box::from(right?)),
         }))

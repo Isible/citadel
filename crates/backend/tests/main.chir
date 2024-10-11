@@ -1,3 +1,8 @@
 entry {
-    exit l{12:i8}
+    call %main()
+    exit l{69:i8}
+}
+
+func @main() void {
+
 }

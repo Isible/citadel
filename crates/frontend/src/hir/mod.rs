@@ -40,7 +40,7 @@ pub enum IRExpr<'ir> {
     Literal(Literal<'ir>, Type<'ir>),
     Ident(Ident<'ir>),
 
-    ArithOp(ArithOpExpr<'ir>),
+    BinOp(BinOpExpr<'ir>),
 
     StructInit(StructInitExpr<'ir>),
 }
@@ -66,7 +66,6 @@ pub enum Literal<'ir> {
     Int16(i16),
     Int32(i32),
     Int64(i64),
-    Int128(i128),
 
     Array(usize, Vec<IRExpr<'ir>>),
     Vector(Vec<IRExpr<'ir>>),
@@ -159,7 +158,7 @@ pub struct StructInitExpr<'ir> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct ArithOpExpr<'ir> {
+pub struct BinOpExpr<'ir> {
     pub op: Operator,
     pub values: (Box<IRExpr<'ir>>, Box<IRExpr<'ir>>)
 }

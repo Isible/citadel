@@ -101,7 +101,7 @@ impl Display for CallExpr<'_> {
     }
 }
 
-impl Display for ArithOpExpr<'_> {
+impl Display for BinOpExpr<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -145,7 +145,7 @@ impl Display for IRExpr<'_> {
         f.write_str(&match self {
             IRExpr::Call(call) => call.to_string(),
             IRExpr::Literal(lit, _type) => format!("l{{{}:{}}}", lit, _type),
-            IRExpr::ArithOp(op) => op.to_string(),
+            IRExpr::BinOp(op) => op.to_string(),
             IRExpr::Ident(id) => id.to_string(),
             IRExpr::StructInit(init) => init.to_string(),
         })
@@ -173,7 +173,6 @@ impl Display for Literal<'_> {
                 Literal::Int16(val) => val.to_string(),
                 Literal::Int32(val) => val.to_string(),
                 Literal::Int64(val) => val.to_string(),
-                Literal::Int128(val) => val.to_string(),
                 Literal::Array(len, val) => format!("[{}; {}]", val.to_string(), len),
                 Literal::Vector(val) => format!("<{}>", val.to_string()),
             }

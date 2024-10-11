@@ -3,7 +3,7 @@ use std::mem;
 
 use bumpalo::Bump;
 use citadel_api::frontend::hir::{
-    self, irgen::{HIRStream, IRGenerator}, ArithOpExpr, CallExpr, ExitStmt, IRExpr, IRStmt, IRTypedIdent, ReturnStmt, VarStmt, FLOAT64_T, INT32_T, INT8_T
+    self, irgen::{HIRStream, IRGenerator}, BinOpExpr, CallExpr, ExitStmt, IRExpr, IRStmt, IRTypedIdent, ReturnStmt, VarStmt, FLOAT64_T, INT32_T, INT8_T
 };
 
 use super::ast::{self, *};
@@ -162,7 +162,7 @@ impl<'c> Compiler<'c> {
     }
 
     fn compile_infix_expr(&mut self, node: InfixOpExpr<'c>) -> IRExpr<'c> {
-        IRExpr::ArithOp(ArithOpExpr {
+        IRExpr::BinOp(BinOpExpr {
             values: (Box::from(self.compile_expr(node.sides.0.clone(), None).0), Box::from(self.compile_expr(node.sides.1.clone(), None).0)),
             op: Self::compile_op(node.operator),
         })
