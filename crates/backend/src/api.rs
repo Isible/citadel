@@ -76,7 +76,7 @@ pub trait Backend<'b> {
     /// Main function of the backend. This will take in a stream
     /// of IRStmts and generate code based on them. The target for
     /// code generation is [`Backend::Target`]
-    fn generate(&self, ir_stream: HIRStream) -> Self::Output;
+    fn generate(&self, ir_stream: HIRStream<'b>) -> Self::Output;
 
     /// This returns the target of the backend instance.
     ///

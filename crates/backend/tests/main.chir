@@ -1,8 +1,7 @@
 entry {
     call %main()
-    exit l{69:i8}
 }
 
 func @main() void {
-
+    exit l{69:i8}
 }

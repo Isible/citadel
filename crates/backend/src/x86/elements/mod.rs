@@ -5,7 +5,7 @@
 pub mod traits;
 
 #[derive(Debug, Clone, Copy)]
-pub enum Instruction {
+pub enum Instruction<'ins> {
     MovR2R {
         val: Register,
         dest: Register
@@ -22,31 +22,25 @@ pub enum Instruction {
         val: Register,
         dest: (),
     },
-    Syscall
+    Call {
+        func: &'ins str,
+    },
+    Syscall,
 }
 
-impl Instruction {
-    pub fn opcode(&self) -> u8 {
+impl<'ins> Instruction<'ins> {
+    pub fn opcode(&self) -> &[u8] {
         match self {
             Instruction::MovR2R { val, dest } => todo!(),
-            Instruction::MovI2R { val, dest } => match dest {
-                Register::Rax => 0xb8,
-                Register::Rdi => 0xbf,
+            Instruction::MovI2R { val: _, dest } => match dest {
+                Register::Rax => &[0xb8],
+                Register::Rdi => &[0xbf],
                 _ => todo!(),
             },
             Instruction::MovM2R { val, dest } => todo!(),
             Instruction::MovR2M { val, dest } => todo!(),
-            Instruction::Syscall => todo!(),
-        }
-    }
-
-    pub fn val_dest(&self) -> (u8, u8) {
-        match self {
-            Instruction::MovR2R { val, dest } => todo!(),
-            Instruction::MovI2R { val, dest } => (*val as u8, dest.code()),
-            Instruction::MovM2R { val, dest } => todo!(),
-            Instruction::MovR2M { val, dest } => todo!(),
-            Instruction::Syscall => todo!(),
+            Instruction::Call { func: _ } => &[0xe8],
+            Instruction::Syscall => &[0x0f, 0x05],
         }
     }
 }

@@ -37,41 +37,36 @@ impl<'b, T: Target> X86Backend<'b, T> {
 }
 
 #[derive(Debug)]
-pub struct CompileResult {
-    pub instructions: Vec<Instruction>,
+pub struct CompileResult<'cr> {
+    pub instructions: Vec<Instruction<'cr>>,
     pub data: Vec<DataValue>,
+
+    pub labels: HashMap<&'cr str, usize>,
+    pub entry_size: usize,
 }
 
-impl CompileResult {
-    pub fn gen_instructions(&self) -> Vec<u8> {
-        let mut program = Vec::new();
-        for ins in &self.instructions {
-            program.extend_from_slice(&[ins.opcode(), ]);
-        }
-        program
-    }
-}
-
-impl CompiledDisplay for CompileResult {
+impl CompiledDisplay for CompileResult<'_> {
     fn as_string(&self) -> String {
         todo!()
     }
 }
 
 impl<'r, T: Target> Backend<'r> for X86Backend<'r, T> {
-    type Output = CompileResult;
+    type Output = CompileResult<'r>;
     type Target = T;
 
     fn target(&self) -> Self::Target {
         self.target
     }
 
-    fn generate(&self, ir_stream: HIRStream) -> Self::Output {
+    fn generate(&self, ir_stream: HIRStream<'r>) -> Self::Output {
         let mut gen = CodeGenerator::new(self.arena, ir_stream.types);
         gen.generate(ir_stream.stream);
         CompileResult {
             instructions: gen.instructions,
             data: gen.data,
+            labels: gen.labels,
+            entry_size: gen.entry_size,
         }
     }
 

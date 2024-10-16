@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
-    use std::{fs, path::PathBuf};
+    use std::fs;
 
     use bumpalo::Bump;
     use citadel_irparser::{IRLexer, IRParser};
 
-    use crate::{api::Backend, x86::{codegen::machine::{self, MachineGenerator}, TargetX86_64, X86Backend}};
+    use crate::{api::Backend, x86::{codegen::machine::MachineGenerator, TargetX86_64, X86Backend}};
 
     #[test]
     fn test_asm_compiler() {

@@ -1,22 +1,23 @@
 pub mod machine;
 
-use std::{collections::HashMap, f32::NAN};
+use std::{collections::HashMap, sync::Arc};
 
 use bumpalo::Bump;
-use citadel_frontend::hir::{self, irgen::HIRStream, IRStmt, Literal};
+use citadel_frontend::hir::{self, IRStmt, Literal};
 
 use super::elements::{DataValue, Instruction, Operand, Register};
 
 pub struct CodeGenerator<'c> {
     // out
-    pub instructions: Vec<Instruction>,
+    pub instructions: Vec<Instruction<'c>>,
     pub data: Vec<DataValue>,
 
     // in
     types: hir::TypeTable<'c>,
 
     // tracking
-    labels: HashMap<&'c str, usize>,
+    pub labels: HashMap<&'c str, usize>,
+    pub entry_size: usize,
 
     // utils
     arena: &'c Bump,
@@ -30,6 +31,7 @@ impl<'c> CodeGenerator<'c> {
             types,
             labels: HashMap::new(),
             arena,
+            entry_size: 0
         }
     }
 
@@ -56,10 +58,12 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_entry_stmt(&mut self, stmt: hir::BlockStmt<'c>) {
-        self.labels.insert("_start", self.instructions.len());
+        let entry = self.instructions.len();
+        self.labels.insert("_start".into(), entry);
         for stmt in stmt.stmts {
             self.gen_stmt(stmt);
         }
+        self.entry_size = self.instructions.len() - entry;
     }
 
     fn gen_exit_stmt(&mut self, stmt: hir::ExitStmt<'c>) {
@@ -98,7 +102,7 @@ impl<'c> CodeGenerator<'c> {
         }
     }
 
-    fn move_ins(val: Operand, dest: Operand) -> Instruction {
+    fn move_ins(val: Operand, dest: Operand) -> Instruction<'c> {
         match (val, dest) {
             (Operand::Register(val), Operand::Register(dest)) => Instruction::MovR2R { val, dest },
             (Operand::Immediate(val), Operand::Register(dest)) => Instruction::MovI2R { val, dest },
@@ -106,11 +110,15 @@ impl<'c> CodeGenerator<'c> {
         }
     }
     
-    fn gen_call_stmt(&self, stmt: hir::CallExpr<'_>) {
-        
+    fn gen_call_stmt(&mut self, stmt: hir::CallExpr<'c>) {
+        self.instructions.push(Instruction::Call { func: stmt.name });
     }
     
-    fn gen_function_stmt(&self, stmt: hir::FuncStmt<'_>) {
-        
+    fn gen_function_stmt(&mut self, stmt: hir::FuncStmt<'c>) {
+        let ins_index = self.instructions.len();
+        for stmt in stmt.block.stmts {
+            self.gen_stmt(stmt);
+        }
+        self.labels.insert(stmt.name.ident, ins_index);
     }
 }
