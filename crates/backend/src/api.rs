@@ -8,7 +8,7 @@ use std::{io, path::Path};
 
 use citadel_frontend::hir::irgen::HIRStream;
 
-pub trait Target: Default + Copy {
+pub trait Target: Default + Copy + PartialEq {
     fn name(&self) -> &str;
 }
 

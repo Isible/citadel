@@ -67,12 +67,13 @@ impl<'c> CodeGenerator<'c> {
     }
 
     fn gen_exit_stmt(&mut self, stmt: hir::ExitStmt<'c>) {
-        self.instructions.push(Instruction::MovI2R {
-            val: 60,
-            dest: Register::Rax,
-        });
+        //self.instructions.push(Instruction::MovI2R {
+        //    val: 60,
+        //    dest: Register::Rax,
+        //});
         let val = self.gen_expr(stmt.exit_code);
         self.instructions.push(Self::move_ins(val, Operand::Register(Register::Rdi)));
+        self.instructions.push(Self::move_ins(Operand::Immediate(60), Operand::Register(Register::Rax)));
         self.instructions.push(Instruction::Syscall);
     }
 

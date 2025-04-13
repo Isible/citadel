@@ -21,7 +21,7 @@ mod tests {
         let backend = X86Backend::new(TargetX86_64, &codegen_arena);
         let asm_code = backend.generate(ir_stream);
         println!("asm: {:#?}", asm_code);
-        let mut gen = MachineGenerator::new();
+        let mut gen = MachineGenerator::new(TargetX86_64);
         gen.generate(asm_code);
         //utils::compiler_output(utils::format(asm_code.as_slice()), PathBuf::from("build/asm/out.asm"));
     }

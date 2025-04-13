@@ -1,7 +1,3 @@
 entry {
-    call %main()
-}
-
-func @main() void {
-    exit l{69:i8}
+    exit l{102:i8}
 }

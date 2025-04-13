@@ -2,45 +2,47 @@
 //! of assembly concepts. This is used to represent the assembly
 //! the compiler outputs.
 
+use crate::api::{Backend, Target};
+
+use super::{TargetX86_32, TargetX86_64};
+
 pub mod traits;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Instruction<'ins> {
-    MovR2R {
-        val: Register,
-        dest: Register
-    },
-    MovI2R {
-        val: i64,
-        dest: Register,
-    },
-    MovM2R {
-        val: (),
-        dest: Register,
-    },
-    MovR2M {
-        val: Register,
-        dest: (),
-    },
-    Call {
-        func: &'ins str,
-    },
+    MovR2R { val: Register, dest: Register },
+    MovI2R { val: i64, dest: Register },
+    MovM2R { val: (), dest: Register },
+    MovR2M { val: Register, dest: () },
+    Call { func: &'ins str },
+    Ret,
     Syscall,
 }
 
 impl<'ins> Instruction<'ins> {
-    pub fn opcode(&self) -> &[u8] {
+    pub fn opcode<T: Target>(&self, target: T) -> &[u8] {
         match self {
             Instruction::MovR2R { val, dest } => todo!(),
             Instruction::MovI2R { val: _, dest } => match dest {
-                Register::Rax => &[0xb8],
-                Register::Rdi => &[0xbf],
+                Register::Eax => &[0xb8],
+                Register::Ebx => &[0xbb],
+                Register::Rax => &[0x48, 0xb8],
+                Register::Rdi => &[0x48, 0xbf],
                 _ => todo!(),
             },
             Instruction::MovM2R { val, dest } => todo!(),
             Instruction::MovR2M { val, dest } => todo!(),
-            Instruction::Call { func: _ } => &[0xe8],
-            Instruction::Syscall => &[0x0f, 0x05],
+            Instruction::Call { .. } => &[0xe8],
+            Instruction::Ret => &[0xc3],
+            Instruction::Syscall => {
+                if target.name() == TargetX86_32.name() {
+                    &[0xcd, 0x80]
+                } else if target.name() == TargetX86_64.name() {
+                    &[0x0f, 0x05]
+                } else {
+                    todo!()
+                }
+            }
         }
     }
 }
@@ -145,7 +147,7 @@ impl Register {
             Self::Rbp => 0x5,
             Self::Rsi => 0x6,
             Self::Rdi => 0x7,
-            _ => todo!()
+            _ => todo!(),
         }
     }
 }

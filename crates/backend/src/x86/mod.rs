@@ -15,12 +15,21 @@ use elements::{DataValue, Instruction};
 
 use crate::api::{Backend, CompiledDisplay, Target};
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct TargetX86_64;
 
 impl Target for TargetX86_64 {
     fn name(&self) -> &str {
         "x86-64"
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct TargetX86_32;
+
+impl Target for TargetX86_32 {
+    fn name(&self) -> &str {
+        "x86-32"
     }
 }
 
