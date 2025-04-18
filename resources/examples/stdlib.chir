@@ -1,0 +1,5 @@
+foreign "libc" {
+    decl("exit") func @exit() void
+
+    decl("printf") func @cprint($format *u8, ...) void
+}

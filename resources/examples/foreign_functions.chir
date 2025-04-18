@@ -1,0 +1,9 @@
+include stdlib
+
+entry {
+    exit call %main()
+}
+
+func @main() i32 {
+    call %stdlib.exit()    
+}
