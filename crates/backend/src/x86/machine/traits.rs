@@ -1,8 +1,8 @@
 //! Trait implementations for asm elements, mainly the Display trait
 
-use super::{ByteSize, DataSize, Register};
+use super::Register;
 
-impl ByteSize for Register {
+impl Register {
     fn size(&self) -> u8 {
         match self {
             Register::Rax
@@ -69,17 +69,6 @@ impl ByteSize for Register {
             | Register::R13b
             | Register::R14b
             | Register::R15b => 8,
-        }
-    }
-}
-
-impl ByteSize for DataSize {
-    fn size(&self) -> u8 {
-        match self {
-            DataSize::Byte => 1,
-            DataSize::Word => 2,
-            DataSize::DWord => 4,
-            DataSize::QWord => 8,
         }
     }
 }

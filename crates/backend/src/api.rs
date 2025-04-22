@@ -6,9 +6,9 @@
 
 use std::{io, path::Path};
 
-use citadel_frontend::hir::irgen::HIRStream;
+use citadel_middleend::lir::irgen::LIRStream;
 
-pub trait Target: Default + Copy + PartialEq {
+pub trait Target: Default + Copy {
     fn name(&self) -> &str;
 }
 
@@ -20,7 +20,7 @@ pub trait Target: Default + Copy + PartialEq {
 /// representation for your code like assembly,
 /// web-assembly...
 ///
-/// Luckily you don't need to write these backends
+/// Fortunately you don't need to write these backends
 /// yourself, but can use backends that are made by
 /// the community. Popular backends are: \[WIP\]
 ///
@@ -29,8 +29,8 @@ pub trait Target: Default + Copy + PartialEq {
 /// For creating a new backend, simply implement
 /// this type for your backend's struct.
 ///
-/// The backend requires you to define 3 types.
-/// These are: [Backend::Target], [Backend::Element], [Backend::Output]
+/// The backend requires you to define 2 types.
+/// These are: [Backend::Target], [Backend::Output]
 ///
 /// ## [Backend::Target]
 ///
@@ -58,15 +58,6 @@ pub trait Target: Default + Copy + PartialEq {
 /// Note: The element in the iterator needs to implement Display
 /// so the code can be outputted to a file easily.
 ///
-/// ## [Backend::Element]
-///
-/// This is the type of the data contained in [Backend::Output].<p>
-/// This is required since rust cannot yet ensure that the type in
-/// the iterator implements Display.
-///
-/// **For example**: If [Backend::Output] is a `Vec<AsmElement>`, then [Backend::Element]
-/// would be `AsmElement`
-///
 /// TODO: Trait methods
 pub trait Backend<'b> {
     type Target: self::Target;
@@ -76,7 +67,7 @@ pub trait Backend<'b> {
     /// Main function of the backend. This will take in a stream
     /// of IRStmts and generate code based on them. The target for
     /// code generation is [`Backend::Target`]
-    fn generate(&self, ir_stream: HIRStream<'b>) -> Self::Output;
+    fn generate(&self, ir_stream: LIRStream<'b>) -> Self::Output;
 
     /// This returns the target of the backend instance.
     ///

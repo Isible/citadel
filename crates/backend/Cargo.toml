@@ -10,7 +10,9 @@ description = "The backend/codegenerator of the citadel compiler backend"
 
 [dependencies]
 bumpalo = "3.16.0"
+byteorder = "1.5.0"
 citadel-frontend = { path = "../frontend",  version = "0.0.12" }
+citadel-middleend = { path = "../middleend", version = "0.0.11"}
 object = {version = "0.36.4", features = ["all"]}
 
 [dev-dependencies]

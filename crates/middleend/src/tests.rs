@@ -4,12 +4,12 @@ mod tests {
         ($name:ident,$in:ty,$out:ty,$ret_val:expr) => {
             struct $name;
 
-            impl<'opt> Optimization<'opt> for $name {
+            impl<'opt> Optimization for $name {
                 type InputIR = $in;
 
                 type OutputIR = $out;
 
-                fn stage_name(&self) -> &str {
+                fn name(&self) -> &str {
                     unimplemented!("Test optimizations should never be used for an actual compiler. Affected optimization: {}", stringify!($name))
                 }
 

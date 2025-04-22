@@ -7,4 +7,19 @@
 //! This crate provides an api for writing new optimizers and IR layers
 
 pub mod api;
+pub mod lir;
 mod tests;
+
+use self::api::Optimization;
+
+#[macro_export]
+macro_rules! optimize {
+    ($stream:expr,$($opt:expr),*) => {{
+        use $crate::api::Optimization;
+        let stream = $stream;
+        $(
+            let stream = $opt.optimize(stream);
+        )*
+        stream
+    }};
+}

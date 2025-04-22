@@ -3,15 +3,17 @@
 //! leveraging the [backend api](api/index.html).
 
 pub mod codegen;
-pub mod elements;
+pub mod machine;
 mod tests;
 
 use std::{collections::HashMap, path::Path};
 
 use bumpalo::Bump;
 use citadel_frontend::hir::irgen::HIRStream;
-use codegen::CodeGenerator;
-use elements::{DataValue, Instruction};
+use citadel_middleend::lir::{self, irgen::LIRStream};
+use codegen::MachineGenerator;
+use machine::{lir_to_machine, Instruction};
+use object::write::Object;
 
 use crate::api::{Backend, CompiledDisplay, Target};
 
@@ -45,16 +47,20 @@ impl<'b, T: Target> X86Backend<'b, T> {
     }
 }
 
-#[derive(Debug)]
-pub struct CompileResult<'cr> {
-    pub instructions: Vec<Instruction<'cr>>,
-    pub data: Vec<DataValue>,
+pub struct MachineStream<'machine> {
+    pub instructions: Vec<Instruction<'machine>>,
+    pub data: Vec<lir::DataValue>,
 
-    pub labels: HashMap<&'cr str, usize>,
+    // tracking
+    pub labels: HashMap<&'machine str, usize>,
     pub entry_size: usize,
 }
 
-impl CompiledDisplay for CompileResult<'_> {
+pub struct CompileResult<'cr> {
+    obj: Object<'cr>,
+}
+
+impl<'cr> CompiledDisplay for CompileResult<'cr> {
     fn as_string(&self) -> String {
         todo!()
     }
@@ -68,15 +74,17 @@ impl<'r, T: Target> Backend<'r> for X86Backend<'r, T> {
         self.target
     }
 
-    fn generate(&self, ir_stream: HIRStream<'r>) -> Self::Output {
-        let mut gen = CodeGenerator::new(self.arena, ir_stream.types);
-        gen.generate(ir_stream.stream);
-        CompileResult {
-            instructions: gen.instructions,
-            data: gen.data,
-            labels: gen.labels,
-            entry_size: gen.entry_size,
-        }
+    fn generate(&self, ir_stream: LIRStream<'r>) -> Self::Output {
+        let mut gen = MachineGenerator::new(self.target);
+        let machine_instructions = lir_to_machine(TargetX86_64, ir_stream.instructions);
+        let machine_stream = MachineStream {
+            instructions: machine_instructions,
+            data: ir_stream.data,
+            labels: ir_stream.labels,
+            entry_size: ir_stream.entry_size,
+        };
+        gen.generate(machine_stream);
+        CompileResult { obj: gen.obj }
     }
 
     fn to_file<P>(&self, output: &Self::Output, path: P) -> std::io::Result<()>

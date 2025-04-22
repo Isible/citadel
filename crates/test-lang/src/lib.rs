@@ -7,6 +7,8 @@ use bumpalo::Bump;
 use citadel_api::backend::x86::{X86Backend, TargetX86_64};
 use citadel_api::compile;
 
+use citadel_api::middleend::lir::optimization::ClirOptimization;
+use citadel_api::middleend::optimize;
 use frontend::{lexer::Lexer, parser::Parser};
 
 use crate::frontend::compiler::Compiler;
@@ -18,9 +20,11 @@ pub fn compile_asm(input_file_path: PathBuf, out_path: Option<PathBuf>) -> io::R
     let mut parser = Parser::new(&lexer, &parser_arena);
     let ast = parser.parse_program();
     let compiler_arena = Bump::new();
-    let ir_stream = Compiler::compile_program(ast, parser.functions(), &compiler_arena);
+    let hir_stream = Compiler::compile_program(ast, parser.functions(), &compiler_arena);
+    let opt_arena = Bump::new();
+    let lir_stream = optimize!(hir_stream, ClirOptimization::new(&opt_arena));
     let codegen_arena = Bump::new();
-    compile!(X86Backend::new(TargetX86_64, &codegen_arena), ir_stream)
+    compile!(X86Backend::new(TargetX86_64, &codegen_arena), lir_stream)
         .to_file(out_path.unwrap_or(PathBuf::from("build/asm/out.asm")))
 }
 
