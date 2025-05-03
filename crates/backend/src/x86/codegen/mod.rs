@@ -5,14 +5,16 @@ use std::{f64::consts::E, fs::File};
 use byteorder::{LittleEndian, WriteBytesExt};
 use citadel_middleend::lir::{self, irgen::LIRStream};
 use object::{
-    write::{Object, StandardSection, Symbol, SymbolSection},
-    Architecture, BinaryFormat, Endianness, SymbolFlags, SymbolKind, SymbolScope,
+    write::{Object, Relocation, SectionId, StandardSection, Symbol, SymbolSection}, Architecture, BinaryFormat, Endianness, RelocationEncoding, RelocationFlags, RelocationKind, SymbolFlags, SymbolKind, SymbolScope
 };
 
-use crate::{api::Target, x86::{
-    machine::{Immediate, Instruction, Register},
-    CompileResult, TargetX86_64,
-}};
+use crate::{
+    api::Target,
+    x86::{
+        machine::{Immediate, Instruction, Register},
+        CompileResult, TargetX86_64,
+    },
+};
 
 use super::{machine, MachineStream};
 
@@ -21,16 +23,17 @@ type ByteInstruction = u8;
 #[derive(Debug, Default)]
 struct Frame {
     instructions: Vec<ByteInstruction>,
+    offset: u64,
 }
 
 pub struct MachineGenerator<'m, T: Target> {
     pub obj: Object<'m>,
     frames: Vec<Frame>,
     frames_index: usize,
-    target: T
+    target: T,
 }
 
-impl<'m,T: Target> MachineGenerator<'m, T> {
+impl<'m, T: Target> MachineGenerator<'m, T> {
     pub fn new(target: T) -> Self {
         Self {
             obj: Object::new(
@@ -51,7 +54,7 @@ impl<'m,T: Target> MachineGenerator<'m, T> {
             .labels
             .remove("main")
             .expect("Cannot find _start label");
-        
+
         // We push a first frame for the entry block
         self.frames.push(Frame::default());
         dbg!(&input.instructions);
@@ -59,7 +62,7 @@ impl<'m,T: Target> MachineGenerator<'m, T> {
         self.compile_entry(&input.instructions[start_label..(start_label + input.entry_size)]);
 
         for ins in input.instructions {
-        //    self.gen_ins(&ins);
+            //    self.gen_ins(&ins);
         }
 
         // Write the object file.
@@ -73,7 +76,7 @@ impl<'m,T: Target> MachineGenerator<'m, T> {
             Instruction::MovI2R { val, dest } => self.gen_move_i2r(ins, *val, *dest),
             Instruction::MovM2R { val, dest } => todo!(),
             Instruction::MovR2M { val, dest } => todo!(),
-            Instruction::Call { .. } => todo!(), // self.gen_opcode_ins(ins),
+            Instruction::Call { func } => self.gen_call_ins(ins, func), // self.gen_opcode_ins(ins),
             Instruction::Ret => self.gen_opcode_only_ins(ins),
             Instruction::Syscall => self.gen_opcode_only_ins(ins),
         }
@@ -117,7 +120,9 @@ impl<'m,T: Target> MachineGenerator<'m, T> {
         frame.instructions.extend_from_slice(opcode);
         let mut bytes = vec![];
         dbg!(val).write::<LittleEndian>(&mut bytes).unwrap();
-        self.frames[self.frames_index].instructions.extend_from_slice(&bytes);
+        self.frames[self.frames_index]
+            .instructions
+            .extend_from_slice(&bytes);
     }
 
     fn gen_opcode_only_ins(&mut self, ins: &Instruction<'m>) {
@@ -125,5 +130,38 @@ impl<'m,T: Target> MachineGenerator<'m, T> {
             .instructions
             .extend_from_slice(ins.opcode(self.target));
     }
-    
+
+    fn gen_call_ins(&mut self, ins: Instruction<'m>, func: &str) {
+        self.frames[self.frames_index]
+            .instructions
+            .extend_from_slice(ins.opcode(self.target));
+        let func_symbol = self.obj.add_symbol(Symbol {
+            name: func.as_bytes().to_vec(),
+            value: 0,
+            size: 0,
+            kind: SymbolKind::Text,
+            scope: SymbolScope::Dynamic,
+            weak: false,
+            section: SymbolSection::Undefined,
+            flags: SymbolFlags::None,
+        });
+        self.obj.add_relocation(
+            self.obj.section_id(StandardSection::Text),
+            Relocation {
+                offset: offset + 5, // the offset of the call's 4-byte displacement
+                symbol: func_symbol,
+                addend: -4,
+                flags: RelocationFlags::Generic {
+                    kind: RelocationKind::PltRelative,
+                    encoding: RelocationEncoding::X86Branch,
+                    size: 32,
+                },
+            },
+        );
+    }
+
+    fn gen_functions(&mut self, ) {
+
+    }
+
 }

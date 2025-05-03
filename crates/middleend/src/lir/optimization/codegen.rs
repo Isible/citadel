@@ -40,9 +40,8 @@ impl<'c> LIRGenerator<'c> {
         //    dest: Register::Rax,
         //});
         let val = self.gen_expr(stmt.exit_code);
-        self.add_ins(Self::mov_ins(Operand::Immediate(Immediate::Int64(60)), Operand::Register(Register::R0)));
         self.add_ins(Self::mov_ins(val, Operand::Register(Register::R5)));
-        self.add_ins(Instruction::Syscall);
+        self.add_ins(Instruction::Call { func: "exit" });
         dbg!(&self.stream_ref().instructions);
     }
 
